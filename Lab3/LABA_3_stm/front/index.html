@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morse Web Terminal</title>
+    <style>
+        body {
+            background-color: #282c34;
+            color: #abb2bf;
+            font-family: 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        button {
+            background-color: #61afef;
+            color: #282c34;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #4a5058;
+            cursor: not-allowed;
+        }
+
+        #status,
+        #languageStatus {
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        #status {
+            color: #98c379;
+        }
+
+        #languageStatus {
+            color: #e5c07b;
+        }
+
+        .display-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            height: 50vh;
+        }
+
+        .output-panel {
+            background-color: #21252b;
+            border: 1px solid #3b4048;
+            border-radius: 5px;
+            padding: 15px;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .panel-container {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h3 {
+            margin: 0 0 5px 0;
+            color: #c678dd;
+        }
+
+        .morse-table-container {
+            background-color: #21252b;
+            border: 1px solid #3b4048;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .table-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .table-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .table-item {
+            background-color: #282c34;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .table-item .char {
+            color: #61afef;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .table-item .code {
+            color: #e5c07b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Панель управления -->
+        <div class="controls">
+            <button id="connectButton">Подключиться к плате</button>
+            <button id="disconnectButton" disabled>Отключиться</button>
+            <span id="status">Статус: Отключено</span>
+            <span id="languageStatus">Текущий язык: Английский (EN)</span>
+        </div>
+
+        <!-- Основные окна вывода -->
+        <div class="display-wrapper">
+            <div class="panel-container">
+                <h3>Принятый текст:</h3>
+                <pre id="outputText" class="output-panel"></pre>
+            </div>
+            <div class="panel-container">
+                <h3>Текст в коде Морзе:</h3>
+                <pre id="morseTranslationOutput" class="output-panel"></pre>
+            </div>
+        </div>
+
+        <!-- Таблица-справка по кодам Морзе -->
+        <div class="morse-table-container">
+            <h3>Справочник кодов Морзе</h3>
+            <!-- Английский алфавит -->
+            <div class="table-section">
+                <div class="table-item"><span class="char">A</span><span class="code">.-</span></div>
+                <div class="table-item"><span class="char">B</span><span class="code">-...</span></div>
+                <div class="table-item"><span class="char">C</span><span class="code">-.-.</span></div>
+                <div class="table-item"><span class="char">D</span><span class="code">-..</span></div>
+                <div class="table-item"><span class="char">E</span><span class="code">.</span></div>
+                <div class="table-item"><span class="char">F</span><span class="code">..-.</span></div>
+                <div class="table-item"><span class="char">G</span><span class="code">--.</span></div>
+                <div class="table-item"><span class="char">H</span><span class="code">....</span></div>
+                <div class="table-item"><span class="char">I</span><span class="code">..</span></div>
+                <div class="table-item"><span class="char">J</span><span class="code">.---</span></div>
+                <div class="table-item"><span class="char">K</span><span class="code">-.-</span></div>
+                <div class="table-item"><span class="char">L</span><span class="code">.-..</span></div>
+                <div class="table-item"><span class="char">M</span><span class="code">--</span></div>
+                <div class="table-item"><span class="char">N</span><span class="code">-.</span></div>
+                <div class="table-item"><span class="char">O</span><span class="code">---</span></div>
+                <div class="table-item"><span class="char">P</span><span class="code">.--.</span></div>
+                <div class="table-item"><span class="char">Q</span><span class="code">--.-</span></div>
+                <div class="table-item"><span class="char">R</span><span class="code">.-.</span></div>
+                <div class="table-item"><span class="char">S</span><span class="code">...</span></div>
+                <div class="table-item"><span class="char">T</span><span class="code">-</span></div>
+                <div class="table-item"><span class="char">U</span><span class="code">..-</span></div>
+                <div class="table-item"><span class="char">V</span><span class="code">...-</span></div>
+                <div class="table-item"><span class="char">W</span><span class="code">.--</span></div>
+                <div class="table-item"><span class="char">X</span><span class="code">-..-</span></div>
+                <div class="table-item"><span class="char">Y</span><span class="code">-.--</span></div>
+                <div class="table-item"><span class="char">Z</span><span class="code">--..</span></div>
+            </div>
+            <!-- Русский алфавит -->
+            <div class="table-section">
+                <div class="table-item"><span class="char">А</span><span class="code">.-</span></div>
+                <div class="table-item"><span class="char">Б</span><span class="code">-...</span></div>
+                <div class="table-item"><span class="char">В</span><span class="code">.--</span></div>
+                <div class="table-item"><span class="char">Г</span><span class="code">--.</span></div>
+                <div class="table-item"><span class="char">Д</span><span class="code">-..</span></div>
+                <div class="table-item"><span class="char">Е</span><span class="code">.</span></div>
+                <div class="table-item"><span class="char">Ж</span><span class="code">...-</span></div>
+                <div class="table-item"><span class="char">З</span><span class="code">--..</span></div>
+                <div class="table-item"><span class="char">И</span><span class="code">..</span></div>
+                <div class="table-item"><span class="char">Й</span><span class="code">.---</span></div>
+                <div class="table-item"><span class="char">К</span><span class="code">-.-</span></div>
+                <div class="table-item"><span class="char">Л</span><span class="code">.-..</span></div>
+                <div class="table-item"><span class="char">М</span><span class="code">--</span></div>
+                <div class="table-item"><span class="char">Н</span><span class="code">-.</span></div>
+                <div class="table-item"><span class="char">О</span><span class="code">---</span></div>
+                <div class="table-item"><span class="char">П</span><span class="code">.--.</span></div>
+                <div class="table-item"><span class="char">Р</span><span class="code">.-.</span></div>
+                <div class="table-item"><span class="char">С</span><span class="code">...</span></div>
+                <div class="table-item"><span class="char">Т</span><span class="code">-</span></div>
+                <div class="table-item"><span class="char">У</span><span class="code">..-</span></div>
+                <div class="table-item"><span class="char">Ф</span><span class="code">..-.</span></div>
+                <div class="table-item"><span class="char">Х</span><span class="code">....</span></div>
+                <div class="table-item"><span class="char">Ц</span><span class="code">-.-.</span></div>
+                <div class="table-item"><span class="char">Ч</span><span class="code">---.</span></div>
+                <div class="table-item"><span class="char">Ш</span><span class="code">----</span></div>
+                <div class="table-item"><span class="char">Щ</span><span class="code">--.-</span></div>
+                <div class="table-item"><span class="char">Ъ</span><span class="code">.--.-.</span></div>
+                <div class="table-item"><span class="char">Ы</span><span class="code">-.--</span></div>
+                <div class="table-item"><span class="char">Ь</span><span class="code">-..-</span></div>
+                <div class="table-item"><span class="char">Э</span><span class="code">..-..</span></div>
+                <div class="table-item"><span class="char">Ю</span><span class="code">..--</span></div>
+                <div class="table-item"><span class="char">Я</span><span class="code">.-.-</span></div>
+            </div>
+            <!-- Цифры -->
+            <div class="table-section">
+                <div class="table-item"><span class="char">0</span><span class="code">-----</span></div>
+                <div class="table-item"><span class="char">1</span><span class="code">.----</span></div>
+                <div class="table-item"><span class="char">2</span><span class="code">..---</span></div>
+                <div class="table-item"><span class="char">3</span><span class="code">...--</span></div>
+                <div class="table-item"><span class="char">4</span><span class="code">....-</span></div>
+                <div class="table-item"><span class="char">5</span><span class="code">.....</span></div>
+                <div class="table-item"><span class="char">6</span><span class="code">-....</span></div>
+                <div class="table-item"><span class="char">7</span><span class="code">--...</span></div>
+                <div class="table-item"><span class="char">8</span><span class="code">---..</span></div>
+                <div class="table-item"><span class="char">9</span><span class="code">----.</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const morseLookup = {
+            'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',
+            'E': '.',     'F': '..-.',  'G': '--.',   'H': '....',
+            'I': '..',    'J': '.---',  'K': '-.-',   'L': '.-..',
+            'M': '--',    'N': '-.',    'O': '---',   'P': '.--.',
+            'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+            'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',
+            'Y': '-.--',  'Z': '--..',
+            '0': '-----', '1': '.----', '2': '..---', '3': '...--',
+            '4': '....-', '5': '.....', '6': '-....', '7': '--...',
+            '8': '---..', '9': '----.',
+            'А': '.-',    'Б': '-...',  'В': '.--',   'Г': '--.',
+            'Д': '-..',   'Е': '.',     'Ж': '...-',  'З': '--..',
+            'И': '..',    'Й': '.---',  'К': '-.-',   'Л': '.-..',
+            'М': '--',    'Н': '-.',    'О': '---',   'П': '.--.',
+            'Р': '.-.',   'С': '...',   'Т': '-',     'У': '..-',
+            'Ф': '..-.',  'Х': '....',  'Ц': '-.-.',  'Ч': '---.',
+            'Ш': '----',  'Щ': '--.-',  'Ъ': '.--.-.','Ы': '-.--',
+            'Ь': '-..-',  'Э': '..-..', 'Ю': '..--',  'Я': '.-.-',
+            '?': '..__..'
+        };
+
+        const connectButton = document.getElementById('connectButton');
+        const disconnectButton = document.getElementById('disconnectButton');
+        const statusDisplay = document.getElementById('status');
+        const outputText = document.getElementById('outputText');
+        const morseTranslationOutput = document.getElementById('morseTranslationOutput');
+        const languageStatusDisplay = document.getElementById('languageStatus');
+        
+        let port;
+        let reader;
+        let keepReading = false;
+
+        connectButton.addEventListener('click', async () => {
+            if ('serial' in navigator) {
+                try {
+                    port = await navigator.serial.requestPort();
+                    await port.open({ baudRate: 115200 });
+                    
+                    statusDisplay.textContent = 'Статус: Подключено';
+                    connectButton.disabled = true;
+                    disconnectButton.disabled = false;
+                    
+                    keepReading = true;
+                    readFromSerial();
+
+                } catch (err) {
+                    statusDisplay.textContent = `Ошибка: ${err.message}`;
+                }
+            } else {
+                alert('Ваш браузер не поддерживает Web Serial API. Используйте Google Chrome или MS Edge.');
+            }
+        });
+
+        disconnectButton.addEventListener('click', async () => {
+            if (port) {
+                keepReading = false;
+                if (reader) {
+                    await reader.cancel();
+                }
+                await port.close();
+                port = undefined;
+
+                statusDisplay.textContent = 'Статус: Отключено';
+                connectButton.disabled = false;
+                disconnectButton.disabled = true;
+                languageStatusDisplay.textContent = 'Текущий язык: Английский (EN)';
+            }
+        });
+
+        async function readFromSerial() {
+            const textDecoder = new TextDecoder();
+
+            while (port && port.readable && keepReading) {
+                reader = port.readable.getReader();
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            break;
+                        }
+                        
+                        let textToProcess = textDecoder.decode(value);
+                        let languageChanged = false;
+
+                        if (textToProcess.includes('[Lang: RU]')) {
+                            languageStatusDisplay.textContent = 'Текущий язык: Русский (RU)';
+                            textToProcess = textToProcess.replace(/\[Lang: RU\]\r?\n?/g, '');
+                            languageChanged = true;
+                        }
+                        if (textToProcess.includes('[Lang: EN]')) {
+                            languageStatusDisplay.textContent = 'Текущий язык: Английский (EN)';
+                            textToProcess = textToProcess.replace(/\[Lang: EN\]\r?\n?/g, '');
+                            languageChanged = true;
+                        }
+
+                        if (textToProcess.length === 0 && languageChanged) {
+                           continue; 
+                        }
+
+                        outputText.textContent += textToProcess;
+
+                        let translatedChunk = '';
+                        for (const char of textToProcess) {
+                            const upperChar = char.toUpperCase();
+                            if (upperChar === ' ') {
+                                translatedChunk += ' / ';
+                            } else if (upperChar === '\n' || upperChar === '\r') {
+                                translatedChunk += '\n';
+                            } else if (morseLookup[upperChar]) {
+                                translatedChunk += morseLookup[upperChar] + ' ';
+                            } else if (char.trim() !== '') {
+                                translatedChunk += '??? ';
+                            }
+                        }
+
+                        morseTranslationOutput.textContent += translatedChunk;
+                        
+                        outputText.scrollTop = outputText.scrollHeight;
+                        morseTranslationOutput.scrollTop = morseTranslationOutput.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('Ошибка чтения из порта:', error);
+                    statusDisplay.textContent = `Ошибка: ${error.message}`;
+                } finally {
+                    reader.releaseLock();
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>

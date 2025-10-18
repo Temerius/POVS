@@ -1,0 +1,20 @@
+a, RIGHT - (b, DOWN), (a, NEXT_DIGIT_RIGHT), (f, NEXT_DIGIT_DOWN) 
+a, LEFT - (f, DOWN), (a, PREV_DIGIT_LEFT), (b, PREV_DIGIT_DOWN) 
+
+b, UP - (a, LEFT), (a, NEXT_DIGIT_RIGHT) 
+b, DOWN - (g, LEFT), (c, DOWN), (g, NEXT_DIGIT_RIGHT), (e, NEXT_DIGIT_DOWN) 
+
+g, RIGHT - (b, UP), (c, DOWN), (f, NEXT_DIGIT_UP), (e, NEXT_DIGIT_DOWN), (g, NEXT_DIGIT_RIGHT) 
+g, LEFT - (f, UP), (e, DOWN), (g, PREV_DIGIT_LEFT), (c, PREV_DIGIT_DOWN), (b, PREV_DIGIT_UP) 
+
+c, UP - (g, LEFT), (b, UP), (g, NEXT_DIGIT_RIGHT), (f, NEXT_DIGIT_UP) 
+c, DOWN - (d, LEFT), (d, NEXT_DIGIT_RIGHT) 
+
+d, RIGHT - (c, UP), (d, NEXT_DIGIT_RIGHT), (e, NEXT_DIGIT_UP) 
+d, LEFT - (e, UP), (d, PREV_DIGIT_LEFT), (c, PREV_DIGIT_UP) 
+
+e, UP - (g, RIGHT), (f, UP), (g, PREV_DIGIT_LEFT), (b, PREV_DIGIT_UP) 
+e, DOWN - (d, RIGHT), (d, PREV_DIGIT_LEFT) 
+
+f, DOWN - (g, RIGHT), (e, DOWN), (g, PREV_DIGIT_LEFT), (c, PREV_DIGIT_DOWN) 
+f, UP - (a, RIGHT), (a, PREV_DIGIT_LEFT)
