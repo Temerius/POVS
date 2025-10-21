@@ -69,7 +69,7 @@ class STM32TwoWayComm:
                     print(f"❌ RX Error: {e}")
                 break
             
-            time.sleep(0.01)  # Небольшая задержка
+            #time.sleep(0.01)  # Небольшая задержка
     
     def sender_thread(self):
         """Поток для отправки случайных чисел на STM32"""
@@ -80,11 +80,12 @@ class STM32TwoWayComm:
                 # Генерируем случайное число от 0 до 99
                 random_number = random.randint(0, 99)
                 
+
                 # Отправляем на STM32
                 self.send_number(random_number)
                 
                 # Ждём 3 секунды перед следующей отправкой
-                time.sleep(3)
+                time.sleep(100)
                 
             except Exception as e:
                 if self.running:
@@ -143,7 +144,7 @@ def main():
     comm = STM32TwoWayComm(PORT)
     
     if comm.connect():
-        time.sleep(1)  # Даём время на инициализацию
+        time.sleep(1) 
         comm.run()
     else:
         print("\nПроверь:")

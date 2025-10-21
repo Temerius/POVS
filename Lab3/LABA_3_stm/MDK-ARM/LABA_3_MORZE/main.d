@@ -27,4 +27,5 @@ laba_3_morze/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h \
   ..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\string.h \
-  D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\stdio.h
+  D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\stdio.h \
+  D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\stdlib.h
