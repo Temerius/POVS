@@ -20,6 +20,8 @@ class STM32GameController:
         self.baudrate = baudrate
         self.ser = None
         self.running = False
+
+        self.in_menu = False
         
         self.latest_packet = None
         self.latest_menu = None
@@ -139,6 +141,7 @@ class STM32GameController:
                 if packet:
                     with self.packet_lock:
                         self.latest_packet = packet
+                        self.in_menu = False
                 else:
                     print(f"⚠ Invalid GAME packet: {[hex(b) for b in packet_data]}")
 
@@ -147,6 +150,7 @@ class STM32GameController:
                 if packet:
                     with self.packet_lock:
                         self.latest_menu = packet  
+                        self.in_menu = False
                 else:
                     print(f"⚠ Invalid MENU packet: {[hex(b) for b in packet_data]}")
 
@@ -180,6 +184,8 @@ class STM32GameController:
             try:
                 time.sleep(self.spawn_interval)
                 
+                if self.in_menu:
+                    continue
                 # Генерируем случайного врага
                 x = random.randint(50, 750)
                 enemy_type = random.choice([0, 1])  # 0=asteroid, 1=ship

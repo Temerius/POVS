@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Defenders - Standalone</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #191970 100%);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .instructions h3 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+
+        .instructions ul {
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" class="game-canvas"></canvas>
+        
+        <div class="instructions">
+            <h3>🌊 Sea Defenders</h3>
+            <ul>
+                <li><strong>A</strong> - движение влево (стрельба вправо)</li>
+                <li><strong>W</strong> - движение вправо (стрельба влево)</li>
+                <li><strong>SPACE</strong> - стрельба</li>
+                <li><strong>ESC</strong> - пауза/продолжить</li>
+                <li><strong>Зеркальная логика:</strong> движение влево = стрельба вправо</li>
+                <li><strong>Шлюпки:</strong> быстрые, 1 попадание</li>
+                <li><strong>Галеоны:</strong> медленные, 2-3 попадания, стреляют</li>
+                <li><strong>Острова:</strong> препятствия с пальмами</li>
+                <li><strong>Водовороты:</strong> телепорты</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Подключаем модули -->
+    <script src="game_controller.js"></script>
+    <script src="game_logic.js"></script>
+    <script src="game_renderer.js"></script>
+
+    <script>
+        /**
+         * Главный класс игры Sea Defenders
+         * Объединяет контроллер, логику и рендерер
+         */
+        class SeaDefendersGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.controller = new GameController();
+                this.logic = new GameLogic();
+                this.renderer = new GameRenderer(this.canvas);
+                
+                this.lastTime = 0;
+                this.isRunning = true;
+                
+                this.gameLoop();
+            }
+            
+            gameLoop(currentTime = 0) {
+                if (!this.isRunning) return;
+                
+                // Вычисляем deltaTime
+                const deltaTime = currentTime - this.lastTime;
+                this.lastTime = currentTime;
+                
+                // Получаем ввод от контроллера
+                const input = this.controller.getInput();
+                
+                // Обновляем игровую логику
+                this.logic.update(input, deltaTime);
+                
+                // Получаем состояние игры
+                const gameState = this.logic.getGameState();
+                
+                // Рендерим игру
+                this.renderer.render(gameState);
+                
+                // Сбрасываем состояние стрельбы
+                if (input.fire) {
+                    this.controller.resetFire();
+                }
+                
+                // Продолжаем игровой цикл
+                requestAnimationFrame((time) => this.gameLoop(time));
+            }
+            
+            // Остановка игры
+            stop() {
+                this.isRunning = false;
+            }
+            
+            // Запуск игры
+            start() {
+                this.isRunning = true;
+                this.lastTime = 0;
+                this.gameLoop();
+            }
+        }
+        
+        // Запуск игры при загрузке страницы
+        window.addEventListener('load', () => {
+            const game = new SeaDefendersGame();
+            
+            // Обработка потери фокуса (пауза)
+            window.addEventListener('blur', () => {
+                if (game.logic.gameState.state === 'PLAYING') {
+                    game.logic.gameState.state = 'PAUSED';
+                    game.logic.gameState.selectedItem = 0;
+                }
+            });
+            
+            // Обработка возврата фокуса
+            window.addEventListener('focus', () => {
+                // Игра продолжается автоматически
+            });
+            
+            // Обработка ESC для паузы
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Escape') {
+                    if (game.logic.gameState.state === 'PLAYING') {
+                        game.logic.gameState.state = 'PAUSED';
+                        game.logic.gameState.selectedItem = 0;
+                    } else if (game.logic.gameState.state === 'PAUSED') {
+                        game.logic.gameState.state = 'PLAYING';
+                    }
+                }
+            });
+            
+            // Обновление размеров при изменении окна
+            window.addEventListener('resize', () => {
+                game.logic.SCREEN_WIDTH = window.innerWidth;
+                game.logic.SCREEN_HEIGHT = window.innerHeight;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Удаление белого фона</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { display: inline-block; margin: 10px; text-align: center; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        button { margin: 5px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        input { margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Удаление белого фона с изображений корабля</h1>
+    
+    <div>
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        <button onclick="processImages()">Обработать изображения</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function removeWhiteBackground(canvas, threshold = 240) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                // Если пиксель близок к белому, делаем его прозрачным
+                if (r > threshold && g > threshold && b > threshold) {
+                    data[i + 3] = 0; // Устанавливаем альфа в 0 (прозрачность)
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        function processImages() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            const resultsDiv = document.getElementById('results');
+            
+            if (files.length === 0) {
+                alert('Выберите изображения');
+                return;
+            }
+            
+            resultsDiv.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Рисуем изображение на canvas
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Удаляем белый фон
+                        removeWhiteBackground(canvas);
+                        
+                        // Создаем контейнер для результата
+                        const container = document.createElement('div');
+                        container.className = 'container';
+                        
+                        const title = document.createElement('h3');
+                        title.textContent = file.name;
+                        container.appendChild(title);
+                        
+                        container.appendChild(canvas);
+                        
+                        const button = document.createElement('button');
+                        button.textContent = 'Скачать';
+                        button.onclick = function() {
+                            downloadCanvas(canvas, file.name);
+                        };
+                        container.appendChild(button);
+                        
+                        resultsDiv.appendChild(container);
+                    };
+                    img.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

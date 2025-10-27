@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Defenders - Final Version</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #191970 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #191970 100%);
+        }
+
+        .game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .ui-panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+
+        .score-panel {
+            top: 10px;
+            left: 10px;
+        }
+
+        .health-panel {
+            top: 10px;
+            right: 10px;
+        }
+
+        .controls-panel {
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .connection-panel {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .status {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .status.disconnected {
+            color: #f44336;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            font-size: 12px;
+        }
+
+        .instructions h3 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+
+        .instructions ul {
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" class="game-canvas"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="connection-panel">
+                <button id="connectBtn">Подключиться</button>
+                <button id="disconnectBtn" disabled>Отключиться</button>
+                <span id="status" class="status disconnected">Отключено</span>
+            </div>
+            
+            <div class="score-panel">
+                <div>Счёт: <span id="score">0</span></div>
+                <div>Уровень: <span id="level">1</span></div>
+            </div>
+            
+            <div class="health-panel">
+                <div>Здоровье: <span id="health">100</span></div>
+                <div>Угол: <span id="angle">0°</span></div>
+            </div>
+            
+            <div class="controls-panel">
+                <div><strong>Управление:</strong></div>
+                <div>← Влево (стрельба вправо)</div>
+                <div>→ Вправо (стрельба влево)</div>
+                <div>FIRE - Залп</div>
+            </div>
+            
+            <div class="instructions">
+                <h3>🌊 Sea Defenders</h3>
+                <ul>
+                    <li><strong>Зеркальная логика:</strong> движение влево = стрельба вправо</li>
+                    <li><strong>Шлюпки:</strong> быстрые, 1 попадание</li>
+                    <li><strong>Галеоны:</strong> медленные, 2-3 попадания, стреляют</li>
+                    <li><strong>Острова:</strong> препятствия</li>
+                    <li><strong>Водовороты:</strong> телепорты</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SeaDefendersGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.port = null;
+                this.reader = null;
+                this.keepReading = false;
+                
+                this.gameState = {
+                    player: { x: 400, y: 500, hp: 100, angle: 0 },
+                    enemies: [],
+                    bullets: [],
+                    enemyBullets: [],
+                    score: 0,
+                    level: 1,
+                    state: 'MENU',
+                    selectedItem: 0
+                };
+                
+                this.images = {};
+                this.setupCanvas();
+                this.setupEventListeners();
+                this.loadImages();
+                this.gameLoop();
+            }
+            
+            setupCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                });
+            }
+            
+            setupEventListeners() {
+                document.getElementById('connectBtn').addEventListener('click', () => this.connect());
+                document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
+            }
+            
+            async loadImages() {
+                // Загружаем изображения для игры
+                const imageNames = ['player_up', 'player_down', 'player_left', 'player_right', 'enemy_simple', 'enemy_hard'];
+                for (const name of imageNames) {
+                    this.images[name] = new Image();
+                    this.images[name].src = `${name}.png`;
+                }
+            }
+            
+            async connect() {
+                if ('serial' in navigator) {
+                    try {
+                        this.port = await navigator.serial.requestPort();
+                        await this.port.open({ baudRate: 115200 });
+                        
+                        document.getElementById('status').textContent = 'Подключено';
+                        document.getElementById('status').className = 'status';
+                        document.getElementById('connectBtn').disabled = true;
+                        document.getElementById('disconnectBtn').disabled = false;
+                        
+                        this.keepReading = true;
+                        this.readFromSerial();
+                        
+                    } catch (err) {
+                        console.error('Ошибка подключения:', err);
+                        document.getElementById('status').textContent = `Ошибка: ${err.message}`;
+                    }
+                } else {
+                    alert('Ваш браузер не поддерживает Web Serial API. Используйте Chrome или Edge.');
+                }
+            }
+            
+            async disconnect() {
+                if (this.port) {
+                    this.keepReading = false;
+                    if (this.reader) {
+                        await this.reader.cancel();
+                    }
+                    await this.port.close();
+                    this.port = null;
+                    
+                    document.getElementById('status').textContent = 'Отключено';
+                    document.getElementById('status').className = 'status disconnected';
+                    document.getElementById('connectBtn').disabled = false;
+                    document.getElementById('disconnectBtn').disabled = true;
+                }
+            }
+            
+            async readFromSerial() {
+                const textDecoder = new TextDecoder();
+                
+                while (this.port && this.port.readable && this.keepReading) {
+                    this.reader = this.port.readable.getReader();
+                    try {
+                        while (true) {
+                            const { value, done } = await this.reader.read();
+                            if (done) break;
+                            
+                            const data = new Uint8Array(value);
+                            this.processGameData(data);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка чтения:', error);
+                    } finally {
+                        this.reader.releaseLock();
+                    }
+                }
+            }
+            
+            processGameData(data) {
+                // Обработка данных от STM32
+                if (data.length < 3) return;
+                
+                console.log('Получены данные:', Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' '));
+                
+                if (data[0] === 0xAA && data[1] === 0x01) { // Game State packet
+                    this.parseGameState(data);
+                } else if (data[0] === 0xAA && data[1] === 0x02) { // Menu State packet
+                    this.parseMenuState(data);
+                } else if (data[0] === 0xAA && data[1] === 0x03) { // Debug packet
+                    this.parseDebugMessage(data);
+                }
+            }
+            
+            parseGameState(data) {
+                try {
+                    let idx = 2;
+                    
+                    // Player data
+                    this.gameState.player.x = (data[idx] << 8) | data[idx + 1];
+                    idx += 2;
+                    this.gameState.player.y = (data[idx] << 8) | data[idx + 1];
+                    idx += 2;
+                    this.gameState.player.hp = data[idx++];
+                    this.gameState.player.angle = data[idx++];
+                    
+                    // Score and level
+                    this.gameState.score = (data[idx] << 8) | data[idx + 1];
+                    idx += 2;
+                    this.gameState.level = data[idx++];
+                    
+                    // Обновляем состояние игры
+                    this.gameState.state = 'PLAYING';
+                    
+                    // Update UI
+                    document.getElementById('score').textContent = this.gameState.score;
+                    document.getElementById('level').textContent = this.gameState.level;
+                    document.getElementById('health').textContent = this.gameState.player.hp;
+                    document.getElementById('angle').textContent = this.gameState.player.angle + '°';
+                    document.getElementById('status').textContent = 'Игра';
+                    
+                    console.log('Game State:', this.gameState.player);
+                    
+                } catch (error) {
+                    console.error('Ошибка парсинга данных:', error);
+                }
+            }
+            
+            parseMenuState(data) {
+                try {
+                    let idx = 2;
+                    const gameState = data[idx++];
+                    const selectedItem = data[idx++];
+                    const score = (data[idx] << 8) | data[idx + 1];
+                    
+                    console.log('Menu State:', { gameState, selectedItem, score });
+                    
+                    // Обновляем состояние игры
+                    this.gameState.selectedItem = selectedItem;
+                    this.gameState.score = score;
+                    
+                    if (gameState === 0) { // MENU
+                        this.gameState.state = 'MENU';
+                        document.getElementById('status').textContent = 'Меню';
+                    } else if (gameState === 1) { // PLAYING
+                        this.gameState.state = 'PLAYING';
+                        document.getElementById('status').textContent = 'Игра';
+                    } else if (gameState === 2) { // PAUSED
+                        this.gameState.state = 'PAUSED';
+                        document.getElementById('status').textContent = 'Пауза';
+                    } else if (gameState === 3) { // GAME_OVER
+                        this.gameState.state = 'GAME_OVER';
+                        document.getElementById('status').textContent = 'Game Over';
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка парсинга меню:', error);
+                }
+            }
+            
+            parseDebugMessage(data) {
+                try {
+                    // Извлекаем текст отладки
+                    const message = new TextDecoder().decode(data.slice(2, -2));
+                    console.log('Debug:', message);
+                    
+                    // Показываем в UI
+                    const debugDiv = document.getElementById('debug') || this.createDebugDiv();
+                    debugDiv.textContent = message;
+                    
+                } catch (error) {
+                    console.error('Ошибка парсинга отладки:', error);
+                }
+            }
+            
+            createDebugDiv() {
+                const debugDiv = document.createElement('div');
+                debugDiv.id = 'debug';
+                debugDiv.style.position = 'absolute';
+                debugDiv.style.top = '60px';
+                debugDiv.style.left = '10px';
+                debugDiv.style.background = 'rgba(0,0,0,0.8)';
+                debugDiv.style.color = 'white';
+                debugDiv.style.padding = '10px';
+                debugDiv.style.borderRadius = '5px';
+                debugDiv.style.fontSize = '12px';
+                document.body.appendChild(debugDiv);
+                return debugDiv;
+            }
+            
+            draw() {
+                // Очистка экрана
+                this.ctx.fillStyle = 'linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #191970 100%)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Рисуем море с волнами
+                this.drawSea();
+                
+                // Рисуем меню если нужно
+                if (this.gameState.state === 'MENU' || this.gameState.state === 'PAUSED' || this.gameState.state === 'GAME_OVER') {
+                    this.drawMenu();
+                } else {
+                    // Рисуем игрока
+                    this.drawPlayer();
+                    
+                    // Рисуем врагов
+                    this.drawEnemies();
+                    
+                    // Рисуем пули
+                    this.drawBullets();
+                }
+            }
+            
+            drawSea() {
+                // Градиент моря
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(0.5, '#4682B4');
+                gradient.addColorStop(1, '#191970');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Волны
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.lineWidth = 2;
+                for (let i = 0; i < 5; i++) {
+                    this.ctx.beginPath();
+                    const y = 100 + i * 100;
+                    for (let x = 0; x < this.canvas.width; x += 20) {
+                        const waveY = y + Math.sin((x + Date.now() * 0.001) * 0.01) * 10;
+                        if (x === 0) {
+                            this.ctx.moveTo(x, waveY);
+                        } else {
+                            this.ctx.lineTo(x, waveY);
+                        }
+                    }
+                    this.ctx.stroke();
+                }
+            }
+            
+            drawMenu() {
+                // Полупрозрачный фон
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Заголовок
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.font = 'bold 48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('SEA DEFENDERS', this.canvas.width / 2, 150);
+                
+                // Подзаголовок
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.font = '24px Arial';
+                this.ctx.fillText('Зеркальная морская битва', this.canvas.width / 2, 200);
+                
+                // Пункты меню
+                const menuItems = this.getMenuItems();
+                const startY = 300;
+                const itemHeight = 60;
+                
+                for (let i = 0; i < menuItems.length; i++) {
+                    const y = startY + i * itemHeight;
+                    const isSelected = i === this.gameState.selectedItem;
+                    
+                    // Фон для выбранного пункта
+                    if (isSelected) {
+                        this.ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+                        this.ctx.fillRect(this.canvas.width / 2 - 200, y - 30, 400, 50);
+                    }
+                    
+                    // Текст пункта меню
+                    this.ctx.fillStyle = isSelected ? '#FFD700' : '#FFFFFF';
+                    this.ctx.font = isSelected ? 'bold 28px Arial' : '24px Arial';
+                    this.ctx.fillText(menuItems[i], this.canvas.width / 2, y);
+                }
+                
+                // Инструкции
+                this.ctx.fillStyle = '#CCCCCC';
+                this.ctx.font = '18px Arial';
+                this.ctx.fillText('← → - навигация, FIRE - выбор', this.canvas.width / 2, this.canvas.height - 100);
+            }
+            
+            getMenuItems() {
+                if (this.gameState.state === 'MENU') {
+                    return ['НАЧАТЬ ИГРУ', 'ВЫХОД'];
+                } else if (this.gameState.state === 'PAUSED') {
+                    return ['ПРОДОЛЖИТЬ', 'ЗАНОВО', 'ВЫХОД'];
+                } else if (this.gameState.state === 'GAME_OVER') {
+                    return ['ЗАНОВО', 'ВЫХОД'];
+                }
+                return [];
+            }
+            
+            drawPlayer() {
+                const player = this.gameState.player;
+                
+                this.ctx.save();
+                this.ctx.translate(player.x, player.y);
+                
+                // Выбираем изображение в зависимости от угла
+                let shipImage = this.images['player_up']; // по умолчанию
+                
+                if (player.angle > 45) {
+                    shipImage = this.images['player_right'];
+                } else if (player.angle < -45) {
+                    shipImage = this.images['player_left'];
+                } else if (Math.abs(player.angle) < 15) {
+                    shipImage = this.images['player_up'];
+                } else {
+                    // Для промежуточных углов используем поворот
+                    shipImage = this.images['player_up'];
+                }
+                
+                // Рисуем изображение корабля
+                if (shipImage && shipImage.complete) {
+                    this.ctx.drawImage(shipImage, -32, -32, 64, 64);
+                } else {
+                    // Fallback - рисуем простой корабль
+                    this.ctx.fillStyle = '#8B4513';
+                    this.ctx.fillRect(-20, -10, 40, 20);
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.fillRect(-15, -25, 30, 15);
+                }
+                
+                // Показываем направление стрельбы
+                this.ctx.strokeStyle = '#FFD700';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                if (player.angle < -15) { // Поворот влево = стрельба вправо
+                    this.ctx.moveTo(15, 0);
+                    this.ctx.lineTo(25, 0);
+                } else if (player.angle > 15) { // Поворот вправо = стрельба влево
+                    this.ctx.moveTo(-15, 0);
+                    this.ctx.lineTo(-25, 0);
+                } else { // Прямо = стрельба вперед
+                    this.ctx.moveTo(0, -10);
+                    this.ctx.lineTo(0, -20);
+                }
+                this.ctx.stroke();
+                
+                this.ctx.restore();
+            }
+            
+            drawEnemies() {
+                this.gameState.enemies.forEach(enemy => {
+                    this.ctx.save();
+                    this.ctx.translate(enemy.x, enemy.y);
+                    
+                    if (enemy.type === 0) { // Шлюпка
+                        this.ctx.fillStyle = '#4169E1';
+                        this.ctx.fillRect(-15, -8, 30, 16);
+                        
+                        // Парус шлюпки
+                        this.ctx.fillStyle = '#F0F8FF';
+                        this.ctx.fillRect(-10, -15, 20, 10);
+                    } else { // Галеон
+                        this.ctx.fillStyle = '#8B0000';
+                        this.ctx.fillRect(-25, -12, 50, 24);
+                        
+                        // Паруса галеона
+                        this.ctx.fillStyle = '#FFFFFF';
+                        this.ctx.fillRect(-20, -20, 15, 15);
+                        this.ctx.fillRect(5, -20, 15, 15);
+                    }
+                    
+                    this.ctx.restore();
+                });
+            }
+            
+            drawBullets() {
+                this.ctx.fillStyle = '#FFD700';
+                this.gameState.bullets.forEach(bullet => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                this.ctx.fillStyle = '#FF4500';
+                this.gameState.enemyBullets.forEach(bullet => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+            }
+            
+            gameLoop() {
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+        
+        // Запуск игры
+        new SeaDefendersGame();
+    </script>
+</body>
+</html>
