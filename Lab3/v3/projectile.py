@@ -1,7 +1,7 @@
-# projectile.py
+# projectile.py - Исправленная отрисовка
 import pygame
 import math
-from config import BLACK
+from config import BLACK, SCREEN_HEIGHT
 
 class Projectile:
     def __init__(self, x, y, angle, speed=12):
@@ -19,6 +19,10 @@ class Projectile:
         
     def draw(self, screen, camera_y):
         screen_y = int(self.y - camera_y)
-        if -50 < screen_y < 850:
-            pygame.draw.circle(screen, BLACK, (int(self.x), screen_y), self.radius)
-            pygame.draw.circle(screen, (255, 150, 0), (int(self.x), screen_y), self.radius - 2)
+        
+        # Проверяем видимость снаряда
+        if screen_y < -50 or screen_y > SCREEN_HEIGHT + 50:
+            return
+            
+        pygame.draw.circle(screen, BLACK, (int(self.x), screen_y), self.radius)
+        pygame.draw.circle(screen, (255, 150, 0), (int(self.x), screen_y), self.radius - 2)

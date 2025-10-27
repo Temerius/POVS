@@ -1,4 +1,4 @@
-# island.py
+# island.py - Завершенная версия с исправленной видимостью
 import pygame
 import random
 import math
@@ -33,23 +33,30 @@ class Island:
     def draw(self, screen, camera_y):
         adjusted_points = [(int(p[0]), int(p[1] - camera_y)) for p in self.points]
         
-        # Проверка видимости
-        if any(-200 < p[1] < SCREEN_HEIGHT + 200 for p in adjusted_points):
-            pygame.draw.polygon(screen, ISLAND_GREEN, adjusted_points)
-            pygame.draw.polygon(screen, DARK_GREEN, adjusted_points, 3)
+        # Проверка видимости - проверяем, находится ли остров в видимой области
+        min_y = min(p[1] for p in adjusted_points)
+        max_y = max(p[1] for p in adjusted_points)
+        
+        # Если остров полностью вне видимой области, не рисуем его
+        if max_y < -200 or min_y > SCREEN_HEIGHT + 200:
+            return
             
-            # Маяк
-            if self.has_structure:
-                struct_x = int(self.x)
-                struct_y = int(self.y - camera_y)
-                if -100 < struct_y < SCREEN_HEIGHT + 100:
-                    pygame.draw.rect(screen, (139, 69, 19), 
-                                   (struct_x - 8, struct_y - 35, 16, 35))
-                    pygame.draw.polygon(screen, RED, [
-                        (struct_x, struct_y - 45),
-                        (struct_x - 12, struct_y - 35),
-                        (struct_x + 12, struct_y - 35)
-                    ])
+        pygame.draw.polygon(screen, ISLAND_GREEN, adjusted_points)
+        pygame.draw.polygon(screen, DARK_GREEN, adjusted_points, 3)
+        
+        # Маяк
+        if self.has_structure:
+            struct_x = int(self.x)
+            struct_y = int(self.y - camera_y)
+            # Рисуем маяк только если он в видимой области
+            if -100 < struct_y < SCREEN_HEIGHT + 100:
+                pygame.draw.rect(screen, (139, 69, 19), 
+                               (struct_x - 8, struct_y - 35, 16, 35))
+                pygame.draw.polygon(screen, RED, [
+                    (struct_x, struct_y - 45),
+                    (struct_x - 12, struct_y - 35),
+                    (struct_x + 12, struct_y - 35)
+                ])
     
     def collides_with(self, x, y, radius=25):
         """Проверка столкновения с островом"""

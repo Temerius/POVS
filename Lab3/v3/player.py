@@ -1,4 +1,4 @@
-# player.py
+# player.py - Исправленная обработка коллизий
 import pygame
 import math
 from config import SCREEN_WIDTH
@@ -25,7 +25,7 @@ class Player:
         # ТОЛЬКО player_up.png - одна картинка, которую вращаем!
         self.image = load_image('img/player/player_up.png', (self.size, self.size))
         
-    def update(self, keys, islands):
+    def update(self, keys, obstacles):
         # Скорость
         actual_speed = self.base_speed
         if self.speed_up_time > 0:
@@ -49,20 +49,27 @@ class Player:
         self.hull_angle = max(-self.max_angle, min(self.max_angle, self.hull_angle))
         
         # ДВИЖЕНИЕ: вперёд + БОКОВОЕ СМЕЩЕНИЕ от угла поворота!
-        self.y -= actual_speed  # Вперёд всегда
+        self.y -= actual_speed  # Вперёд всегда (игрок движется вверх)
         
         # ВОТ ОНО! Боковое движение в зависимости от угла
         side_speed = (self.hull_angle / self.max_angle) * 3.0
         self.x += side_speed
         
-        # Ограничение краёв
-        self.x = max(40, min(SCREEN_WIDTH - 40, self.x))
+        # Ограничение краёв с небольшим отступом
+        self.x = max(80, min(SCREEN_WIDTH - 80, self.x))
         
-        # Столкновения с островами
-        for island in islands:
-            if island.collides_with(self.x, self.y, self.size // 2):
+        # Столкновения с препятствиями
+        for obstacle in obstacles:
+            if obstacle.collides_with(self.x, self.y, self.size // 2):
                 self.health -= 2
-                self.y += 10  # Откат назад
+                self.y += 15  # Откат назад (вниз)
+                
+                # Корректируем позицию, чтобы выйти из коллизии
+                if hasattr(obstacle, 'side'):
+                    if obstacle.side == 'left':
+                        self.x += 5
+                    else:
+                        self.x -= 5
                 break
         
         if self.shoot_cooldown > 0:

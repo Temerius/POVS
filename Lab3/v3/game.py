@@ -19,6 +19,8 @@ class Game:
         self.big_font = pygame.font.Font(None, 48)
         
         self.player = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+        
+        # Камера следует за игроком
         self.camera_y = self.player.y - SCREEN_HEIGHT + 200
         
         self.islands = []
@@ -26,15 +28,20 @@ class Game:
         self.left_shores = []  # Левые берега
         self.right_shores = []  # Правые берега
         
-        self.world_top = 0
+        # ВЕРХНЯЯ ГРАНИЦА МИРА (меньшие значения y = выше в мире)
+        self.world_top = self.player.y - SCREEN_HEIGHT * 2
+        
         self.wave_offset = 0
         
-        # Начальная генерация мира
+        # Начальная генерация мира - несколько сегментов ВВЕРХ (с меньшими y)
+        self.generate_world_segment()
+        self.generate_world_segment()
         self.generate_world_segment()
         
     def generate_world_segment(self):
-        """Генерация ОГРОМНОГО количества островов + берега по краям!"""
-        segment_start = self.world_top - 2000
+        """Генерация сегмента мира ВВЕРХ от текущей верхней границы"""
+        segment_height = 2000  # Высота сегмента
+        segment_start = self.world_top - segment_height
         segment_end = self.world_top
         
         print(f"Генерация нового сегмента: {segment_start} -> {segment_end}")
@@ -46,6 +53,7 @@ class Game:
         current_y = segment_start
         islands_generated = 0
         
+        # Генерируем острова СВЕРХУ ВНИЗ (от меньших y к большим)
         while current_y < segment_end:
             # КУЧА ОСТРОВОВ - 85% вероятность!!!
             if random.random() < 0.85:
@@ -56,7 +64,7 @@ class Game:
                 too_close = False
                 for island in self.islands[-30:]:
                     dist = math.sqrt((island.x - x)**2 + (island.y - current_y)**2)
-                    if dist < 80:
+                    if dist < 120:
                         too_close = True
                         break
                 
@@ -65,9 +73,10 @@ class Game:
                     self.islands.append(island)
                     islands_generated += 1
             
-            # Двигаемся ОЧЕНЬ БЛИЗКО
-            current_y += random.randint(40, 100)
+            # Двигаемся ВНИЗ (y увеличивается)
+            current_y += random.randint(60, 120)
         
+        # Обновляем верхнюю границу мира
         self.world_top = segment_start
         print(f"Сгенерировано островов: {islands_generated}, всего: {len(self.islands)}")
         
@@ -77,7 +86,7 @@ class Game:
         # Камера следует за игроком
         self.camera_y = self.player.y - SCREEN_HEIGHT + 200
         
-        # Генерация нового мира когда игрок продвинулся
+        # Генерация нового мира когда игрок приближается к верхней границе
         if self.player.y < self.world_top + 1500:
             self.generate_world_segment()
         
@@ -100,18 +109,18 @@ class Game:
             if proj.lifetime <= 0 or proj.x < 0 or proj.x > SCREEN_WIDTH:
                 self.projectiles.remove(proj)
         
-        # ВАЖНО: ОЧИСТКА СТАРЫХ ОБЪЕКТОВ
-        cleanup_threshold = self.camera_y - 800
+        # ОЧИСТКА СТАРЫХ ОБЪЕКТОВ, которые позади игрока
+        cleanup_threshold = self.player.y + SCREEN_HEIGHT * 2
         
         # Считаем сколько было до очистки
         islands_before = len(self.islands)
         
         # Очищаем старые острова
-        self.islands = [i for i in self.islands if i.y > cleanup_threshold]
+        self.islands = [i for i in self.islands if i.y < cleanup_threshold]
         
         # Очищаем старые берега
-        self.left_shores = [s for s in self.left_shores if s.end_y > cleanup_threshold]
-        self.right_shores = [s for s in self.right_shores if s.end_y > cleanup_threshold]
+        self.left_shores = [s for s in self.left_shores if s.start_y < cleanup_threshold]
+        self.right_shores = [s for s in self.right_shores if s.start_y < cleanup_threshold]
         
         if islands_before != len(self.islands):
             print(f"Очищено островов: {islands_before - len(self.islands)}, осталось: {len(self.islands)}")
@@ -203,56 +212,6 @@ class Game:
             f"Островов: {len(self.islands)} | Берегов: {len(self.left_shores) + len(self.right_shores)}", 
             True, (255, 200, 100))
         self.screen.blit(stats_text, (20, SCREEN_HEIGHT - 40))
-    
-    def run(self):
-        running = True
-        
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-            
-            if self.player.health <= 0:
-                self.game_over()
-                running = False
-            
-            self.update()
-            self.draw()
-            self.clock.tick(FPS)
-        
-        pygame.quit()
-        sys.exit()
-    
-    def game_over(self):
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        overlay.set_alpha(220)
-        overlay.fill(BLACK)
-        self.screen.blit(overlay, (0, 0))
-        
-        game_over_font = pygame.font.Font(None, 84)
-        game_over_text = game_over_font.render("ИГРА ОКОНЧЕНА", True, RED)
-        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
-        
-        score_text = self.big_font.render(f"Финальный счёт: {self.player.score}", True, GOLD)
-        score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        
-        distance_text = self.font.render(f"Пройдено: {int(abs(self.player.y) / 10)} морских миль", 
-                                        True, WHITE)
-        distance_rect = distance_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60))
-        
-        self.screen.blit(game_over_text, game_over_rect)
-        self.screen.blit(score_text, score_rect)
-        self.screen.blit(distance_text, distance_rect)
-        
-        pygame.display.flip()
-        pygame.time.wait(4000)
-
-if __name__ == "__main__":
-    game = Game()
-    game.run()
     
     def run(self):
         running = True
