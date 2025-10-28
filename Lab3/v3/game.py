@@ -7,6 +7,8 @@ from config import *
 from player import Player
 from island import Island
 from shore import Shore
+from whirlpool import WhirlpoolManager
+from whirlpool import Whirlpool
 
 class Game:
     def __init__(self):
@@ -33,6 +35,10 @@ class Game:
         
         self.wave_offset = 0
         
+        # Создаем менеджер водоворотов
+        self.whirlpool_manager = WhirlpoolManager(max_whirlpools=6)
+        self.teleport_effect_timer = 0
+        
         # Начальная генерация мира - несколько сегментов ВВЕРХ (с меньшими y)
         self.generate_world_segment()
         self.generate_world_segment()
@@ -52,6 +58,7 @@ class Game:
         
         current_y = segment_start
         islands_generated = 0
+        whirlpools_generated = 0
         
         # Генерируем острова СВЕРХУ ВНИЗ (от меньших y к большим)
         while current_y < segment_end:
@@ -73,12 +80,23 @@ class Game:
                     self.islands.append(island)
                     islands_generated += 1
             
+            # Генерация водоворотов (10% вероятность)
+            if random.random() < 0.1:
+                x = random.randint(300, SCREEN_WIDTH - 300)
+                if Whirlpool.can_place_whirlpool(x, current_y, self.islands, 
+                                                self.left_shores + self.right_shores, 
+                                                self.whirlpool_manager.whirlpools):
+                    self.whirlpool_manager.add_whirlpool(x, current_y, self.islands, 
+                                                       self.left_shores + self.right_shores)
+                    whirlpools_generated += 1
+            
             # Двигаемся ВНИЗ (y увеличивается)
             current_y += random.randint(60, 120)
         
         # Обновляем верхнюю границу мира
         self.world_top = segment_start
         print(f"Сгенерировано островов: {islands_generated}, всего: {len(self.islands)}")
+        print(f"Сгенерировано водоворотов: {whirlpools_generated}")
         
     def update(self):
         keys = pygame.key.get_pressed()
@@ -89,6 +107,12 @@ class Game:
         # Генерация нового мира когда игрок приближается к верхней границе
         if self.player.y < self.world_top + 1500:
             self.generate_world_segment()
+        
+        # Обновление водоворотов и проверка на телепортацию
+        teleport_pos = self.whirlpool_manager.update(self.player, self.world_top)
+        if teleport_pos:
+            self.player.x, self.player.y = teleport_pos
+            self.teleport_effect_timer = 30  # Длительность эффекта в кадрах
         
         # Обновление игрока (проверяем столкновения с островами И берегами)
         all_obstacles = self.islands + self.left_shores + self.right_shores
@@ -109,6 +133,10 @@ class Game:
             if proj.lifetime <= 0 or proj.x < 0 or proj.x > SCREEN_WIDTH:
                 self.projectiles.remove(proj)
         
+        # Уменьшение таймера эффекта телепортации
+        if self.teleport_effect_timer > 0:
+            self.teleport_effect_timer -= 1
+        
         # ОЧИСТКА СТАРЫХ ОБЪЕКТОВ, которые позади игрока
         cleanup_threshold = self.player.y + SCREEN_HEIGHT * 2
         
@@ -121,6 +149,9 @@ class Game:
         # Очищаем старые берега
         self.left_shores = [s for s in self.left_shores if s.start_y < cleanup_threshold]
         self.right_shores = [s for s in self.right_shores if s.start_y < cleanup_threshold]
+        
+        # Очищаем старые водовороты
+        self.whirlpool_manager.cleanup(cleanup_threshold)
         
         if islands_before != len(self.islands):
             print(f"Очищено островов: {islands_before - len(self.islands)}, осталось: {len(self.islands)}")
@@ -141,6 +172,9 @@ class Game:
         for shore in self.right_shores:
             shore.draw(self.screen, self.camera_y)
         
+        # ВОДОВОРОТЫ (рисуем перед островами)
+        self.whirlpool_manager.draw(self.screen, self.camera_y)
+        
         # Острова
         for island in self.islands:
             island.draw(self.screen, self.camera_y)
@@ -151,6 +185,15 @@ class Game:
         
         # Игрок
         self.player.draw(self.screen, self.camera_y)
+        
+        # ЭФФЕКТ ТЕЛЕПОРТАЦИИ
+        if self.teleport_effect_timer > 0:
+            # Белая вспышка
+            alpha = int((self.teleport_effect_timer / 30) * 200)
+            flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            flash.set_alpha(alpha)
+            flash.fill((255, 255, 255))
+            self.screen.blit(flash, (0, 0))
         
         # UI
         self.draw_ui()
@@ -208,10 +251,19 @@ class Game:
                            (SCREEN_WIDTH - 440, SCREEN_HEIGHT - 145 + i * 28))
         
         # Статистика
+        whirlpool_count = len(self.whirlpool_manager.whirlpools)
         stats_text = self.small_font.render(
-            f"Островов: {len(self.islands)} | Берегов: {len(self.left_shores) + len(self.right_shores)}", 
+            f"Островов: {len(self.islands)} | Берегов: {len(self.left_shores) + len(self.right_shores)} | Водоворотов: {whirlpool_count}", 
             True, (255, 200, 100))
         self.screen.blit(stats_text, (20, SCREEN_HEIGHT - 40))
+        
+        # Информация о водоворотах
+        active_whirlpools = sum(1 for w in self.whirlpool_manager.whirlpools if not w.used_recently)
+        if whirlpool_count > 0:
+            whirlpool_info = self.small_font.render(
+                f"🌀 Активных водоворотов: {active_whirlpools}/{whirlpool_count}", 
+                True, CYAN)
+            self.screen.blit(whirlpool_info, (20, SCREEN_HEIGHT - 70))
     
     def run(self):
         running = True
