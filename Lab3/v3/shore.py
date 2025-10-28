@@ -7,10 +7,27 @@ from config import ISLAND_GREEN, DARK_GREEN, SCREEN_HEIGHT, SCREEN_WIDTH
 class Shore:
     """Берег с зубчатыми краями (слева или справа)"""
     def __init__(self, side, start_y, end_y):
-        self.side = side  # 'left' или 'right'
+        """
+        Args:
+            side: 'left' или 'right'
+            start_y: начальная координата y
+            end_y: конечная координата y
+        """
+        self.side = side
         self.start_y = start_y
         self.end_y = end_y
+        
+        # Генерируем точки берега при инициализации
         self.points = self.generate_shore()
+        
+        # Определяем границы берега в зависимости от стороны
+        if side == 'left':
+            self.x_left = 0
+            self.x_right = 150  # Ширина левого берега
+        else:  # 'right'
+            self.x_left = SCREEN_WIDTH - 150  # Ширина правого берега
+            self.x_right = SCREEN_WIDTH
+    
         
     def generate_shore(self):
         """Генерация зубчатых краёв берега"""
@@ -83,6 +100,10 @@ class Shore:
         pygame.draw.polygon(screen, ISLAND_GREEN, polygon_points)
         # Рисуем контур береговой линии
         pygame.draw.lines(screen, DARK_GREEN, False, adjusted_points, 4)
+    
+    def contains_point(self, x, y, radius=0):
+        """Проверка, находится ли точка внутри берега"""
+        return self.collides_with(x, y, radius)
     
     def collides_with(self, x, y, radius=25):
         """Проверка столкновения с берегом"""

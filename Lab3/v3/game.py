@@ -9,6 +9,8 @@ from island import Island
 from shore import Shore
 from whirlpool import WhirlpoolManager
 from whirlpool import Whirlpool
+from enemy_simple import SimpleEnemy
+from enemy_hard import HardEnemy
 
 class Game:
     def __init__(self):
@@ -27,6 +29,7 @@ class Game:
         
         self.islands = []
         self.projectiles = []
+        self.enemies = []  # Список всех врагов
         self.left_shores = []  # Левые берега
         self.right_shores = []  # Правые берега
         
@@ -59,6 +62,7 @@ class Game:
         current_y = segment_start
         islands_generated = 0
         whirlpools_generated = 0
+        enemies_generated = 0
         
         # Генерируем острова СВЕРХУ ВНИЗ (от меньших y к большим)
         while current_y < segment_end:
@@ -90,6 +94,18 @@ class Game:
                                                        self.left_shores + self.right_shores)
                     whirlpools_generated += 1
             
+            # Генерация простых врагов (8% вероятность)
+            if random.random() < 0.08:
+                x = random.randint(200, SCREEN_WIDTH - 200)
+                self.enemies.append(SimpleEnemy(x, current_y))
+                enemies_generated += 1
+            
+            # Генерация сложных врагов (3% вероятность, но реже)
+            if current_y < self.player.y - 1000 and random.random() < 0.03:
+                x = random.randint(250, SCREEN_WIDTH - 250)
+                self.enemies.append(HardEnemy(x, current_y))
+                enemies_generated += 1
+            
             # Двигаемся ВНИЗ (y увеличивается)
             current_y += random.randint(60, 120)
         
@@ -97,6 +113,7 @@ class Game:
         self.world_top = segment_start
         print(f"Сгенерировано островов: {islands_generated}, всего: {len(self.islands)}")
         print(f"Сгенерировано водоворотов: {whirlpools_generated}")
+        print(f"Сгенерировано врагов: {enemies_generated}, всего: {len(self.enemies)}")
         
     def update(self):
         keys = pygame.key.get_pressed()
@@ -109,7 +126,7 @@ class Game:
             self.generate_world_segment()
         
         # Обновление водоворотов и проверка на телепортацию
-        # Передаем острова и берега для гарантированной телепортации
+        # Передаем острова и береги для гарантированной телепортации
         teleport_pos = self.whirlpool_manager.update(
             self.player, 
             self.world_top,
@@ -120,6 +137,42 @@ class Game:
         if teleport_pos:
             self.player.x, self.player.y = teleport_pos
             self.teleport_effect_timer = 30  # Длительность эффекта в кадрах
+        
+        # Обновление врагов
+        new_enemy_projectiles = []
+        enemies_to_remove = []
+        
+        for enemy in self.enemies:
+            # Обновляем врага и получаем его снаряды
+            enemy_projectiles = enemy.update(
+                self.islands, 
+                self.left_shores + self.right_shores,
+                self.player,
+                self.world_top
+            )
+            
+            # Если враг вышел за пределы мира, помечаем на удаление
+            if enemy_projectiles is None:
+                enemies_to_remove.append(enemy)
+                continue
+                
+            # Добавляем новые снаряды
+            new_enemy_projectiles.extend(enemy_projectiles)
+            
+            # Проверка столкновения игрока с врагом (таран)
+            if self.player.collides_with(enemy.x, enemy.y, enemy.radius):
+                damage = enemy.get_torpedo_damage()
+                self.player.take_damage(damage)
+                # Простой враг уничтожается при таране, сложный - остается
+                if isinstance(enemy, SimpleEnemy):
+                    enemies_to_remove.append(enemy)
+        
+        # Удаляем ненужных врагов
+        for enemy in enemies_to_remove:
+            self.enemies.remove(enemy)
+        
+        # Добавляем снаряды врагов в общий список
+        self.projectiles.extend(new_enemy_projectiles)
         
         # Обновление игрока (проверяем столкновения с островами И берегами)
         all_obstacles = self.islands + self.left_shores + self.right_shores
@@ -135,9 +188,41 @@ class Game:
         self.wave_offset = (self.wave_offset + 2) % 80
         
         # Обновление снарядов
+        projectiles_to_remove = []
         for proj in self.projectiles[:]:
             proj.update()
-            if proj.lifetime <= 0 or proj.x < 0 or proj.x > SCREEN_WIDTH:
+            # Проверка столкновения снаряда с врагами
+            for enemy in self.enemies[:]:
+                if proj.collides_with(enemy):
+                    # Проверяем, является ли снаряд выстрелом игрока
+                    if proj.is_player_shot:
+                        if enemy.take_damage(1):
+                            self.player.score += enemy.points
+                            self.enemies.remove(enemy)
+                        projectiles_to_remove.append(proj)
+                        break
+            
+            # Проверка столкновения снаряда с препятствиями
+            obstacle_hit = False
+            for obstacle in all_obstacles:
+                if proj.collides_with(obstacle):
+                    obstacle_hit = True
+                    break
+            
+            # Условия удаления снаряда
+            if (proj.lifetime <= 0 or 
+                proj.x < 0 or 
+                proj.x > SCREEN_WIDTH or
+                obstacle_hit or
+                (not proj.is_player_shot and self.player.collides_with(proj.x, proj.y, 10))):
+                
+                if not proj.is_player_shot and self.player.collides_with(proj.x, proj.y, 10):
+                    self.player.take_damage(20)  # Урон от вражеского снаряда
+                projectiles_to_remove.append(proj)
+        
+        # Удаляем ненужные снаряды
+        for proj in projectiles_to_remove:
+            if proj in self.projectiles:
                 self.projectiles.remove(proj)
         
         # Уменьшение таймера эффекта телепортации
@@ -185,6 +270,10 @@ class Game:
         # Острова
         for island in self.islands:
             island.draw(self.screen, self.camera_y)
+        
+        # ВРАГИ
+        for enemy in self.enemies:
+            enemy.draw(self.screen, self.camera_y)
         
         # Снаряды
         for proj in self.projectiles:
@@ -258,9 +347,11 @@ class Game:
                            (SCREEN_WIDTH - 440, SCREEN_HEIGHT - 145 + i * 28))
         
         # Статистика
+                # Статистика
         whirlpool_count = len(self.whirlpool_manager.whirlpools)
+        enemy_count = len(self.enemies)
         stats_text = self.small_font.render(
-            f"Островов: {len(self.islands)} | Берегов: {len(self.left_shores) + len(self.right_shores)} | Водоворотов: {whirlpool_count}", 
+            f"Островов: {len(self.islands)} | Врагов: {enemy_count} | Водоворотов: {whirlpool_count}", 
             True, (255, 200, 100))
         self.screen.blit(stats_text, (20, SCREEN_HEIGHT - 40))
         
@@ -271,6 +362,15 @@ class Game:
                 f"🌀 Активных водоворотов: {active_whirlpools}/{whirlpool_count}", 
                 True, CYAN)
             self.screen.blit(whirlpool_info, (20, SCREEN_HEIGHT - 70))
+        
+        # Информация о врагах
+        simple_enemies = sum(1 for e in self.enemies if isinstance(e, SimpleEnemy))
+        hard_enemies = sum(1 for e in self.enemies if isinstance(e, HardEnemy))
+        if enemy_count > 0:
+            enemy_info = self.small_font.render(
+                f"⚔️ Враги: {simple_enemies} простых | {hard_enemies} серьезных", 
+                True, (255, 100, 100))
+            self.screen.blit(enemy_info, (20, SCREEN_HEIGHT - 100))
     
     def run(self):
         running = True

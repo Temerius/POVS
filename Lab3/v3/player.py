@@ -1,8 +1,7 @@
-# player.py - Исправленная обработка коллизий
+# player.py - Исправленная обработка коллизий и поворота
 import pygame
 import math
-from config import SCREEN_WIDTH
-from utils import load_image
+from config import *
 
 class Player:
     def __init__(self, x, y):
@@ -10,28 +9,32 @@ class Player:
         self.y = y
         self.hull_angle = 0  # Угол поворота корпуса (-45 до 45)
         self.max_angle = 45
-        self.rotation_speed = 3
+        self.rotation_speed = 1
         self.auto_return_speed = 1.5
-        self.size = 60
+        self.size = 50  # Размер корабля
         self.base_speed = 3
         self.health = 100
         self.max_health = 100
         self.shoot_cooldown = 0
-        self.combo = 0
+        self.cooldown_time = 30  # 0.5 секунды при 60 FPS
         self.score = 0
-        self.power_up_time = 0
-        self.speed_up_time = 0
+        self.radius = self.size // 2  # радиус для коллизии
         
-        # ТОЛЬКО player_up.png - одна картинка, которую вращаем!
-        self.image = load_image('img/player/player_up.png', (self.size, self.size))
-        
+        # Загружаем ТОЛЬКО player_up.png и масштабируем
+        try:
+            self.image = pygame.image.load('img/player/player_up.png').convert_alpha()
+            self.image = pygame.transform.scale(self.image, (self.size, self.size))
+        except pygame.error:
+            # Создаем заглушку, если изображение не найдено
+            self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+            pygame.draw.polygon(self.image, (0, 100, 255), [
+                (self.size//2, 0),
+                (self.size, self.size),
+                (self.size//2, self.size*0.7),
+                (0, self.size)
+            ])
+    
     def update(self, keys, obstacles):
-        # Скорость
-        actual_speed = self.base_speed
-        if self.speed_up_time > 0:
-            actual_speed = self.base_speed * 1.5
-            self.speed_up_time -= 1
-        
         # Управление поворотом корпуса
         if keys[pygame.K_a] and self.hull_angle > -self.max_angle:
             self.hull_angle -= self.rotation_speed
@@ -49,18 +52,18 @@ class Player:
         self.hull_angle = max(-self.max_angle, min(self.max_angle, self.hull_angle))
         
         # ДВИЖЕНИЕ: вперёд + БОКОВОЕ СМЕЩЕНИЕ от угла поворота!
-        self.y -= actual_speed  # Вперёд всегда (игрок движется вверх)
+        self.y -= self.base_speed  # Вперёд всегда (игрок движется вверх)
         
         # ВОТ ОНО! Боковое движение в зависимости от угла
         side_speed = (self.hull_angle / self.max_angle) * 3.0
         self.x += side_speed
         
         # Ограничение краёв с небольшим отступом
-        self.x = max(80, min(SCREEN_WIDTH - 80, self.x))
+        self.x = max(100, min(SCREEN_WIDTH - 100, self.x))
         
         # Столкновения с препятствиями
         for obstacle in obstacles:
-            if obstacle.collides_with(self.x, self.y, self.size // 2):
+            if hasattr(obstacle, 'contains_point') and obstacle.contains_point(self.x, self.y, self.radius):
                 self.health -= 2
                 self.y += 15  # Откат назад (вниз)
                 
@@ -72,45 +75,39 @@ class Player:
                         self.x -= 5
                 break
         
+        # Обновление таймера перезарядки
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
-            
-        if self.power_up_time > 0:
-            self.power_up_time -= 1
+    
+    def collides_with(self, x, y, radius):
+        """Проверка столкновения с объектом"""
+        dx = self.x - x
+        dy = self.y - y
+        distance = math.sqrt(dx*dx + dy*dy)
+        return distance < self.radius + radius
     
     def shoot(self):
-        """Выстрел ВВЕРХ-ВБОК в ПРОТИВОПОЛОЖНУЮ сторону от поворота"""
-        if self.shoot_cooldown == 0:
-            self.shoot_cooldown = 20 if self.power_up_time > 0 else 35
-            
-            from projectile import Projectile
-            projectiles = []
-            
-            # Корпус влево -> стреляем ВПРАВО-ВВЕРХ
-            # Корпус вправо -> стреляем ВЛЕВО-ВВЕРХ
-            if self.hull_angle < -5:
-                # Стреляем вправо-вверх (угол примерно -30 градусов)
-                shoot_angle = -math.pi / 6  # -30 градусов
-                offset_x = self.size // 2
-                offset_y = -10
-            elif self.hull_angle > 5:
-                # Стреляем влево-вверх (угол примерно -150 градусов)
-                shoot_angle = -5 * math.pi / 6  # -150 градусов
-                offset_x = -self.size // 2
-                offset_y = -10
-            else:
-                return []
-            
-            if self.power_up_time > 0:
-                # Тройной залп
-                projectiles.append(Projectile(self.x + offset_x, self.y + offset_y, shoot_angle, 14))
-                projectiles.append(Projectile(self.x + offset_x - 15, self.y + offset_y, shoot_angle, 14))
-                projectiles.append(Projectile(self.x + offset_x + 15, self.y + offset_y, shoot_angle, 14))
-            else:
-                projectiles.append(Projectile(self.x + offset_x, self.y + offset_y, shoot_angle, 12))
-            
-            return projectiles
-        return []
+        """Стрельба ВВЕРХ-ВБОК в ПРОТИВОПОЛОЖНУЮ сторону от поворота"""
+        if self.shoot_cooldown > 0:
+            return []
+        
+        self.shoot_cooldown = self.cooldown_time
+        
+        # Расчет угла стрельбы с учетом поворота корпуса
+        angle = math.radians(-90)  # стандартный угол (вверх)
+        
+        if self.hull_angle > 5:  # Левый наклон
+            angle += math.radians(20)
+        elif self.hull_angle < -5:  # Правый наклон
+            angle -= math.radians(20)
+        
+        from projectile import Projectile
+        return [Projectile(self.x, self.y, angle)]
+    
+    def take_damage(self, amount):
+        """Получение урона"""
+        self.health -= amount
+        return self.health <= 0
     
     def draw(self, screen, camera_y):
         y_screen = int(self.y - camera_y)
@@ -119,11 +116,4 @@ class Player:
         rotated = pygame.transform.rotate(self.image, -self.hull_angle)
         rect = rotated.get_rect(center=(int(self.x), y_screen))
         
-        # Эффект усиления
-        if self.power_up_time > 0 and self.power_up_time % 10 < 5:
-            glow_surf = pygame.Surface((self.size + 20, self.size + 20), pygame.SRCALPHA)
-            pygame.draw.circle(glow_surf, (255, 50, 50, 100), 
-                             (self.size // 2 + 10, self.size // 2 + 10), self.size // 2 + 10)
-            screen.blit(glow_surf, (int(self.x) - self.size // 2 - 10, y_screen - self.size // 2 - 10))
-        
-        screen.blit(rotated, rect)
+        screen.blit(rotated, rect.topleft)
