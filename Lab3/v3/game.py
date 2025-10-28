@@ -109,7 +109,14 @@ class Game:
             self.generate_world_segment()
         
         # Обновление водоворотов и проверка на телепортацию
-        teleport_pos = self.whirlpool_manager.update(self.player, self.world_top)
+        # Передаем острова и берега для гарантированной телепортации
+        teleport_pos = self.whirlpool_manager.update(
+            self.player, 
+            self.world_top,
+            self.islands,
+            self.left_shores + self.right_shores
+        )
+        
         if teleport_pos:
             self.player.x, self.player.y = teleport_pos
             self.teleport_effect_timer = 30  # Длительность эффекта в кадрах

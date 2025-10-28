@@ -1,4 +1,4 @@
-# whirlpool.py - Водовороты с продуманной системой телепортации
+# whirlpool.py - Водовороты с гарантированной системой телепортации
 import pygame
 import math
 import random
@@ -121,18 +121,20 @@ class Whirlpool:
         return True
     
     @staticmethod
-    def find_teleport_target(current_whirlpool, all_whirlpools, world_top, min_distance=1000):
+    def find_teleport_target(current_whirlpool, all_whirlpools, world_top, islands, shores, min_distance=1200):
         """
-        Найти подходящий водоворот для телепортации
+        Найти подходящий водоворот для телепортации, гарантируя его наличие
         
         Args:
             current_whirlpool: текущий водоворот
             all_whirlpools: список всех водоворотов
             world_top: верхняя граница сгенерированного мира
+            islands: список островов
+            shores: список берегов
             min_distance: минимальное расстояние телепортации
         
         Returns:
-            Whirlpool или None
+            Whirlpool: целевой водоворот
         """
         candidates = []
         
@@ -146,10 +148,35 @@ class Whirlpool:
                 
                 candidates.append(whirlpool)
         
+        # Если нет подходящих водоворотов, создаем новый
         if not candidates:
-            return None
+            # Ищем место для нового водоворота
+            attempts = 0
+            max_attempts = 10
+            new_y = current_whirlpool.y - min_distance - random.randint(0, 500)
+            
+            while attempts < max_attempts:
+                new_x = random.randint(300, SCREEN_WIDTH - 300)
+                
+                if Whirlpool.can_place_whirlpool(new_x, new_y, islands, shores, all_whirlpools):
+                    new_whirlpool = Whirlpool(new_x, new_y)
+                    all_whirlpools.append(new_whirlpool)
+                    print(f"✨ Создан новый водоворот для телепортации в ({new_x}, {new_y})")
+                    return new_whirlpool
+                
+                attempts += 1
+                # Сдвигаем позицию для следующей попытки
+                new_y -= 100
+            
+            # Если не удалось найти место, используем последнюю позицию
+            if attempts == max_attempts:
+                new_x = random.randint(300, SCREEN_WIDTH - 300)
+                new_whirlpool = Whirlpool(new_x, new_y)
+                all_whirlpools.append(new_whirlpool)
+                print(f"⚠️ Создан водоворот без проверки в ({new_x}, {new_y})")
+                return new_whirlpool
         
-        # Выбираем случайный из подходящих
+        # Если кандидаты есть, выбираем случайный
         return random.choice(candidates)
     
     def teleport_player(self, target_whirlpool):
@@ -186,13 +213,15 @@ class WhirlpoolManager:
         self.whirlpools = []
         self.max_whirlpools = max_whirlpools
     
-    def update(self, player, world_top):
+    def update(self, player, world_top, islands, shores):
         """
         Обновить все водовороты и проверить столкновения с игроком
         
         Args:
             player: объект игрока
             world_top: верхняя граница сгенерированного мира
+            islands: список островов
+            shores: список берегов
         
         Returns:
             tuple or None: координаты для телепортации (x, y) или None
@@ -204,25 +233,21 @@ class WhirlpoolManager:
         # Затем проверяем столкновения
         for whirlpool in self.whirlpools:
             if whirlpool.collides_with(player.x, player.y):
-                # Ищем цель для телепортации
+                # Ищем цель для телепортации (гарантированно находим)
                 target = Whirlpool.find_teleport_target(
                     whirlpool, 
                     self.whirlpools, 
                     world_top,
+                    islands,
+                    shores,
                     min_distance=1200
                 )
                 
-                if target:
-                    # Выполняем телепортацию и получаем координаты
-                    teleport_pos = whirlpool.teleport_player(target)
-                    if teleport_pos:
-                        print(f"🌀 ТЕЛЕПОРТАЦИЯ! {player.y:.0f} → {teleport_pos[1]:.0f} (прыжок: {player.y - teleport_pos[1]:.0f})")
-                    return teleport_pos
-                else:
-                    print("⚠️ Нет подходящих водоворотов для телепортации")
-                    # Помечаем текущий как использованный, чтобы не застрять
-                    whirlpool.used_recently = True
-                    whirlpool.cooldown_timer = 60
+                # Выполняем телепортацию и получаем координаты
+                teleport_pos = whirlpool.teleport_player(target)
+                if teleport_pos:
+                    print(f"🌀 ТЕЛЕПОРТАЦИЯ! {player.y:.0f} → {teleport_pos[1]:.0f} (прыжок: {player.y - teleport_pos[1]:.0f})")
+                return teleport_pos
         
         return None
     
