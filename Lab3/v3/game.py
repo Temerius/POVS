@@ -135,7 +135,7 @@ class Game:
             if current_y < self.player.y - 1500:
                 
                 # Генерация простых врагов (10% вероятность)
-                if random.random() < 0.40:
+                if random.random() < 0.25:
                     # Пытаемся найти свободную позицию
                     for attempt in range(10):
                         x = random.randint(250, SCREEN_WIDTH - 250)
@@ -146,7 +146,7 @@ class Game:
                             break
                 
                 # Генерация сложных врагов (4% вероятность)
-                if random.random() < 0.20:
+                if random.random() < 0.10:
                     for attempt in range(10):
                         x = random.randint(300, SCREEN_WIDTH - 300)
                         
@@ -353,6 +353,11 @@ class Game:
         # Счёт
         score_text = self.font.render(f"Счёт: {self.player.score}", True, GOLD)
         self.screen.blit(score_text, (SCREEN_WIDTH - 250, 20))
+
+        # Пройденные мили
+        miles = int(abs(self.player.y) / 10)  # Переводим пиксели в мили (как в game_over)
+        miles_text = self.font.render(f"Мили: {miles}", True, WHITE)
+        self.screen.blit(miles_text, (SCREEN_WIDTH - 250, 60))
         
         # УГОЛ ПОВОРОТА
         angle_text = self.big_font.render(f"Угол: {int(self.player.hull_angle)}°", True, CYAN)

@@ -88,7 +88,7 @@ class Whirlpool:
         return dist < self.radius + radius
     
     @staticmethod
-    def can_place_whirlpool(x, y, islands, shores, existing_whirlpools, min_distance=150):
+    def can_place_whirlpool(x, y, islands, shores, existing_whirlpools, min_distance=170):
         """
         Проверка, можно ли разместить водоворот в данной точке
         
@@ -102,20 +102,27 @@ class Whirlpool:
         Returns:
             bool: можно ли разместить
         """
-        # Проверка расстояния до островов
+        # Проверка расстояния до островов с большим запасом
         for island in islands:
+            # Используем радиус + дополнительный запас для водоворота
+            safe_distance = island.radius + 75  # Увеличенный запас
             dist = math.sqrt((island.x - x)**2 + (island.y - y)**2)
-            if dist < island.radius + min_distance:
+            if dist < safe_distance:
                 return False
         
-        # Проверка расстояния до берегов (не слишком близко к краям)
-        if x < 200 or x > SCREEN_WIDTH - 200:
+        # Дополнительная проверка: убедиться, что точка не внутри острова
+        for island in islands:
+            if island.collides_with(x, y, 0):  # Проверяем коллизию с нулевым радиусом
+                return False
+        
+        # Проверка расстояния до берегов (увеличенный отступ от краев)
+        if x < 300 or x > SCREEN_WIDTH - 300:
             return False
         
         # Проверка расстояния до других водоворотов
         for whirlpool in existing_whirlpools:
             dist = math.sqrt((whirlpool.x - x)**2 + (whirlpool.y - y)**2)
-            if dist < min_distance * 2:  # Водовороты не должны быть слишком близко
+            if dist < min_distance * 2.5:
                 return False
         
         return True
