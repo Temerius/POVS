@@ -128,25 +128,37 @@ class Shore:
             return False
     
     def point_to_segment_distance(self, px, py, x1, y1, x2, y2):
-        """Расстояние от точки до отрезка"""
-        # Вектор от начальной точки отрезка к конечной
-        line_vec = (x2 - x1, y2 - y1)
-        # Вектор от начальной точки отрезка к точке
-        point_vec = (px - x1, py - y1)
-        
-        # Длина линии в квадрате
-        line_len_sq = line_vec[0]**2 + line_vec[1]**2
-        
-        # Если отрезок вырожден в точку
-        if line_len_sq == 0:
-            return math.sqrt((px - x1)**2 + (py - y1)**2)
-        
-        # Проекция точки на линию
-        t = max(0, min(1, (point_vec[0] * line_vec[0] + point_vec[1] * line_vec[1]) / line_len_sq))
-        
-        # Ближайшая точка на отрезке
-        nearest_x = x1 + t * line_vec[0]
-        nearest_y = y1 + t * line_vec[1]
-        
-        # Расстояние до этой точки
-        return math.sqrt((px - nearest_x)**2 + (py - nearest_y)**2)
+        """Расстояние от точки до отрезка с защитой от overflow"""
+        try:
+            # Вектор от начальной точки отрезка к конечной
+            line_vec = (x2 - x1, y2 - y1)
+            # Вектор от начальной точки отрезка к точке
+            point_vec = (px - x1, py - y1)
+            
+            # Длина линии в квадрате
+            line_len_sq = line_vec[0]**2 + line_vec[1]**2
+            
+            # Если отрезок вырожден в точку
+            if line_len_sq == 0:
+                dx = px - x1
+                dy = py - y1
+                return math.sqrt(dx*dx + dy*dy) if abs(dx) < 1e6 and abs(dy) < 1e6 else 1e9
+            
+            # Проекция точки на линию
+            t = max(0, min(1, (point_vec[0] * line_vec[0] + point_vec[1] * line_vec[1]) / line_len_sq))
+            
+            # Ближайшая точка на отрезке
+            nearest_x = x1 + t * line_vec[0]
+            nearest_y = y1 + t * line_vec[1]
+            
+            # Расстояние до этой точки
+            dx = px - nearest_x
+            dy = py - nearest_y
+            
+            # Защита от overflow
+            if abs(dx) > 1e6 or abs(dy) > 1e6:
+                return 1e9
+            
+            return math.sqrt(dx*dx + dy*dy)
+        except (OverflowError, ValueError):
+            return 1e9  # Возвращаем большое число при ошибке

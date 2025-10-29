@@ -1,4 +1,4 @@
-# game.py - ГЛАВНЫЙ ФАЙЛ ИГРЫ
+# game.py - ГЛАВНЫЙ ФАЙЛ с умным спавном врагов
 import pygame
 import random
 import math
@@ -29,11 +29,11 @@ class Game:
         
         self.islands = []
         self.projectiles = []
-        self.enemies = []  # Список всех врагов
-        self.left_shores = []  # Левые берега
-        self.right_shores = []  # Правые берега
+        self.enemies = []
+        self.left_shores = []
+        self.right_shores = []
         
-        # ВЕРХНЯЯ ГРАНИЦА МИРА (меньшие значения y = выше в мире)
+        # ВЕРХНЯЯ ГРАНИЦА МИРА
         self.world_top = self.player.y - SCREEN_HEIGHT * 2
         
         self.wave_offset = 0
@@ -42,14 +42,45 @@ class Game:
         self.whirlpool_manager = WhirlpoolManager(max_whirlpools=6)
         self.teleport_effect_timer = 0
         
-        # Начальная генерация мира - несколько сегментов ВВЕРХ (с меньшими y)
+        # Счетчик миль
+        self.total_distance = 0  # Общее расстояние в пикселях
+        self.last_y = self.player.y  # Последняя позиция для подсчета
+        
+        # Пауза
+        self.paused = False
+        self.space_held = False
+        self.space_hold_time = 0
+        self.pause_threshold = 60  # 1 секунда удержания при 60 FPS
+        
+        # Начальная генерация мира
         self.generate_world_segment()
         self.generate_world_segment()
         self.generate_world_segment()
+    
+    def is_position_clear(self, x, y, radius=50):
+        """Проверка, свободна ли позиция от островов и берегов"""
+        # Проверка островов
+        for island in self.islands[-50:]:  # Проверяем только недавние острова
+            dx = island.x - x
+            dy = island.y - y
+            dist = math.sqrt(dx*dx + dy*dy)
+            if dist < island.radius + radius + 50:  # +50 для дополнительного запаса
+                return False
+        
+        # Проверка берегов
+        for shore in self.left_shores + self.right_shores:
+            if shore.collides_with(x, y, radius):
+                return False
+        
+        # Проверка, что не слишком близко к краям
+        if x < 200 or x > SCREEN_WIDTH - 200:
+            return False
+        
+        return True
         
     def generate_world_segment(self):
-        """Генерация сегмента мира ВВЕРХ от текущей верхней границы"""
-        segment_height = 2000  # Высота сегмента
+        """Генерация сегмента мира с умным спавном врагов"""
+        segment_height = 2000
         segment_start = self.world_top - segment_height
         segment_end = self.world_top
         
@@ -64,14 +95,13 @@ class Game:
         whirlpools_generated = 0
         enemies_generated = 0
         
-        # Генерируем острова СВЕРХУ ВНИЗ (от меньших y к большим)
+        # Генерируем острова СВЕРХУ ВНИЗ
         while current_y < segment_end:
-            # КУЧА ОСТРОВОВ - 85% вероятность!!!
+            # КУЧА ОСТРОВОВ - 85% вероятность
             if random.random() < 0.85:
-                # Острова в центральной части (не у краёв)
                 x = random.randint(150, SCREEN_WIDTH - 150)
                 
-                # Проверка близости (только с недавними островами)
+                # Проверка близости с недавними островами
                 too_close = False
                 for island in self.islands[-30:]:
                     dist = math.sqrt((island.x - x)**2 + (island.y - current_y)**2)
@@ -94,20 +124,38 @@ class Game:
                                                        self.left_shores + self.right_shores)
                     whirlpools_generated += 1
             
-            # Генерация простых врагов (8% вероятность)
-            if random.random() < 0.08:
-                x = random.randint(200, SCREEN_WIDTH - 200)
-                self.enemies.append(SimpleEnemy(x, current_y))
-                enemies_generated += 1
-            
-            # Генерация сложных врагов (3% вероятность, но реже)
-            if current_y < self.player.y - 1000 and random.random() < 0.03:
-                x = random.randint(250, SCREEN_WIDTH - 250)
-                self.enemies.append(HardEnemy(x, current_y))
-                enemies_generated += 1
-            
-            # Двигаемся ВНИЗ (y увеличивается)
+            # Двигаемся ВНИЗ
             current_y += random.randint(60, 120)
+        
+        # ГЕНЕРАЦИЯ ВРАГОВ ОТДЕЛЬНО - после создания всех островов
+        # Это гарантирует, что мы можем проверить коллизии
+        current_y = segment_start
+        while current_y < segment_end:
+            # Враги генерируются ТОЛЬКО если далеко впереди игрока
+            if current_y < self.player.y - 1500:
+                
+                # Генерация простых врагов (10% вероятность)
+                if random.random() < 0.40:
+                    # Пытаемся найти свободную позицию
+                    for attempt in range(10):
+                        x = random.randint(250, SCREEN_WIDTH - 250)
+                        
+                        if self.is_position_clear(x, current_y, 40):
+                            self.enemies.append(SimpleEnemy(x, current_y))
+                            enemies_generated += 1
+                            break
+                
+                # Генерация сложных врагов (4% вероятность)
+                if random.random() < 0.20:
+                    for attempt in range(10):
+                        x = random.randint(300, SCREEN_WIDTH - 300)
+                        
+                        if self.is_position_clear(x, current_y, 60):
+                            self.enemies.append(HardEnemy(x, current_y))
+                            enemies_generated += 1
+                            break
+            
+            current_y += random.randint(100, 200)
         
         # Обновляем верхнюю границу мира
         self.world_top = segment_start
@@ -126,7 +174,6 @@ class Game:
             self.generate_world_segment()
         
         # Обновление водоворотов и проверка на телепортацию
-        # Передаем острова и береги для гарантированной телепортации
         teleport_pos = self.whirlpool_manager.update(
             self.player, 
             self.world_top,
@@ -136,7 +183,7 @@ class Game:
         
         if teleport_pos:
             self.player.x, self.player.y = teleport_pos
-            self.teleport_effect_timer = 30  # Длительность эффекта в кадрах
+            self.teleport_effect_timer = 30
         
         # Обновление врагов
         new_enemy_projectiles = []
@@ -151,7 +198,7 @@ class Game:
                 self.world_top
             )
             
-            # Если враг вышел за пределы мира, помечаем на удаление
+            # Если враг вышел за пределы мира
             if enemy_projectiles is None:
                 enemies_to_remove.append(enemy)
                 continue
@@ -163,7 +210,7 @@ class Game:
             if self.player.collides_with(enemy.x, enemy.y, enemy.radius):
                 damage = enemy.get_torpedo_damage()
                 self.player.take_damage(damage)
-                # Простой враг уничтожается при таране, сложный - остается
+                # Простой враг уничтожается при таране
                 if isinstance(enemy, SimpleEnemy):
                     enemies_to_remove.append(enemy)
         
@@ -171,10 +218,10 @@ class Game:
         for enemy in enemies_to_remove:
             self.enemies.remove(enemy)
         
-        # Добавляем снаряды врагов в общий список
+        # Добавляем снаряды врагов
         self.projectiles.extend(new_enemy_projectiles)
         
-        # Обновление игрока (проверяем столкновения с островами И берегами)
+        # Обновление игрока
         all_obstacles = self.islands + self.left_shores + self.right_shores
         self.player.update(keys, all_obstacles)
         
@@ -194,7 +241,6 @@ class Game:
             # Проверка столкновения снаряда с врагами
             for enemy in self.enemies[:]:
                 if proj.collides_with(enemy):
-                    # Проверяем, является ли снаряд выстрелом игрока
                     if proj.is_player_shot:
                         if enemy.take_damage(1):
                             self.player.score += enemy.points
@@ -202,7 +248,7 @@ class Game:
                         projectiles_to_remove.append(proj)
                         break
             
-            # Проверка столкновения снаряда с препятствиями
+            # Проверка столкновения с препятствиями
             obstacle_hit = False
             for obstacle in all_obstacles:
                 if proj.collides_with(obstacle):
@@ -217,7 +263,7 @@ class Game:
                 (not proj.is_player_shot and self.player.collides_with(proj.x, proj.y, 10))):
                 
                 if not proj.is_player_shot and self.player.collides_with(proj.x, proj.y, 10):
-                    self.player.take_damage(20)  # Урон от вражеского снаряда
+                    self.player.take_damage(20)
                 projectiles_to_remove.append(proj)
         
         # Удаляем ненужные снаряды
@@ -229,20 +275,15 @@ class Game:
         if self.teleport_effect_timer > 0:
             self.teleport_effect_timer -= 1
         
-        # ОЧИСТКА СТАРЫХ ОБЪЕКТОВ, которые позади игрока
+        # ОЧИСТКА СТАРЫХ ОБЪЕКТОВ
         cleanup_threshold = self.player.y + SCREEN_HEIGHT * 2
         
-        # Считаем сколько было до очистки
         islands_before = len(self.islands)
         
-        # Очищаем старые острова
         self.islands = [i for i in self.islands if i.y < cleanup_threshold]
-        
-        # Очищаем старые берега
         self.left_shores = [s for s in self.left_shores if s.start_y < cleanup_threshold]
         self.right_shores = [s for s in self.right_shores if s.start_y < cleanup_threshold]
         
-        # Очищаем старые водовороты
         self.whirlpool_manager.cleanup(cleanup_threshold)
         
         if islands_before != len(self.islands):
@@ -258,13 +299,13 @@ class Game:
             color = (10, 95, 170) if (i + self.wave_offset // 40) % 2 == 0 else (15, 100, 175)
             pygame.draw.line(self.screen, color, (0, y), (SCREEN_WIDTH, y), 2)
         
-        # БЕРЕГА (рисуем первыми, чтобы были на заднем плане)
+        # БЕРЕГА
         for shore in self.left_shores:
             shore.draw(self.screen, self.camera_y)
         for shore in self.right_shores:
             shore.draw(self.screen, self.camera_y)
         
-        # ВОДОВОРОТЫ (рисуем перед островами)
+        # ВОДОВОРОТЫ
         self.whirlpool_manager.draw(self.screen, self.camera_y)
         
         # Острова
@@ -284,7 +325,6 @@ class Game:
         
         # ЭФФЕКТ ТЕЛЕПОРТАЦИИ
         if self.teleport_effect_timer > 0:
-            # Белая вспышка
             alpha = int((self.teleport_effect_timer / 30) * 200)
             flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             flash.set_alpha(alpha)
@@ -347,7 +387,6 @@ class Game:
                            (SCREEN_WIDTH - 440, SCREEN_HEIGHT - 145 + i * 28))
         
         # Статистика
-                # Статистика
         whirlpool_count = len(self.whirlpool_manager.whirlpools)
         enemy_count = len(self.enemies)
         stats_text = self.small_font.render(

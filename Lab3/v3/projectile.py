@@ -1,4 +1,4 @@
-# projectile.py - Полностью исправленный класс снаряда
+# projectile.py - Снаряды с увеличенной дальностью
 import pygame
 import math
 from config import *
@@ -10,7 +10,7 @@ class Projectile:
         self.angle = angle
         self.speed = speed
         self.color = color
-        self.lifetime = 90  # 1.5 секунды при 60 FPS
+        self.lifetime = 270  # 4.5 секунды при 60 FPS (в 3 раза больше, чем было 90)
         self.radius = 5
         self.is_player_shot = is_player_shot
     
