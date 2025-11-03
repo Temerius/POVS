@@ -150,13 +150,13 @@ static void MX_GPIO_Init(void)
 
     /* Configure button pins */
     GPIO_InitStruct.Pin = CANON_LEFT_Pin|CANON_RIGHT_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = CANON_FIRE_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT; 
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(CANON_FIRE_GPIO_Port, &GPIO_InitStruct);
 
     /* EXTI interrupts */

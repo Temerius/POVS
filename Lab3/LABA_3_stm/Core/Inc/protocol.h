@@ -18,6 +18,7 @@
 #define PKT_CLEANUP        0x04  // PC -> STM32
 #define PKT_INIT_GAME      0x05  // PC -> STM32
 #define PKT_ADD_WHIRLPOOL  0x06  // PC -> STM32
+#define PKT_DEBUG          0x07  // STM32 -> PC
 
 // === ОПТИМИЗИРОВАННЫЕ РАЗМЕРЫ ПАКЕТОВ ===
 #define MAX_ENEMIES_IN_PACKET 6      // Уменьшено для надежности

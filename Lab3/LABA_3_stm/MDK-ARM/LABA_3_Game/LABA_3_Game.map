@@ -1688,90 +1688,90 @@ Image Symbol Table
     [Anonymous Symbol]                       0x08002fc8   Section        0  input.o(.text.Input_IsPressed)
     [Anonymous Symbol]                       0x08002fe4   Section        0  input.o(.text.Input_JustPressed)
     [Anonymous Symbol]                       0x08003024   Section        0  input.o(.text.Input_Update)
-    [Anonymous Symbol]                       0x0800305c   Section        0  stm32f1xx_it.o(.text.MemManage_Handler)
-    [Anonymous Symbol]                       0x08003060   Section        0  stm32f1xx_it.o(.text.NMI_Handler)
-    [Anonymous Symbol]                       0x08003064   Section        0  cleanup.o(.text.Obstacles_CleanupOld)
-    [Anonymous Symbol]                       0x080030d8   Section        0  stm32f1xx_it.o(.text.PendSV_Handler)
-    [Anonymous Symbol]                       0x080030dc   Section        0  collisions.o(.text.Player_CheckEnemyCollisions)
-    [Anonymous Symbol]                       0x08003218   Section        0  player.o(.text.Player_HandleMovement)
-    [Anonymous Symbol]                       0x08003334   Section        0  player.o(.text.Player_HandleRotation)
-    [Anonymous Symbol]                       0x080033f4   Section        0  player.o(.text.Player_Shoot)
-    [Anonymous Symbol]                       0x08003494   Section        0  player.o(.text.Player_Update)
-    [Anonymous Symbol]                       0x080034b8   Section        0  collisions.o(.text.Projectiles_CheckCollisions)
-    [Anonymous Symbol]                       0x08003844   Section        0  projectiles.o(.text.Projectiles_Remove)
-    [Anonymous Symbol]                       0x08003894   Section        0  projectiles.o(.text.Projectiles_Update)
-    [Anonymous Symbol]                       0x08003900   Section        0  protocol.o(.text.Protocol_CleanupRxBuffer)
-    [Anonymous Symbol]                       0x08003940   Section        0  protocol.o(.text.Protocol_Init)
-    [Anonymous Symbol]                       0x08003968   Section        0  protocol.o(.text.Protocol_ProcessIncoming)
-    [Anonymous Symbol]                       0x08004194   Section        0  protocol.o(.text.Protocol_SendGameState)
-    [Anonymous Symbol]                       0x08004770   Section        0  stm32f1xx_it.o(.text.SVC_Handler)
-    [Anonymous Symbol]                       0x08004774   Section        0  stm32f1xx_it.o(.text.SysTick_Handler)
-    [Anonymous Symbol]                       0x08004778   Section        0  system_stm32f1xx.o(.text.SystemInit)
-    UART_DMAAbortOnError                     0x0800477d   Thumb Code    12  stm32f1xx_hal_uart.o(.text.UART_DMAAbortOnError)
-    [Anonymous Symbol]                       0x0800477c   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAAbortOnError)
-    UART_DMAError                            0x08004789   Thumb Code   380  stm32f1xx_hal_uart.o(.text.UART_DMAError)
-    [Anonymous Symbol]                       0x08004788   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAError)
-    UART_DMAReceiveCplt                      0x08004905   Thumb Code   350  stm32f1xx_hal_uart.o(.text.UART_DMAReceiveCplt)
-    [Anonymous Symbol]                       0x08004904   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAReceiveCplt)
-    UART_DMARxHalfCplt                       0x08004a65   Thumb Code    24  stm32f1xx_hal_uart.o(.text.UART_DMARxHalfCplt)
-    [Anonymous Symbol]                       0x08004a64   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMARxHalfCplt)
-    UART_DMATransmitCplt                     0x08004a7d   Thumb Code   176  stm32f1xx_hal_uart.o(.text.UART_DMATransmitCplt)
-    [Anonymous Symbol]                       0x08004a7c   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMATransmitCplt)
-    UART_DMATxHalfCplt                       0x08004b2d   Thumb Code     6  stm32f1xx_hal_uart.o(.text.UART_DMATxHalfCplt)
-    [Anonymous Symbol]                       0x08004b2c   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMATxHalfCplt)
-    UART_Receive_IT                          0x08004b35   Thumb Code   254  stm32f1xx_hal_uart.o(.text.UART_Receive_IT)
-    [Anonymous Symbol]                       0x08004b34   Section        0  stm32f1xx_hal_uart.o(.text.UART_Receive_IT)
-    [Anonymous Symbol]                       0x08004c34   Section        0  stm32f1xx_it.o(.text.USART2_IRQHandler)
-    [Anonymous Symbol]                       0x08004c40   Section        0  stm32f1xx_it.o(.text.UsageFault_Handler)
-    [Anonymous Symbol]                       0x08004c44   Section        0  whirlpool.o(.text.WhirlpoolManager_Add)
-    [Anonymous Symbol]                       0x08004c80   Section        0  whirlpool.o(.text.WhirlpoolManager_Cleanup)
-    [Anonymous Symbol]                       0x08004cf0   Section        0  whirlpool.o(.text.WhirlpoolManager_CreateForTeleport)
-    [Anonymous Symbol]                       0x08005144   Section        0  whirlpool.o(.text.WhirlpoolManager_Init)
-    [Anonymous Symbol]                       0x08005150   Section        0  whirlpool.o(.text.WhirlpoolManager_Update)
-    [Anonymous Symbol]                       0x08005338   Section        0  main.o(.text.main)
-    i.__ARM_fpclassifyf                      0x0800553a   Section        0  fpclassifyf.o(i.__ARM_fpclassifyf)
-    i.__mathlib_flt_infnan                   0x08005560   Section        0  funder.o(i.__mathlib_flt_infnan)
-    i.__mathlib_flt_infnan2                  0x08005566   Section        0  funder.o(i.__mathlib_flt_infnan2)
-    i.__mathlib_flt_invalid                  0x0800556a   Section        0  funder.o(i.__mathlib_flt_invalid)
-    i.__mathlib_flt_underflow                0x08005572   Section        0  funder.o(i.__mathlib_flt_underflow)
-    i.__mathlib_rredf2                       0x0800557c   Section        0  rredf.o(i.__mathlib_rredf2)
-    i.atan2f                                 0x080056e4   Section        0  atan2f.o(i.atan2f)
-    i.cosf                                   0x08005988   Section        0  cosf.o(i.cosf)
-    i.fmodf                                  0x08005b04   Section        0  fmodf.o(i.fmodf)
-    i.sinf                                   0x08005b70   Section        0  sinf.o(i.sinf)
-    i.sqrtf                                  0x08005cf8   Section        0  sqrtf.o(i.sqrtf)
-    x$fpl$fadd                               0x08005d24   Section      196  faddsub_clz.o(x$fpl$fadd)
-    _fadd1                                   0x08005d33   Thumb Code     0  faddsub_clz.o(x$fpl$fadd)
-    x$fpl$fcheck1                            0x08005de8   Section       12  fcheck1.o(x$fpl$fcheck1)
-    x$fpl$fcmp                               0x08005df4   Section       84  fcmp.o(x$fpl$fcmp)
-    x$fpl$fcmpinf                            0x08005e48   Section       24  fcmpi.o(x$fpl$fcmpinf)
-    _fdiv1                                   0x08005e61   Thumb Code     0  fdiv.o(x$fpl$fdiv)
-    x$fpl$fdiv                               0x08005e60   Section      388  fdiv.o(x$fpl$fdiv)
-    x$fpl$feqf                               0x08005fe4   Section      104  feqf.o(x$fpl$feqf)
-    x$fpl$ffix                               0x0800604c   Section       54  ffix.o(x$fpl$ffix)
-    x$fpl$fflt                               0x08006084   Section       48  fflt_clz.o(x$fpl$fflt)
-    x$fpl$ffltu                              0x080060b4   Section       38  fflt_clz.o(x$fpl$ffltu)
-    x$fpl$fgeqf                              0x080060dc   Section      104  fgeqf.o(x$fpl$fgeqf)
-    x$fpl$fleqf                              0x08006144   Section      104  fleqf.o(x$fpl$fleqf)
-    x$fpl$fmul                               0x080061ac   Section      258  fmul.o(x$fpl$fmul)
-    x$fpl$fnaninf                            0x080062ae   Section      140  fnaninf.o(x$fpl$fnaninf)
-    x$fpl$frem                               0x0800633c   Section      244  frem_clz.o(x$fpl$frem)
-    x$fpl$fretinf                            0x08006430   Section       10  fretinf.o(x$fpl$fretinf)
-    x$fpl$frnd                               0x0800643c   Section       96  frnd.o(x$fpl$frnd)
-    x$fpl$frsb                               0x0800649c   Section       20  faddsub_clz.o(x$fpl$frsb)
-    x$fpl$fsqrt                              0x080064b0   Section      272  fsqrt.o(x$fpl$fsqrt)
-    x$fpl$fsub                               0x080065c0   Section      234  faddsub_clz.o(x$fpl$fsub)
-    _fsub1                                   0x080065cf   Thumb Code     0  faddsub_clz.o(x$fpl$fsub)
-    x$fpl$retnan                             0x080066aa   Section      100  retnan.o(x$fpl$retnan)
-    x$fpl$scalbnf                            0x0800670e   Section       76  scalbnf.o(x$fpl$scalbnf)
-    x$fpl$trapveneer                         0x0800675a   Section       48  trapv.o(x$fpl$trapveneer)
-    x$fpl$usenofp                            0x0800678a   Section        0  usenofp.o(x$fpl$usenofp)
-    twooverpi                                0x0800678c   Data          32  rredf.o(.constdata)
-    .constdata                               0x0800678c   Section       32  rredf.o(.constdata)
-    HAL_RCC_GetSysClockFreq.aPredivFactorTable 0x080067c4   Data           2  stm32f1xx_hal_rcc.o(.rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable)
-    [Anonymous Symbol]                       0x080067c4   Section        0  stm32f1xx_hal_rcc.o(.rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable)
-    HAL_RCC_GetSysClockFreq.aPLLMULFactorTable 0x080067c6   Data          16  stm32f1xx_hal_rcc.o(.rodata.cst16)
-    [Anonymous Symbol]                       0x080067c6   Section        0  stm32f1xx_hal_rcc.o(.rodata.cst16)
+    [Anonymous Symbol]                       0x08003070   Section        0  stm32f1xx_it.o(.text.MemManage_Handler)
+    [Anonymous Symbol]                       0x08003074   Section        0  stm32f1xx_it.o(.text.NMI_Handler)
+    [Anonymous Symbol]                       0x08003078   Section        0  cleanup.o(.text.Obstacles_CleanupOld)
+    [Anonymous Symbol]                       0x080030ec   Section        0  stm32f1xx_it.o(.text.PendSV_Handler)
+    [Anonymous Symbol]                       0x080030f0   Section        0  collisions.o(.text.Player_CheckEnemyCollisions)
+    [Anonymous Symbol]                       0x0800322c   Section        0  player.o(.text.Player_HandleMovement)
+    [Anonymous Symbol]                       0x08003348   Section        0  player.o(.text.Player_HandleRotation)
+    [Anonymous Symbol]                       0x08003408   Section        0  player.o(.text.Player_Shoot)
+    [Anonymous Symbol]                       0x080034a8   Section        0  player.o(.text.Player_Update)
+    [Anonymous Symbol]                       0x080034cc   Section        0  collisions.o(.text.Projectiles_CheckCollisions)
+    [Anonymous Symbol]                       0x08003858   Section        0  projectiles.o(.text.Projectiles_Remove)
+    [Anonymous Symbol]                       0x080038a8   Section        0  projectiles.o(.text.Projectiles_Update)
+    [Anonymous Symbol]                       0x08003914   Section        0  protocol.o(.text.Protocol_CleanupRxBuffer)
+    [Anonymous Symbol]                       0x08003954   Section        0  protocol.o(.text.Protocol_Init)
+    [Anonymous Symbol]                       0x0800397c   Section        0  protocol.o(.text.Protocol_ProcessIncoming)
+    [Anonymous Symbol]                       0x0800424c   Section        0  protocol.o(.text.Protocol_SendGameState)
+    [Anonymous Symbol]                       0x08004828   Section        0  stm32f1xx_it.o(.text.SVC_Handler)
+    [Anonymous Symbol]                       0x0800482c   Section        0  stm32f1xx_it.o(.text.SysTick_Handler)
+    [Anonymous Symbol]                       0x08004830   Section        0  system_stm32f1xx.o(.text.SystemInit)
+    UART_DMAAbortOnError                     0x08004835   Thumb Code    12  stm32f1xx_hal_uart.o(.text.UART_DMAAbortOnError)
+    [Anonymous Symbol]                       0x08004834   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAAbortOnError)
+    UART_DMAError                            0x08004841   Thumb Code   380  stm32f1xx_hal_uart.o(.text.UART_DMAError)
+    [Anonymous Symbol]                       0x08004840   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAError)
+    UART_DMAReceiveCplt                      0x080049bd   Thumb Code   350  stm32f1xx_hal_uart.o(.text.UART_DMAReceiveCplt)
+    [Anonymous Symbol]                       0x080049bc   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMAReceiveCplt)
+    UART_DMARxHalfCplt                       0x08004b1d   Thumb Code    24  stm32f1xx_hal_uart.o(.text.UART_DMARxHalfCplt)
+    [Anonymous Symbol]                       0x08004b1c   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMARxHalfCplt)
+    UART_DMATransmitCplt                     0x08004b35   Thumb Code   176  stm32f1xx_hal_uart.o(.text.UART_DMATransmitCplt)
+    [Anonymous Symbol]                       0x08004b34   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMATransmitCplt)
+    UART_DMATxHalfCplt                       0x08004be5   Thumb Code     6  stm32f1xx_hal_uart.o(.text.UART_DMATxHalfCplt)
+    [Anonymous Symbol]                       0x08004be4   Section        0  stm32f1xx_hal_uart.o(.text.UART_DMATxHalfCplt)
+    UART_Receive_IT                          0x08004bed   Thumb Code   254  stm32f1xx_hal_uart.o(.text.UART_Receive_IT)
+    [Anonymous Symbol]                       0x08004bec   Section        0  stm32f1xx_hal_uart.o(.text.UART_Receive_IT)
+    [Anonymous Symbol]                       0x08004cec   Section        0  stm32f1xx_it.o(.text.USART2_IRQHandler)
+    [Anonymous Symbol]                       0x08004cf8   Section        0  stm32f1xx_it.o(.text.UsageFault_Handler)
+    [Anonymous Symbol]                       0x08004cfc   Section        0  whirlpool.o(.text.WhirlpoolManager_Add)
+    [Anonymous Symbol]                       0x08004d38   Section        0  whirlpool.o(.text.WhirlpoolManager_Cleanup)
+    [Anonymous Symbol]                       0x08004da8   Section        0  whirlpool.o(.text.WhirlpoolManager_CreateForTeleport)
+    [Anonymous Symbol]                       0x080051fc   Section        0  whirlpool.o(.text.WhirlpoolManager_Init)
+    [Anonymous Symbol]                       0x08005208   Section        0  whirlpool.o(.text.WhirlpoolManager_Update)
+    [Anonymous Symbol]                       0x080053f0   Section        0  main.o(.text.main)
+    i.__ARM_fpclassifyf                      0x080055de   Section        0  fpclassifyf.o(i.__ARM_fpclassifyf)
+    i.__mathlib_flt_infnan                   0x08005604   Section        0  funder.o(i.__mathlib_flt_infnan)
+    i.__mathlib_flt_infnan2                  0x0800560a   Section        0  funder.o(i.__mathlib_flt_infnan2)
+    i.__mathlib_flt_invalid                  0x0800560e   Section        0  funder.o(i.__mathlib_flt_invalid)
+    i.__mathlib_flt_underflow                0x08005616   Section        0  funder.o(i.__mathlib_flt_underflow)
+    i.__mathlib_rredf2                       0x08005620   Section        0  rredf.o(i.__mathlib_rredf2)
+    i.atan2f                                 0x08005788   Section        0  atan2f.o(i.atan2f)
+    i.cosf                                   0x08005a2c   Section        0  cosf.o(i.cosf)
+    i.fmodf                                  0x08005ba8   Section        0  fmodf.o(i.fmodf)
+    i.sinf                                   0x08005c14   Section        0  sinf.o(i.sinf)
+    i.sqrtf                                  0x08005d9c   Section        0  sqrtf.o(i.sqrtf)
+    x$fpl$fadd                               0x08005dc8   Section      196  faddsub_clz.o(x$fpl$fadd)
+    _fadd1                                   0x08005dd7   Thumb Code     0  faddsub_clz.o(x$fpl$fadd)
+    x$fpl$fcheck1                            0x08005e8c   Section       12  fcheck1.o(x$fpl$fcheck1)
+    x$fpl$fcmp                               0x08005e98   Section       84  fcmp.o(x$fpl$fcmp)
+    x$fpl$fcmpinf                            0x08005eec   Section       24  fcmpi.o(x$fpl$fcmpinf)
+    _fdiv1                                   0x08005f05   Thumb Code     0  fdiv.o(x$fpl$fdiv)
+    x$fpl$fdiv                               0x08005f04   Section      388  fdiv.o(x$fpl$fdiv)
+    x$fpl$feqf                               0x08006088   Section      104  feqf.o(x$fpl$feqf)
+    x$fpl$ffix                               0x080060f0   Section       54  ffix.o(x$fpl$ffix)
+    x$fpl$fflt                               0x08006128   Section       48  fflt_clz.o(x$fpl$fflt)
+    x$fpl$ffltu                              0x08006158   Section       38  fflt_clz.o(x$fpl$ffltu)
+    x$fpl$fgeqf                              0x08006180   Section      104  fgeqf.o(x$fpl$fgeqf)
+    x$fpl$fleqf                              0x080061e8   Section      104  fleqf.o(x$fpl$fleqf)
+    x$fpl$fmul                               0x08006250   Section      258  fmul.o(x$fpl$fmul)
+    x$fpl$fnaninf                            0x08006352   Section      140  fnaninf.o(x$fpl$fnaninf)
+    x$fpl$frem                               0x080063e0   Section      244  frem_clz.o(x$fpl$frem)
+    x$fpl$fretinf                            0x080064d4   Section       10  fretinf.o(x$fpl$fretinf)
+    x$fpl$frnd                               0x080064e0   Section       96  frnd.o(x$fpl$frnd)
+    x$fpl$frsb                               0x08006540   Section       20  faddsub_clz.o(x$fpl$frsb)
+    x$fpl$fsqrt                              0x08006554   Section      272  fsqrt.o(x$fpl$fsqrt)
+    x$fpl$fsub                               0x08006664   Section      234  faddsub_clz.o(x$fpl$fsub)
+    _fsub1                                   0x08006673   Thumb Code     0  faddsub_clz.o(x$fpl$fsub)
+    x$fpl$retnan                             0x0800674e   Section      100  retnan.o(x$fpl$retnan)
+    x$fpl$scalbnf                            0x080067b2   Section       76  scalbnf.o(x$fpl$scalbnf)
+    x$fpl$trapveneer                         0x080067fe   Section       48  trapv.o(x$fpl$trapveneer)
+    x$fpl$usenofp                            0x0800682e   Section        0  usenofp.o(x$fpl$usenofp)
+    twooverpi                                0x08006830   Data          32  rredf.o(.constdata)
+    .constdata                               0x08006830   Section       32  rredf.o(.constdata)
+    HAL_RCC_GetSysClockFreq.aPredivFactorTable 0x08006868   Data           2  stm32f1xx_hal_rcc.o(.rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable)
+    [Anonymous Symbol]                       0x08006868   Section        0  stm32f1xx_hal_rcc.o(.rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable)
+    HAL_RCC_GetSysClockFreq.aPLLMULFactorTable 0x0800686a   Data          16  stm32f1xx_hal_rcc.o(.rodata.cst16)
+    [Anonymous Symbol]                       0x0800686a   Section        0  stm32f1xx_hal_rcc.o(.rodata.cst16)
     .L_MergedGlobals                         0x20000000   Data           8  stm32f1xx_hal.o(.data..L_MergedGlobals)
     [Anonymous Symbol]                       0x20000000   Section        0  stm32f1xx_hal.o(.data..L_MergedGlobals)
     .bss                                     0x20000010   Section       96  libspace.o(.bss)
@@ -2019,93 +2019,93 @@ Image Symbol Table
     Input_Init                               0x08002fc5   Thumb Code     2  input.o(.text.Input_Init)
     Input_IsPressed                          0x08002fc9   Thumb Code    26  input.o(.text.Input_IsPressed)
     Input_JustPressed                        0x08002fe5   Thumb Code    64  input.o(.text.Input_JustPressed)
-    Input_Update                             0x08003025   Thumb Code    56  input.o(.text.Input_Update)
-    MemManage_Handler                        0x0800305d   Thumb Code     2  stm32f1xx_it.o(.text.MemManage_Handler)
-    NMI_Handler                              0x08003061   Thumb Code     2  stm32f1xx_it.o(.text.NMI_Handler)
-    Obstacles_CleanupOld                     0x08003065   Thumb Code   114  cleanup.o(.text.Obstacles_CleanupOld)
-    PendSV_Handler                           0x080030d9   Thumb Code     2  stm32f1xx_it.o(.text.PendSV_Handler)
-    Player_CheckEnemyCollisions              0x080030dd   Thumb Code   316  collisions.o(.text.Player_CheckEnemyCollisions)
-    Player_HandleMovement                    0x08003219   Thumb Code   282  player.o(.text.Player_HandleMovement)
-    Player_HandleRotation                    0x08003335   Thumb Code   192  player.o(.text.Player_HandleRotation)
-    Player_Shoot                             0x080033f5   Thumb Code   158  player.o(.text.Player_Shoot)
-    Player_Update                            0x08003495   Thumb Code    34  player.o(.text.Player_Update)
-    Projectiles_CheckCollisions              0x080034b9   Thumb Code   906  collisions.o(.text.Projectiles_CheckCollisions)
-    Projectiles_Remove                       0x08003845   Thumb Code    80  projectiles.o(.text.Projectiles_Remove)
-    Projectiles_Update                       0x08003895   Thumb Code   108  projectiles.o(.text.Projectiles_Update)
-    Protocol_CleanupRxBuffer                 0x08003901   Thumb Code    62  protocol.o(.text.Protocol_CleanupRxBuffer)
-    Protocol_Init                            0x08003941   Thumb Code    38  protocol.o(.text.Protocol_Init)
-    Protocol_ProcessIncoming                 0x08003969   Thumb Code  2090  protocol.o(.text.Protocol_ProcessIncoming)
-    Protocol_SendGameState                   0x08004195   Thumb Code  1500  protocol.o(.text.Protocol_SendGameState)
-    SVC_Handler                              0x08004771   Thumb Code     2  stm32f1xx_it.o(.text.SVC_Handler)
-    SysTick_Handler                          0x08004775   Thumb Code     4  stm32f1xx_it.o(.text.SysTick_Handler)
-    SystemInit                               0x08004779   Thumb Code     2  system_stm32f1xx.o(.text.SystemInit)
-    USART2_IRQHandler                        0x08004c35   Thumb Code    12  stm32f1xx_it.o(.text.USART2_IRQHandler)
-    UsageFault_Handler                       0x08004c41   Thumb Code     2  stm32f1xx_it.o(.text.UsageFault_Handler)
-    WhirlpoolManager_Add                     0x08004c45   Thumb Code    58  whirlpool.o(.text.WhirlpoolManager_Add)
-    WhirlpoolManager_Cleanup                 0x08004c81   Thumb Code   110  whirlpool.o(.text.WhirlpoolManager_Cleanup)
-    WhirlpoolManager_CreateForTeleport       0x08004cf1   Thumb Code  1106  whirlpool.o(.text.WhirlpoolManager_CreateForTeleport)
-    WhirlpoolManager_Init                    0x08005145   Thumb Code    10  whirlpool.o(.text.WhirlpoolManager_Init)
-    WhirlpoolManager_Update                  0x08005151   Thumb Code   486  whirlpool.o(.text.WhirlpoolManager_Update)
-    main                                     0x08005339   Thumb Code   514  main.o(.text.main)
-    __ARM_fpclassifyf                        0x0800553b   Thumb Code    38  fpclassifyf.o(i.__ARM_fpclassifyf)
-    __mathlib_flt_infnan                     0x08005561   Thumb Code     6  funder.o(i.__mathlib_flt_infnan)
-    __mathlib_flt_infnan2                    0x08005567   Thumb Code     4  funder.o(i.__mathlib_flt_infnan2)
-    __mathlib_flt_invalid                    0x0800556b   Thumb Code     8  funder.o(i.__mathlib_flt_invalid)
-    __mathlib_flt_underflow                  0x08005573   Thumb Code    10  funder.o(i.__mathlib_flt_underflow)
-    __mathlib_rredf2                         0x0800557d   Thumb Code   344  rredf.o(i.__mathlib_rredf2)
-    atan2f                                   0x080056e5   Thumb Code   598  atan2f.o(i.atan2f)
-    cosf                                     0x08005989   Thumb Code   328  cosf.o(i.cosf)
-    fmodf                                    0x08005b05   Thumb Code   108  fmodf.o(i.fmodf)
-    sinf                                     0x08005b71   Thumb Code   338  sinf.o(i.sinf)
-    sqrtf                                    0x08005cf9   Thumb Code    44  sqrtf.o(i.sqrtf)
-    __aeabi_fadd                             0x08005d25   Thumb Code     0  faddsub_clz.o(x$fpl$fadd)
-    _fadd                                    0x08005d25   Thumb Code   196  faddsub_clz.o(x$fpl$fadd)
-    __fpl_fcheck_NaN1                        0x08005de9   Thumb Code     6  fcheck1.o(x$fpl$fcheck1)
-    __aeabi_fcmpeq                           0x08005df5   Thumb Code     0  fcmp.o(x$fpl$fcmp)
-    _feq                                     0x08005df5   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    _fneq                                    0x08005e03   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    __aeabi_fcmpgt                           0x08005e11   Thumb Code     0  fcmp.o(x$fpl$fcmp)
-    _fgr                                     0x08005e11   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    __aeabi_fcmpge                           0x08005e1f   Thumb Code     0  fcmp.o(x$fpl$fcmp)
-    _fgeq                                    0x08005e1f   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    __aeabi_fcmple                           0x08005e2d   Thumb Code     0  fcmp.o(x$fpl$fcmp)
-    _fleq                                    0x08005e2d   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    __aeabi_fcmplt                           0x08005e3b   Thumb Code     0  fcmp.o(x$fpl$fcmp)
-    _fls                                     0x08005e3b   Thumb Code    14  fcmp.o(x$fpl$fcmp)
-    __fpl_fcmp_Inf                           0x08005e49   Thumb Code    24  fcmpi.o(x$fpl$fcmpinf)
-    __aeabi_fdiv                             0x08005e61   Thumb Code     0  fdiv.o(x$fpl$fdiv)
-    _fdiv                                    0x08005e61   Thumb Code   384  fdiv.o(x$fpl$fdiv)
-    __aeabi_cfcmpeq                          0x08005fe5   Thumb Code     0  feqf.o(x$fpl$feqf)
-    _fcmpeq                                  0x08005fe5   Thumb Code   104  feqf.o(x$fpl$feqf)
-    __aeabi_f2iz                             0x0800604d   Thumb Code     0  ffix.o(x$fpl$ffix)
-    _ffix                                    0x0800604d   Thumb Code    54  ffix.o(x$fpl$ffix)
-    __aeabi_i2f                              0x08006085   Thumb Code     0  fflt_clz.o(x$fpl$fflt)
-    _fflt                                    0x08006085   Thumb Code    48  fflt_clz.o(x$fpl$fflt)
-    __aeabi_ui2f                             0x080060b5   Thumb Code     0  fflt_clz.o(x$fpl$ffltu)
-    _ffltu                                   0x080060b5   Thumb Code    38  fflt_clz.o(x$fpl$ffltu)
-    _fcmpge                                  0x080060dd   Thumb Code   104  fgeqf.o(x$fpl$fgeqf)
-    __aeabi_cfcmple                          0x08006145   Thumb Code     0  fleqf.o(x$fpl$fleqf)
-    _fcmple                                  0x08006145   Thumb Code   104  fleqf.o(x$fpl$fleqf)
-    __fpl_fcmple_InfNaN                      0x08006197   Thumb Code     0  fleqf.o(x$fpl$fleqf)
-    __aeabi_fmul                             0x080061ad   Thumb Code     0  fmul.o(x$fpl$fmul)
-    _fmul                                    0x080061ad   Thumb Code   258  fmul.o(x$fpl$fmul)
-    __fpl_fnaninf                            0x080062af   Thumb Code   140  fnaninf.o(x$fpl$fnaninf)
-    _frem                                    0x0800633d   Thumb Code   240  frem_clz.o(x$fpl$frem)
-    __fpl_fretinf                            0x08006431   Thumb Code    10  fretinf.o(x$fpl$fretinf)
-    _frnd                                    0x0800643d   Thumb Code    96  frnd.o(x$fpl$frnd)
-    __aeabi_frsub                            0x0800649d   Thumb Code     0  faddsub_clz.o(x$fpl$frsb)
-    _frsb                                    0x0800649d   Thumb Code    20  faddsub_clz.o(x$fpl$frsb)
-    _fsqrt                                   0x080064b1   Thumb Code   272  fsqrt.o(x$fpl$fsqrt)
-    __aeabi_fsub                             0x080065c1   Thumb Code     0  faddsub_clz.o(x$fpl$fsub)
-    _fsub                                    0x080065c1   Thumb Code   234  faddsub_clz.o(x$fpl$fsub)
-    __fpl_return_NaN                         0x080066ab   Thumb Code   100  retnan.o(x$fpl$retnan)
-    __ARM_scalbnf                            0x0800670f   Thumb Code    76  scalbnf.o(x$fpl$scalbnf)
-    __fpl_cmpreturn                          0x0800675b   Thumb Code    48  trapv.o(x$fpl$trapveneer)
-    __I$use$fp                               0x0800678a   Number         0  usenofp.o(x$fpl$usenofp)
-    AHBPrescTable                            0x080067ac   Data          16  system_stm32f1xx.o(.rodata.AHBPrescTable)
-    APBPrescTable                            0x080067bc   Data           8  system_stm32f1xx.o(.rodata.APBPrescTable)
-    Region$$Table$$Base                      0x080067d8   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x080067f8   Number         0  anon$$obj.o(Region$$Table)
+    Input_Update                             0x08003025   Thumb Code    74  input.o(.text.Input_Update)
+    MemManage_Handler                        0x08003071   Thumb Code     2  stm32f1xx_it.o(.text.MemManage_Handler)
+    NMI_Handler                              0x08003075   Thumb Code     2  stm32f1xx_it.o(.text.NMI_Handler)
+    Obstacles_CleanupOld                     0x08003079   Thumb Code   114  cleanup.o(.text.Obstacles_CleanupOld)
+    PendSV_Handler                           0x080030ed   Thumb Code     2  stm32f1xx_it.o(.text.PendSV_Handler)
+    Player_CheckEnemyCollisions              0x080030f1   Thumb Code   316  collisions.o(.text.Player_CheckEnemyCollisions)
+    Player_HandleMovement                    0x0800322d   Thumb Code   282  player.o(.text.Player_HandleMovement)
+    Player_HandleRotation                    0x08003349   Thumb Code   192  player.o(.text.Player_HandleRotation)
+    Player_Shoot                             0x08003409   Thumb Code   158  player.o(.text.Player_Shoot)
+    Player_Update                            0x080034a9   Thumb Code    34  player.o(.text.Player_Update)
+    Projectiles_CheckCollisions              0x080034cd   Thumb Code   906  collisions.o(.text.Projectiles_CheckCollisions)
+    Projectiles_Remove                       0x08003859   Thumb Code    80  projectiles.o(.text.Projectiles_Remove)
+    Projectiles_Update                       0x080038a9   Thumb Code   108  projectiles.o(.text.Projectiles_Update)
+    Protocol_CleanupRxBuffer                 0x08003915   Thumb Code    62  protocol.o(.text.Protocol_CleanupRxBuffer)
+    Protocol_Init                            0x08003955   Thumb Code    38  protocol.o(.text.Protocol_Init)
+    Protocol_ProcessIncoming                 0x0800397d   Thumb Code  2254  protocol.o(.text.Protocol_ProcessIncoming)
+    Protocol_SendGameState                   0x0800424d   Thumb Code  1500  protocol.o(.text.Protocol_SendGameState)
+    SVC_Handler                              0x08004829   Thumb Code     2  stm32f1xx_it.o(.text.SVC_Handler)
+    SysTick_Handler                          0x0800482d   Thumb Code     4  stm32f1xx_it.o(.text.SysTick_Handler)
+    SystemInit                               0x08004831   Thumb Code     2  system_stm32f1xx.o(.text.SystemInit)
+    USART2_IRQHandler                        0x08004ced   Thumb Code    12  stm32f1xx_it.o(.text.USART2_IRQHandler)
+    UsageFault_Handler                       0x08004cf9   Thumb Code     2  stm32f1xx_it.o(.text.UsageFault_Handler)
+    WhirlpoolManager_Add                     0x08004cfd   Thumb Code    58  whirlpool.o(.text.WhirlpoolManager_Add)
+    WhirlpoolManager_Cleanup                 0x08004d39   Thumb Code   110  whirlpool.o(.text.WhirlpoolManager_Cleanup)
+    WhirlpoolManager_CreateForTeleport       0x08004da9   Thumb Code  1106  whirlpool.o(.text.WhirlpoolManager_CreateForTeleport)
+    WhirlpoolManager_Init                    0x080051fd   Thumb Code    10  whirlpool.o(.text.WhirlpoolManager_Init)
+    WhirlpoolManager_Update                  0x08005209   Thumb Code   486  whirlpool.o(.text.WhirlpoolManager_Update)
+    main                                     0x080053f1   Thumb Code   494  main.o(.text.main)
+    __ARM_fpclassifyf                        0x080055df   Thumb Code    38  fpclassifyf.o(i.__ARM_fpclassifyf)
+    __mathlib_flt_infnan                     0x08005605   Thumb Code     6  funder.o(i.__mathlib_flt_infnan)
+    __mathlib_flt_infnan2                    0x0800560b   Thumb Code     4  funder.o(i.__mathlib_flt_infnan2)
+    __mathlib_flt_invalid                    0x0800560f   Thumb Code     8  funder.o(i.__mathlib_flt_invalid)
+    __mathlib_flt_underflow                  0x08005617   Thumb Code    10  funder.o(i.__mathlib_flt_underflow)
+    __mathlib_rredf2                         0x08005621   Thumb Code   344  rredf.o(i.__mathlib_rredf2)
+    atan2f                                   0x08005789   Thumb Code   598  atan2f.o(i.atan2f)
+    cosf                                     0x08005a2d   Thumb Code   328  cosf.o(i.cosf)
+    fmodf                                    0x08005ba9   Thumb Code   108  fmodf.o(i.fmodf)
+    sinf                                     0x08005c15   Thumb Code   338  sinf.o(i.sinf)
+    sqrtf                                    0x08005d9d   Thumb Code    44  sqrtf.o(i.sqrtf)
+    __aeabi_fadd                             0x08005dc9   Thumb Code     0  faddsub_clz.o(x$fpl$fadd)
+    _fadd                                    0x08005dc9   Thumb Code   196  faddsub_clz.o(x$fpl$fadd)
+    __fpl_fcheck_NaN1                        0x08005e8d   Thumb Code     6  fcheck1.o(x$fpl$fcheck1)
+    __aeabi_fcmpeq                           0x08005e99   Thumb Code     0  fcmp.o(x$fpl$fcmp)
+    _feq                                     0x08005e99   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    _fneq                                    0x08005ea7   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    __aeabi_fcmpgt                           0x08005eb5   Thumb Code     0  fcmp.o(x$fpl$fcmp)
+    _fgr                                     0x08005eb5   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    __aeabi_fcmpge                           0x08005ec3   Thumb Code     0  fcmp.o(x$fpl$fcmp)
+    _fgeq                                    0x08005ec3   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    __aeabi_fcmple                           0x08005ed1   Thumb Code     0  fcmp.o(x$fpl$fcmp)
+    _fleq                                    0x08005ed1   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    __aeabi_fcmplt                           0x08005edf   Thumb Code     0  fcmp.o(x$fpl$fcmp)
+    _fls                                     0x08005edf   Thumb Code    14  fcmp.o(x$fpl$fcmp)
+    __fpl_fcmp_Inf                           0x08005eed   Thumb Code    24  fcmpi.o(x$fpl$fcmpinf)
+    __aeabi_fdiv                             0x08005f05   Thumb Code     0  fdiv.o(x$fpl$fdiv)
+    _fdiv                                    0x08005f05   Thumb Code   384  fdiv.o(x$fpl$fdiv)
+    __aeabi_cfcmpeq                          0x08006089   Thumb Code     0  feqf.o(x$fpl$feqf)
+    _fcmpeq                                  0x08006089   Thumb Code   104  feqf.o(x$fpl$feqf)
+    __aeabi_f2iz                             0x080060f1   Thumb Code     0  ffix.o(x$fpl$ffix)
+    _ffix                                    0x080060f1   Thumb Code    54  ffix.o(x$fpl$ffix)
+    __aeabi_i2f                              0x08006129   Thumb Code     0  fflt_clz.o(x$fpl$fflt)
+    _fflt                                    0x08006129   Thumb Code    48  fflt_clz.o(x$fpl$fflt)
+    __aeabi_ui2f                             0x08006159   Thumb Code     0  fflt_clz.o(x$fpl$ffltu)
+    _ffltu                                   0x08006159   Thumb Code    38  fflt_clz.o(x$fpl$ffltu)
+    _fcmpge                                  0x08006181   Thumb Code   104  fgeqf.o(x$fpl$fgeqf)
+    __aeabi_cfcmple                          0x080061e9   Thumb Code     0  fleqf.o(x$fpl$fleqf)
+    _fcmple                                  0x080061e9   Thumb Code   104  fleqf.o(x$fpl$fleqf)
+    __fpl_fcmple_InfNaN                      0x0800623b   Thumb Code     0  fleqf.o(x$fpl$fleqf)
+    __aeabi_fmul                             0x08006251   Thumb Code     0  fmul.o(x$fpl$fmul)
+    _fmul                                    0x08006251   Thumb Code   258  fmul.o(x$fpl$fmul)
+    __fpl_fnaninf                            0x08006353   Thumb Code   140  fnaninf.o(x$fpl$fnaninf)
+    _frem                                    0x080063e1   Thumb Code   240  frem_clz.o(x$fpl$frem)
+    __fpl_fretinf                            0x080064d5   Thumb Code    10  fretinf.o(x$fpl$fretinf)
+    _frnd                                    0x080064e1   Thumb Code    96  frnd.o(x$fpl$frnd)
+    __aeabi_frsub                            0x08006541   Thumb Code     0  faddsub_clz.o(x$fpl$frsb)
+    _frsb                                    0x08006541   Thumb Code    20  faddsub_clz.o(x$fpl$frsb)
+    _fsqrt                                   0x08006555   Thumb Code   272  fsqrt.o(x$fpl$fsqrt)
+    __aeabi_fsub                             0x08006665   Thumb Code     0  faddsub_clz.o(x$fpl$fsub)
+    _fsub                                    0x08006665   Thumb Code   234  faddsub_clz.o(x$fpl$fsub)
+    __fpl_return_NaN                         0x0800674f   Thumb Code   100  retnan.o(x$fpl$retnan)
+    __ARM_scalbnf                            0x080067b3   Thumb Code    76  scalbnf.o(x$fpl$scalbnf)
+    __fpl_cmpreturn                          0x080067ff   Thumb Code    48  trapv.o(x$fpl$trapveneer)
+    __I$use$fp                               0x0800682e   Number         0  usenofp.o(x$fpl$usenofp)
+    AHBPrescTable                            0x08006850   Data          16  system_stm32f1xx.o(.rodata.AHBPrescTable)
+    APBPrescTable                            0x08006860   Data           8  system_stm32f1xx.o(.rodata.APBPrescTable)
+    Region$$Table$$Base                      0x0800687c   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0800689c   Number         0  anon$$obj.o(Region$$Table)
     uwTickFreq                               0x20000000   Data           1  stm32f1xx_hal.o(.data..L_MergedGlobals)
     uwTickPrio                               0x20000004   Data           4  stm32f1xx_hal.o(.data..L_MergedGlobals)
     SystemCoreClock                          0x20000008   Data           4  system_stm32f1xx.o(.data.SystemCoreClock)
@@ -2131,9 +2131,9 @@ Memory Map of the image
 
   Image Entry point : 0x080000ed
 
-  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x00006808, Max: 0x00020000, ABSOLUTE)
+  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x000068b0, Max: 0x00020000, ABSOLUTE)
 
-    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x000067f8, Max: 0x00020000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x0000689c, Max: 0x00020000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -2304,118 +2304,119 @@ Memory Map of the image
     0x08002fc8   0x08002fc8   0x0000001a   Code   RO          703    .text.Input_IsPressed  input.o
     0x08002fe2   0x08002fe2   0x00000002   PAD
     0x08002fe4   0x08002fe4   0x00000040   Code   RO          705    .text.Input_JustPressed  input.o
-    0x08003024   0x08003024   0x00000038   Code   RO          701    .text.Input_Update  input.o
-    0x0800305c   0x0800305c   0x00000002   Code   RO           38    .text.MemManage_Handler  stm32f1xx_it.o
-    0x0800305e   0x0800305e   0x00000002   PAD
-    0x08003060   0x08003060   0x00000002   Code   RO           34    .text.NMI_Handler   stm32f1xx_it.o
-    0x08003062   0x08003062   0x00000002   PAD
-    0x08003064   0x08003064   0x00000072   Code   RO          571    .text.Obstacles_CleanupOld  cleanup.o
-    0x080030d6   0x080030d6   0x00000002   PAD
-    0x080030d8   0x080030d8   0x00000002   Code   RO           48    .text.PendSV_Handler  stm32f1xx_it.o
-    0x080030da   0x080030da   0x00000002   PAD
-    0x080030dc   0x080030dc   0x0000013c   Code   RO          589    .text.Player_CheckEnemyCollisions  collisions.o
-    0x08003218   0x08003218   0x0000011a   Code   RO          647    .text.Player_HandleMovement  player.o
-    0x08003332   0x08003332   0x00000002   PAD
-    0x08003334   0x08003334   0x000000c0   Code   RO          645    .text.Player_HandleRotation  player.o
-    0x080033f4   0x080033f4   0x0000009e   Code   RO          653    .text.Player_Shoot  player.o
-    0x08003492   0x08003492   0x00000002   PAD
-    0x08003494   0x08003494   0x00000022   Code   RO          643    .text.Player_Update  player.o
-    0x080034b6   0x080034b6   0x00000002   PAD
-    0x080034b8   0x080034b8   0x0000038a   Code   RO          583    .text.Projectiles_CheckCollisions  collisions.o
-    0x08003842   0x08003842   0x00000002   PAD
-    0x08003844   0x08003844   0x00000050   Code   RO          665    .text.Projectiles_Remove  projectiles.o
-    0x08003894   0x08003894   0x0000006c   Code   RO          663    .text.Projectiles_Update  projectiles.o
-    0x08003900   0x08003900   0x0000003e   Code   RO          721    .text.Protocol_CleanupRxBuffer  protocol.o
-    0x0800393e   0x0800393e   0x00000002   PAD
-    0x08003940   0x08003940   0x00000026   Code   RO          717    .text.Protocol_Init  protocol.o
-    0x08003966   0x08003966   0x00000002   PAD
-    0x08003968   0x08003968   0x0000082a   Code   RO          723    .text.Protocol_ProcessIncoming  protocol.o
-    0x08004192   0x08004192   0x00000002   PAD
-    0x08004194   0x08004194   0x000005dc   Code   RO          719    .text.Protocol_SendGameState  protocol.o
-    0x08004770   0x08004770   0x00000002   Code   RO           44    .text.SVC_Handler   stm32f1xx_it.o
-    0x08004772   0x08004772   0x00000002   PAD
-    0x08004774   0x08004774   0x00000004   Code   RO           50    .text.SysTick_Handler  stm32f1xx_it.o
-    0x08004778   0x08004778   0x00000002   Code   RO          554    .text.SystemInit    system_stm32f1xx.o
-    0x0800477a   0x0800477a   0x00000002   PAD
-    0x0800477c   0x0800477c   0x0000000c   Code   RO          181    .text.UART_DMAAbortOnError  stm32f1xx_hal_uart.o
-    0x08004788   0x08004788   0x0000017c   Code   RO          131    .text.UART_DMAError  stm32f1xx_hal_uart.o
-    0x08004904   0x08004904   0x0000015e   Code   RO          209    .text.UART_DMAReceiveCplt  stm32f1xx_hal_uart.o
-    0x08004a62   0x08004a62   0x00000002   PAD
-    0x08004a64   0x08004a64   0x00000018   Code   RO          211    .text.UART_DMARxHalfCplt  stm32f1xx_hal_uart.o
-    0x08004a7c   0x08004a7c   0x000000b0   Code   RO          127    .text.UART_DMATransmitCplt  stm32f1xx_hal_uart.o
-    0x08004b2c   0x08004b2c   0x00000006   Code   RO          129    .text.UART_DMATxHalfCplt  stm32f1xx_hal_uart.o
-    0x08004b32   0x08004b32   0x00000002   PAD
-    0x08004b34   0x08004b34   0x000000fe   Code   RO          179    .text.UART_Receive_IT  stm32f1xx_hal_uart.o
-    0x08004c32   0x08004c32   0x00000002   PAD
-    0x08004c34   0x08004c34   0x0000000c   Code   RO           62    .text.USART2_IRQHandler  stm32f1xx_it.o
-    0x08004c40   0x08004c40   0x00000002   Code   RO           42    .text.UsageFault_Handler  stm32f1xx_it.o
-    0x08004c42   0x08004c42   0x00000002   PAD
-    0x08004c44   0x08004c44   0x0000003a   Code   RO          687    .text.WhirlpoolManager_Add  whirlpool.o
-    0x08004c7e   0x08004c7e   0x00000002   PAD
-    0x08004c80   0x08004c80   0x0000006e   Code   RO          689    .text.WhirlpoolManager_Cleanup  whirlpool.o
-    0x08004cee   0x08004cee   0x00000002   PAD
-    0x08004cf0   0x08004cf0   0x00000452   Code   RO          683    .text.WhirlpoolManager_CreateForTeleport  whirlpool.o
-    0x08005142   0x08005142   0x00000002   PAD
-    0x08005144   0x08005144   0x0000000a   Code   RO          675    .text.WhirlpoolManager_Init  whirlpool.o
-    0x0800514e   0x0800514e   0x00000002   PAD
-    0x08005150   0x08005150   0x000001e6   Code   RO          677    .text.WhirlpoolManager_Update  whirlpool.o
-    0x08005336   0x08005336   0x00000002   PAD
-    0x08005338   0x08005338   0x00000202   Code   RO           11    .text.main          main.o
-    0x0800553a   0x0800553a   0x00000026   Code   RO          952    i.__ARM_fpclassifyf  m_ws.l(fpclassifyf.o)
-    0x08005560   0x08005560   0x00000006   Code   RO          955    i.__mathlib_flt_infnan  m_ws.l(funder.o)
-    0x08005566   0x08005566   0x00000004   Code   RO          956    i.__mathlib_flt_infnan2  m_ws.l(funder.o)
-    0x0800556a   0x0800556a   0x00000008   Code   RO          957    i.__mathlib_flt_invalid  m_ws.l(funder.o)
-    0x08005572   0x08005572   0x0000000a   Code   RO          960    i.__mathlib_flt_underflow  m_ws.l(funder.o)
-    0x0800557c   0x0800557c   0x00000168   Code   RO          968    i.__mathlib_rredf2  m_ws.l(rredf.o)
-    0x080056e4   0x080056e4   0x000002a4   Code   RO          835    i.atan2f            m_ws.l(atan2f.o)
-    0x08005988   0x08005988   0x0000017c   Code   RO          839    i.cosf              m_ws.l(cosf.o)
-    0x08005b04   0x08005b04   0x0000006c   Code   RO          843    i.fmodf             m_ws.l(fmodf.o)
-    0x08005b70   0x08005b70   0x00000188   Code   RO          847    i.sinf              m_ws.l(sinf.o)
-    0x08005cf8   0x08005cf8   0x0000002c   Code   RO          851    i.sqrtf             m_ws.l(sqrtf.o)
-    0x08005d24   0x08005d24   0x000000c4   Code   RO          814    x$fpl$fadd          fz_ws.l(faddsub_clz.o)
-    0x08005de8   0x08005de8   0x0000000c   Code   RO         1046    x$fpl$fcheck1       fz_ws.l(fcheck1.o)
-    0x08005df4   0x08005df4   0x00000054   Code   RO          820    x$fpl$fcmp          fz_ws.l(fcmp.o)
-    0x08005e48   0x08005e48   0x00000018   Code   RO         1015    x$fpl$fcmpinf       fz_ws.l(fcmpi.o)
-    0x08005e60   0x08005e60   0x00000184   Code   RO          823    x$fpl$fdiv          fz_ws.l(fdiv.o)
-    0x08005fe4   0x08005fe4   0x00000068   Code   RO          931    x$fpl$feqf          fz_ws.l(feqf.o)
-    0x0800604c   0x0800604c   0x00000036   Code   RO          933    x$fpl$ffix          fz_ws.l(ffix.o)
-    0x08006082   0x08006082   0x00000002   PAD
-    0x08006084   0x08006084   0x00000030   Code   RO          827    x$fpl$fflt          fz_ws.l(fflt_clz.o)
-    0x080060b4   0x080060b4   0x00000026   Code   RO          826    x$fpl$ffltu         fz_ws.l(fflt_clz.o)
-    0x080060da   0x080060da   0x00000002   PAD
-    0x080060dc   0x080060dc   0x00000068   Code   RO          937    x$fpl$fgeqf         fz_ws.l(fgeqf.o)
-    0x08006144   0x08006144   0x00000068   Code   RO          939    x$fpl$fleqf         fz_ws.l(fleqf.o)
-    0x080061ac   0x080061ac   0x00000102   Code   RO          832    x$fpl$fmul          fz_ws.l(fmul.o)
-    0x080062ae   0x080062ae   0x0000008c   Code   RO          941    x$fpl$fnaninf       fz_ws.l(fnaninf.o)
-    0x0800633a   0x0800633a   0x00000002   PAD
-    0x0800633c   0x0800633c   0x000000f4   Code   RO          943    x$fpl$frem          fz_ws.l(frem_clz.o)
-    0x08006430   0x08006430   0x0000000a   Code   RO          945    x$fpl$fretinf       fz_ws.l(fretinf.o)
-    0x0800643a   0x0800643a   0x00000002   PAD
-    0x0800643c   0x0800643c   0x00000060   Code   RO          947    x$fpl$frnd          fz_ws.l(frnd.o)
-    0x0800649c   0x0800649c   0x00000014   Code   RO          815    x$fpl$frsb          fz_ws.l(faddsub_clz.o)
-    0x080064b0   0x080064b0   0x00000110   Code   RO          949    x$fpl$fsqrt         fz_ws.l(fsqrt.o)
-    0x080065c0   0x080065c0   0x000000ea   Code   RO          816    x$fpl$fsub          fz_ws.l(faddsub_clz.o)
-    0x080066aa   0x080066aa   0x00000064   Code   RO         1078    x$fpl$retnan        fz_ws.l(retnan.o)
-    0x0800670e   0x0800670e   0x0000004c   Code   RO         1019    x$fpl$scalbnf       fz_ws.l(scalbnf.o)
-    0x0800675a   0x0800675a   0x00000030   Code   RO         1093    x$fpl$trapveneer    fz_ws.l(trapv.o)
-    0x0800678a   0x0800678a   0x00000000   Code   RO          951    x$fpl$usenofp       fz_ws.l(usenofp.o)
-    0x0800678a   0x0800678a   0x00000002   PAD
-    0x0800678c   0x0800678c   0x00000020   Data   RO          969    .constdata          m_ws.l(rredf.o)
-    0x080067ac   0x080067ac   0x00000010   Data   RO          559    .rodata.AHBPrescTable  system_stm32f1xx.o
-    0x080067bc   0x080067bc   0x00000008   Data   RO          560    .rodata.APBPrescTable  system_stm32f1xx.o
-    0x080067c4   0x080067c4   0x00000002   Data   RO          310    .rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable  stm32f1xx_hal_rcc.o
-    0x080067c6   0x080067c6   0x00000010   Data   RO          309    .rodata.cst16       stm32f1xx_hal_rcc.o
-    0x080067d6   0x080067d6   0x00000002   PAD
-    0x080067d8   0x080067d8   0x00000020   Data   RO         1115    Region$$Table       anon$$obj.o
+    0x08003024   0x08003024   0x0000004a   Code   RO          701    .text.Input_Update  input.o
+    0x0800306e   0x0800306e   0x00000002   PAD
+    0x08003070   0x08003070   0x00000002   Code   RO           38    .text.MemManage_Handler  stm32f1xx_it.o
+    0x08003072   0x08003072   0x00000002   PAD
+    0x08003074   0x08003074   0x00000002   Code   RO           34    .text.NMI_Handler   stm32f1xx_it.o
+    0x08003076   0x08003076   0x00000002   PAD
+    0x08003078   0x08003078   0x00000072   Code   RO          571    .text.Obstacles_CleanupOld  cleanup.o
+    0x080030ea   0x080030ea   0x00000002   PAD
+    0x080030ec   0x080030ec   0x00000002   Code   RO           48    .text.PendSV_Handler  stm32f1xx_it.o
+    0x080030ee   0x080030ee   0x00000002   PAD
+    0x080030f0   0x080030f0   0x0000013c   Code   RO          589    .text.Player_CheckEnemyCollisions  collisions.o
+    0x0800322c   0x0800322c   0x0000011a   Code   RO          647    .text.Player_HandleMovement  player.o
+    0x08003346   0x08003346   0x00000002   PAD
+    0x08003348   0x08003348   0x000000c0   Code   RO          645    .text.Player_HandleRotation  player.o
+    0x08003408   0x08003408   0x0000009e   Code   RO          653    .text.Player_Shoot  player.o
+    0x080034a6   0x080034a6   0x00000002   PAD
+    0x080034a8   0x080034a8   0x00000022   Code   RO          643    .text.Player_Update  player.o
+    0x080034ca   0x080034ca   0x00000002   PAD
+    0x080034cc   0x080034cc   0x0000038a   Code   RO          583    .text.Projectiles_CheckCollisions  collisions.o
+    0x08003856   0x08003856   0x00000002   PAD
+    0x08003858   0x08003858   0x00000050   Code   RO          665    .text.Projectiles_Remove  projectiles.o
+    0x080038a8   0x080038a8   0x0000006c   Code   RO          663    .text.Projectiles_Update  projectiles.o
+    0x08003914   0x08003914   0x0000003e   Code   RO          721    .text.Protocol_CleanupRxBuffer  protocol.o
+    0x08003952   0x08003952   0x00000002   PAD
+    0x08003954   0x08003954   0x00000026   Code   RO          717    .text.Protocol_Init  protocol.o
+    0x0800397a   0x0800397a   0x00000002   PAD
+    0x0800397c   0x0800397c   0x000008ce   Code   RO          723    .text.Protocol_ProcessIncoming  protocol.o
+    0x0800424a   0x0800424a   0x00000002   PAD
+    0x0800424c   0x0800424c   0x000005dc   Code   RO          719    .text.Protocol_SendGameState  protocol.o
+    0x08004828   0x08004828   0x00000002   Code   RO           44    .text.SVC_Handler   stm32f1xx_it.o
+    0x0800482a   0x0800482a   0x00000002   PAD
+    0x0800482c   0x0800482c   0x00000004   Code   RO           50    .text.SysTick_Handler  stm32f1xx_it.o
+    0x08004830   0x08004830   0x00000002   Code   RO          554    .text.SystemInit    system_stm32f1xx.o
+    0x08004832   0x08004832   0x00000002   PAD
+    0x08004834   0x08004834   0x0000000c   Code   RO          181    .text.UART_DMAAbortOnError  stm32f1xx_hal_uart.o
+    0x08004840   0x08004840   0x0000017c   Code   RO          131    .text.UART_DMAError  stm32f1xx_hal_uart.o
+    0x080049bc   0x080049bc   0x0000015e   Code   RO          209    .text.UART_DMAReceiveCplt  stm32f1xx_hal_uart.o
+    0x08004b1a   0x08004b1a   0x00000002   PAD
+    0x08004b1c   0x08004b1c   0x00000018   Code   RO          211    .text.UART_DMARxHalfCplt  stm32f1xx_hal_uart.o
+    0x08004b34   0x08004b34   0x000000b0   Code   RO          127    .text.UART_DMATransmitCplt  stm32f1xx_hal_uart.o
+    0x08004be4   0x08004be4   0x00000006   Code   RO          129    .text.UART_DMATxHalfCplt  stm32f1xx_hal_uart.o
+    0x08004bea   0x08004bea   0x00000002   PAD
+    0x08004bec   0x08004bec   0x000000fe   Code   RO          179    .text.UART_Receive_IT  stm32f1xx_hal_uart.o
+    0x08004cea   0x08004cea   0x00000002   PAD
+    0x08004cec   0x08004cec   0x0000000c   Code   RO           62    .text.USART2_IRQHandler  stm32f1xx_it.o
+    0x08004cf8   0x08004cf8   0x00000002   Code   RO           42    .text.UsageFault_Handler  stm32f1xx_it.o
+    0x08004cfa   0x08004cfa   0x00000002   PAD
+    0x08004cfc   0x08004cfc   0x0000003a   Code   RO          687    .text.WhirlpoolManager_Add  whirlpool.o
+    0x08004d36   0x08004d36   0x00000002   PAD
+    0x08004d38   0x08004d38   0x0000006e   Code   RO          689    .text.WhirlpoolManager_Cleanup  whirlpool.o
+    0x08004da6   0x08004da6   0x00000002   PAD
+    0x08004da8   0x08004da8   0x00000452   Code   RO          683    .text.WhirlpoolManager_CreateForTeleport  whirlpool.o
+    0x080051fa   0x080051fa   0x00000002   PAD
+    0x080051fc   0x080051fc   0x0000000a   Code   RO          675    .text.WhirlpoolManager_Init  whirlpool.o
+    0x08005206   0x08005206   0x00000002   PAD
+    0x08005208   0x08005208   0x000001e6   Code   RO          677    .text.WhirlpoolManager_Update  whirlpool.o
+    0x080053ee   0x080053ee   0x00000002   PAD
+    0x080053f0   0x080053f0   0x000001ee   Code   RO           11    .text.main          main.o
+    0x080055de   0x080055de   0x00000026   Code   RO          952    i.__ARM_fpclassifyf  m_ws.l(fpclassifyf.o)
+    0x08005604   0x08005604   0x00000006   Code   RO          955    i.__mathlib_flt_infnan  m_ws.l(funder.o)
+    0x0800560a   0x0800560a   0x00000004   Code   RO          956    i.__mathlib_flt_infnan2  m_ws.l(funder.o)
+    0x0800560e   0x0800560e   0x00000008   Code   RO          957    i.__mathlib_flt_invalid  m_ws.l(funder.o)
+    0x08005616   0x08005616   0x0000000a   Code   RO          960    i.__mathlib_flt_underflow  m_ws.l(funder.o)
+    0x08005620   0x08005620   0x00000168   Code   RO          968    i.__mathlib_rredf2  m_ws.l(rredf.o)
+    0x08005788   0x08005788   0x000002a4   Code   RO          835    i.atan2f            m_ws.l(atan2f.o)
+    0x08005a2c   0x08005a2c   0x0000017c   Code   RO          839    i.cosf              m_ws.l(cosf.o)
+    0x08005ba8   0x08005ba8   0x0000006c   Code   RO          843    i.fmodf             m_ws.l(fmodf.o)
+    0x08005c14   0x08005c14   0x00000188   Code   RO          847    i.sinf              m_ws.l(sinf.o)
+    0x08005d9c   0x08005d9c   0x0000002c   Code   RO          851    i.sqrtf             m_ws.l(sqrtf.o)
+    0x08005dc8   0x08005dc8   0x000000c4   Code   RO          814    x$fpl$fadd          fz_ws.l(faddsub_clz.o)
+    0x08005e8c   0x08005e8c   0x0000000c   Code   RO         1046    x$fpl$fcheck1       fz_ws.l(fcheck1.o)
+    0x08005e98   0x08005e98   0x00000054   Code   RO          820    x$fpl$fcmp          fz_ws.l(fcmp.o)
+    0x08005eec   0x08005eec   0x00000018   Code   RO         1015    x$fpl$fcmpinf       fz_ws.l(fcmpi.o)
+    0x08005f04   0x08005f04   0x00000184   Code   RO          823    x$fpl$fdiv          fz_ws.l(fdiv.o)
+    0x08006088   0x08006088   0x00000068   Code   RO          931    x$fpl$feqf          fz_ws.l(feqf.o)
+    0x080060f0   0x080060f0   0x00000036   Code   RO          933    x$fpl$ffix          fz_ws.l(ffix.o)
+    0x08006126   0x08006126   0x00000002   PAD
+    0x08006128   0x08006128   0x00000030   Code   RO          827    x$fpl$fflt          fz_ws.l(fflt_clz.o)
+    0x08006158   0x08006158   0x00000026   Code   RO          826    x$fpl$ffltu         fz_ws.l(fflt_clz.o)
+    0x0800617e   0x0800617e   0x00000002   PAD
+    0x08006180   0x08006180   0x00000068   Code   RO          937    x$fpl$fgeqf         fz_ws.l(fgeqf.o)
+    0x080061e8   0x080061e8   0x00000068   Code   RO          939    x$fpl$fleqf         fz_ws.l(fleqf.o)
+    0x08006250   0x08006250   0x00000102   Code   RO          832    x$fpl$fmul          fz_ws.l(fmul.o)
+    0x08006352   0x08006352   0x0000008c   Code   RO          941    x$fpl$fnaninf       fz_ws.l(fnaninf.o)
+    0x080063de   0x080063de   0x00000002   PAD
+    0x080063e0   0x080063e0   0x000000f4   Code   RO          943    x$fpl$frem          fz_ws.l(frem_clz.o)
+    0x080064d4   0x080064d4   0x0000000a   Code   RO          945    x$fpl$fretinf       fz_ws.l(fretinf.o)
+    0x080064de   0x080064de   0x00000002   PAD
+    0x080064e0   0x080064e0   0x00000060   Code   RO          947    x$fpl$frnd          fz_ws.l(frnd.o)
+    0x08006540   0x08006540   0x00000014   Code   RO          815    x$fpl$frsb          fz_ws.l(faddsub_clz.o)
+    0x08006554   0x08006554   0x00000110   Code   RO          949    x$fpl$fsqrt         fz_ws.l(fsqrt.o)
+    0x08006664   0x08006664   0x000000ea   Code   RO          816    x$fpl$fsub          fz_ws.l(faddsub_clz.o)
+    0x0800674e   0x0800674e   0x00000064   Code   RO         1078    x$fpl$retnan        fz_ws.l(retnan.o)
+    0x080067b2   0x080067b2   0x0000004c   Code   RO         1019    x$fpl$scalbnf       fz_ws.l(scalbnf.o)
+    0x080067fe   0x080067fe   0x00000030   Code   RO         1093    x$fpl$trapveneer    fz_ws.l(trapv.o)
+    0x0800682e   0x0800682e   0x00000000   Code   RO          951    x$fpl$usenofp       fz_ws.l(usenofp.o)
+    0x0800682e   0x0800682e   0x00000002   PAD
+    0x08006830   0x08006830   0x00000020   Data   RO          969    .constdata          m_ws.l(rredf.o)
+    0x08006850   0x08006850   0x00000010   Data   RO          559    .rodata.AHBPrescTable  system_stm32f1xx.o
+    0x08006860   0x08006860   0x00000008   Data   RO          560    .rodata.APBPrescTable  system_stm32f1xx.o
+    0x08006868   0x08006868   0x00000002   Data   RO          310    .rodata.HAL_RCC_GetSysClockFreq.aPredivFactorTable  stm32f1xx_hal_rcc.o
+    0x0800686a   0x0800686a   0x00000010   Data   RO          309    .rodata.cst16       stm32f1xx_hal_rcc.o
+    0x0800687a   0x0800687a   0x00000002   PAD
+    0x0800687c   0x0800687c   0x00000020   Data   RO         1115    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x080067f8, Size: 0x00001ec8, Max: 0x00005000, ABSOLUTE)
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x080068a0, Size: 0x00001ec8, Max: 0x00005000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x080067f8   0x00000008   Data   RW          272    .data..L_MergedGlobals  stm32f1xx_hal.o
-    0x20000008   0x08006800   0x00000004   Data   RW          558    .data.SystemCoreClock  system_stm32f1xx.o
-    0x2000000c   0x08006804   0x00000004   PAD
+    0x20000000   0x080068a0   0x00000008   Data   RW          272    .data..L_MergedGlobals  stm32f1xx_hal.o
+    0x20000008   0x080068a8   0x00000004   Data   RW          558    .data.SystemCoreClock  system_stm32f1xx.o
+    0x2000000c   0x080068ac   0x00000004   PAD
     0x20000010        -       0x00000060   Zero   RW          976    .bss                c_w.l(libspace.o)
     0x20000070        -       0x00000050   Zero   RW           25    .bss..L_MergedGlobals  main.o
     0x200000c0        -       0x0000000c   Zero   RW          728    .bss..L_MergedGlobals  protocol.o
@@ -2427,7 +2428,7 @@ Memory Map of the image
     0x200012c0        -       0x00000400   Zero   RW          725    .bss.rx_buffer      protocol.o
     0x200016c0        -       0x00000200   Zero   RW          726    .bss.tx_buffer      protocol.o
     0x200018c0        -       0x00000004   Zero   RW          271    .bss.uwTick         stm32f1xx_hal.o
-    0x200018c4   0x08006804   0x00000004   PAD
+    0x200018c4   0x080068ac   0x00000004   PAD
     0x200018c8        -       0x00000200   Zero   RW            2    HEAP                startup_stm32f103xb.o
     0x20001ac8        -       0x00000400   Zero   RW            1    STACK               startup_stm32f103xb.o
 
@@ -2444,11 +2445,11 @@ Image component sizes
       4430          0          0          0          0      14774   enemies.o
        290          0          0          0          0       3775   game_state.o
          0          0          0          0          4        452   globals.o
-       148          0          0          0          0       2179   input.o
-       624          0          0          0       4160       9388   main.o
+       166          0          0          0          0       2188   input.o
+       604          0          0          0       4160       9401   main.o
        666          0          0          0          0       6098   player.o
        188          0          0          0          0       3317   projectiles.o
-      3690         12          0          0       2060      17549   protocol.o
+      3854         12          0          0       2060      17708   protocol.o
         64         26        236          0       1536        796   startup_stm32f103xb.o
        148          0          0          8          4       5786   stm32f1xx_hal.o
        200          0          0          0          0       8544   stm32f1xx_hal_cortex.o
@@ -2462,9 +2463,9 @@ Image component sizes
       1770          0          0          0          0      10641   whirlpool.o
 
     ----------------------------------------------------------------------
-     20530         60        312         12       7772     158779   Object Totals
+     20694         60        312         12       7772     158960   Object Totals
          0          0         32          0          0          0   (incl. Generated)
-       110          0          2          0          8          0   (incl. Padding)
+       112          0          2          0          8          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -2558,15 +2559,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     26272        566        344         12       7868     160487   Grand Totals
-     26272        566        344         12       7868     160487   ELF Image Totals
-     26272        566        344         12          0          0   ROM Totals
+     26436        566        344         12       7868     160668   Grand Totals
+     26436        566        344         12       7868     160668   ELF Image Totals
+     26436        566        344         12          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                26616 (  25.99kB)
+    Total RO  Size (Code + RO Data)                26780 (  26.15kB)
     Total RW  Size (RW Data + ZI Data)              7880 (   7.70kB)
-    Total ROM Size (Code + RO Data + RW Data)      26628 (  26.00kB)
+    Total ROM Size (Code + RO Data + RW Data)      26792 (  26.16kB)
 
 ==============================================================================
 

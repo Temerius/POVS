@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LABA_3_Game\LABA_3_Game.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LABA_3_Game\LABA_3_Game.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Mon Nov  3 22:55:30 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Tue Nov  4 01:39:17 2025
 <BR><P>
 <H3>Maximum Stack Usage =        272 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1004,7 +1004,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a0]"></a>Input_Update</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, input.o(.text.Input_Update))
+<P><STRONG><a name="[a0]"></a>Input_Update</STRONG> (Thumb, 74 bytes, Stack size 16 bytes, input.o(.text.Input_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = Input_Update
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_ReadPin
@@ -1145,7 +1145,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a9]"></a>Protocol_ProcessIncoming</STRONG> (Thumb, 2090 bytes, Stack size 40 bytes, protocol.o(.text.Protocol_ProcessIncoming))
+<P><STRONG><a name="[a9]"></a>Protocol_ProcessIncoming</STRONG> (Thumb, 2254 bytes, Stack size 40 bytes, protocol.o(.text.Protocol_ProcessIncoming))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120 + Unknown Stack Size
 <LI>Call Chain = Protocol_ProcessIncoming &rArr; GameState_Init &rArr; malloc &rArr; __Heap_Full &rArr; __Heap_ProvideMemory &rArr; free
 </UL>
@@ -1246,7 +1246,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Update
 </UL>
 
-<P><STRONG><a name="[48]"></a>main</STRONG> (Thumb, 514 bytes, Stack size 64 bytes, main.o(.text.main))
+<P><STRONG><a name="[48]"></a>main</STRONG> (Thumb, 494 bytes, Stack size 64 bytes, main.o(.text.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 272 + Unknown Stack Size
 <LI>Call Chain = main &rArr; GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>

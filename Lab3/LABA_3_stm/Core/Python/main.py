@@ -251,10 +251,10 @@ class UARTProtocol:
         if not self.ser:
             return
         
-        # Формируем пакет с START_BYTE, типом, данными, CRC и END_BYTE
+        # Формируем пакет
         packet = struct.pack('<BBff', PKT_ADD_ENEMY, enemy_type, x, y)
         crc = self.calculate_crc(packet)
-        full_packet = struct.pack('<B', START_BYTE) + packet + struct.pack('<BB', crc, END_BYTE)
+        full_packet = struct.pack('<B', START_BYTE) + packet + struct.pack('<B', crc) + struct.pack('<B', END_BYTE)
         
         try:
             self.ser.write(full_packet)

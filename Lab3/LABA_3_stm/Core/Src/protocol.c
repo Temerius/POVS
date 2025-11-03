@@ -225,7 +225,7 @@ void Protocol_CleanupRxBuffer(void) {
 void Protocol_ProcessIncoming(GameState* state) {
     if (huart_handle == NULL) return;
     
-    Protocol_CleanupRxBuffer();
+    //Protocol_CleanupRxBuffer();
     
     uint16_t dma_pos = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
     
@@ -238,6 +238,7 @@ void Protocol_ProcessIncoming(GameState* state) {
                 if (byte == START_BYTE) {
                     packet_state = 1;
                     packet_idx = 0;
+                    packet_data[packet_idx++] = byte;
                 }
                 break;
                 
@@ -252,142 +253,161 @@ void Protocol_ProcessIncoming(GameState* state) {
                 
                 // Проверка завершения пакета на основе типа
                 switch (packet_type) {
-                    case PKT_ADD_ENEMY:
-                        if (packet_idx >= sizeof(AddEnemyPacket) - 2 && byte == END_BYTE) {
-                            // Проверка CRC
-                            uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[0], packet_idx - 2);
-                            if (crc_calculated == packet_data[packet_idx - 2]) {
-                                // Обработка пакета
-                                AddEnemyPacket* packet = (AddEnemyPacket*)packet_data;
-                                
-                                if (packet->type == 0 && state->enemy_simple_count < MAX_ENEMIES_SIMPLE) {
-                                    EnemySimple* enemy = &state->enemies_simple[state->enemy_simple_count];
-                                    
-                                    enemy->position.x = packet->x;
-                                    enemy->position.y = packet->y;
-                                    enemy->initial_y = packet->y;
-                                    enemy->health = ENEMY_SIMPLE_HEALTH;
-                                    enemy->max_health = ENEMY_SIMPLE_HEALTH;
-                                    enemy->shoot_cooldown = 0;
-                                    enemy->shoot_delay = ENEMY_SIMPLE_SHOOT_DELAY;
-                                    enemy->radius = COLLISION_RADIUS_ENEMY_SIMPLE;
-                                    enemy->points = ENEMY_SIMPLE_POINTS;
-                                    enemy->active = 0; // Активируется при приближении к игроку
-                                    enemy->alive = 1;
-                                    enemy->wander_angle = 0;
-                                    enemy->wander_timer = 0;
-                                    enemy->strategy = STRATEGY_ATTACK;
-                                    
-                                    state->enemy_simple_count++;
-                                }
-                                else if (packet->type == 1 && state->enemy_hard_count < MAX_ENEMIES_HARD) {
-                                    EnemyHard* enemy = &state->enemies_hard[state->enemy_hard_count];
-                                    
-                                    enemy->position.x = packet->x;
-                                    enemy->position.y = packet->y;
-                                    enemy->initial_y = packet->y;
-                                    enemy->health = ENEMY_HARD_HEALTH;
-                                    enemy->max_health = ENEMY_HARD_HEALTH;
-                                    enemy->shoot_cooldown = 0;
-                                    enemy->shoot_delay = ENEMY_HARD_SHOOT_DELAY;
-                                    enemy->radius = COLLISION_RADIUS_ENEMY_HARD;
-                                    enemy->points = ENEMY_HARD_POINTS;
-                                    enemy->armor_timer = 0;
-                                    enemy->active = 0;
-                                    enemy->alive = 1;
-                                    enemy->wander_angle = 0;
-                                    enemy->wander_timer = 0;
-                                    enemy->pursuit_timer = 0;
-                                    enemy->pursuit_direction = 0;
-                                    enemy->patrol_point_index = 0;
-                                    enemy->patrol_points_count = 0;
-                                    enemy->strategy = STRATEGY_AGGRESSIVE;
-                                    
-                                    state->enemy_hard_count++;
-                                }
-                            }
-                            packet_state = 0;
-                        }
-                        else if (packet_idx > sizeof(AddEnemyPacket)) {
-                            packet_state = 0; // Сброс при ошибке
-                        }
-                        break;
-                        
-                    case PKT_ADD_OBSTACLE:
-                        if (packet_idx >= sizeof(AddObstaclePacket) - 2 && byte == END_BYTE) {
-                            // Проверка CRC
-                            uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[0], packet_idx - 2);
-                            if (crc_calculated == packet_data[packet_idx - 2]) {
-                                // Обработка пакета
-                                AddObstaclePacket* packet = (AddObstaclePacket*)packet_data;
-                                
-                                if (state->obstacle_count < MAX_OBSTACLES) {
-                                    Obstacle* obstacle = &state->obstacles[state->obstacle_count];
-                                    
-                                    obstacle->position.x = packet->x;
-                                    obstacle->position.y = packet->y;
-                                    obstacle->radius = packet->radius;
-                                    obstacle->type = (ObstacleType)packet->type;
-                                    obstacle->active = 1;
-                                    
-                                    state->obstacle_count++;
-                                }
-                            }
-                            packet_state = 0;
-                        }
-                        else if (packet_idx > sizeof(AddObstaclePacket)) {
-                            packet_state = 0;
-                        }
-                        break;
-                        
-                    case PKT_ADD_WHIRLPOOL:
-                        if (packet_idx >= sizeof(AddWhirlpoolPacket) - 2 && byte == END_BYTE) {
-                            // Проверка CRC
-                            uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[0], packet_idx - 2);
-                            if (crc_calculated == packet_data[packet_idx - 2]) {
-                                // Обработка пакета
-                                AddWhirlpoolPacket* packet = (AddWhirlpoolPacket*)packet_data;
-                                
-                                if (state->whirlpool_manager) {
-                                    WhirlpoolManager_Add(state->whirlpool_manager, packet->x, packet->y);
-                                }
-                            }
-                            packet_state = 0;
-                        }
-                        else if (packet_idx > sizeof(AddWhirlpoolPacket)) {
-                            packet_state = 0;
-                        }
-                        break;
-                        
-                    case PKT_CLEANUP:
-                        if (packet_idx >= sizeof(CleanupPacket) - 2 && byte == END_BYTE) {
-                            // Проверка CRC
-                            uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[0], packet_idx - 2);
-                            if (crc_calculated == packet_data[packet_idx - 2]) {
-                                // Обработка пакета
-                                CleanupPacket* packet = (CleanupPacket*)packet_data;
-                                
-                                // Очистка старых объектов
-                                Enemies_CleanupOld(state, packet->threshold_y);
-                                Obstacles_CleanupOld(state, packet->threshold_y);
-                                if (state->whirlpool_manager) {
-                                    WhirlpoolManager_Cleanup(state->whirlpool_manager, packet->threshold_y);
-                                }
-                            }
-                            packet_state = 0;
-                        }
-                        else if (packet_idx > sizeof(CleanupPacket)) {
-                            packet_state = 0;
-                        }
-                        break;
-                        
-                    case PKT_INIT_GAME:
+                    case PKT_ADD_ENEMY: {
                         if (byte == END_BYTE) {
-                            GameState_Cleanup(state);
-                            GameState_Init(state);
-                            packet_state = 0;
+                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(9) + CRC(1) + END(1) = 13
+                            if (packet_idx == 13) {
+                                // Рассчитываем CRC только для данных (без START_BYTE и END_BYTE)
+                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 11);
+                                if (crc_calculated == packet_data[11]) {
+                                    uint8_t enemy_type = packet_data[2];
+                                    float x = *(float*)&packet_data[3];
+                                    float y = *(float*)&packet_data[7];
+                                    
+                                    if (enemy_type == 0 && state->enemy_simple_count < MAX_ENEMIES_SIMPLE) {
+                                        EnemySimple* enemy = &state->enemies_simple[state->enemy_simple_count];
+                                        
+                                        enemy->position.x = x;
+                                        enemy->position.y = y;
+                                        enemy->initial_y = y;
+                                        enemy->health = ENEMY_SIMPLE_HEALTH;
+                                        enemy->max_health = ENEMY_SIMPLE_HEALTH;
+                                        enemy->shoot_cooldown = 0;
+                                        enemy->shoot_delay = ENEMY_SIMPLE_SHOOT_DELAY;
+                                        enemy->radius = COLLISION_RADIUS_ENEMY_SIMPLE;
+                                        enemy->points = ENEMY_SIMPLE_POINTS;
+                                        enemy->active = 0;
+                                        enemy->alive = 1;
+                                        enemy->wander_angle = 0;
+                                        enemy->wander_timer = 0;
+                                        enemy->strategy = STRATEGY_ATTACK;
+                                        
+                                        state->enemy_simple_count++;
+                                    }
+                                    else if (enemy_type == 1 && state->enemy_hard_count < MAX_ENEMIES_HARD) {
+                                        EnemyHard* enemy = &state->enemies_hard[state->enemy_hard_count];
+                                        
+                                        enemy->position.x = x;
+                                        enemy->position.y = y;
+                                        enemy->initial_y = y;
+                                        enemy->health = ENEMY_HARD_HEALTH;
+                                        enemy->max_health = ENEMY_HARD_HEALTH;
+                                        enemy->shoot_cooldown = 0;
+                                        enemy->shoot_delay = ENEMY_HARD_SHOOT_DELAY;
+                                        enemy->radius = COLLISION_RADIUS_ENEMY_HARD;
+                                        enemy->points = ENEMY_HARD_POINTS;
+                                        enemy->armor_timer = 0;
+                                        enemy->active = 0;
+                                        enemy->alive = 1;
+                                        enemy->wander_angle = 0;
+                                        enemy->wander_timer = 0;
+                                        enemy->pursuit_timer = 0;
+                                        enemy->pursuit_direction = 0;
+                                        enemy->patrol_point_index = 0;
+                                        enemy->patrol_points_count = 0;
+                                        enemy->strategy = STRATEGY_AGGRESSIVE;
+                                        
+                                        state->enemy_hard_count++;
+                                    }
+                                }
+                            }
                         }
+                        packet_state = 0;
                         break;
+                    }
+                    
+                    case PKT_ADD_OBSTACLE: {
+                        if (byte == END_BYTE) {
+                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(13) + CRC(1) + END(1) = 17
+                            if (packet_idx == 17) {
+                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 15);
+                                if (crc_calculated == packet_data[15]) {
+                                    uint8_t obstacle_type = packet_data[2];
+                                    float x = *(float*)&packet_data[3];
+                                    float y = *(float*)&packet_data[7];
+                                    float value = *(float*)&packet_data[11];
+                                    
+                                    if (state->obstacle_count < MAX_OBSTACLES) {
+                                        Obstacle* obstacle = &state->obstacles[state->obstacle_count];
+                                        
+                                        obstacle->position.x = x;
+                                        obstacle->position.y = y;
+                                        
+                                        // Для берегов используем значение как радиус (ширина берега)
+                                        if (obstacle_type == OBSTACLE_SHORE_LEFT || 
+                                            obstacle_type == OBSTACLE_SHORE_RIGHT) {
+                                            obstacle->radius = value;
+                                        } 
+                                        // Для островов используем значение как радиус острова
+                                        else {
+                                            obstacle->radius = value;
+                                        }
+                                        
+                                        obstacle->type = (ObstacleType)obstacle_type;
+                                        obstacle->active = 1;
+                                        
+                                        state->obstacle_count++;
+                                    }
+                                }
+                            }
+                        }
+                        packet_state = 0;
+                        break;
+                    }
+                    
+                    case PKT_ADD_WHIRLPOOL: {
+                        if (byte == END_BYTE) {
+                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(8) + CRC(1) + END(1) = 12
+                            if (packet_idx == 12) {
+                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 10);
+                                if (crc_calculated == packet_data[10]) {
+                                    float x = *(float*)&packet_data[2];
+                                    float y = *(float*)&packet_data[6];
+                                    
+                                    if (state->whirlpool_manager) {
+                                        WhirlpoolManager_Add(state->whirlpool_manager, x, y);
+                                    }
+                                }
+                            }
+                        }
+                        packet_state = 0;
+                        break;
+                    }
+                    
+                    case PKT_CLEANUP: {
+                        if (byte == END_BYTE) {
+                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(4) + CRC(1) + END(1) = 8
+                            if (packet_idx == 8) {
+                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 6);
+                                if (crc_calculated == packet_data[6]) {
+                                    float threshold_y = *(float*)&packet_data[2];
+                                    
+                                    Enemies_CleanupOld(state, threshold_y);
+                                    Obstacles_CleanupOld(state, threshold_y);
+                                    if (state->whirlpool_manager) {
+                                        WhirlpoolManager_Cleanup(state->whirlpool_manager, threshold_y);
+                                    }
+                                }
+                            }
+                        }
+                        packet_state = 0;
+                        break;
+                    }
+                    
+                    case PKT_INIT_GAME: {
+                        if (byte == END_BYTE) {
+                            // Проверяем размер пакета: START(1) + TYPE(1) + CRC(1) + END(1) = 4
+                            if (packet_idx == 4) {
+                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 2);
+                                if (crc_calculated == packet_data[2]) {
+                                    GameState_Cleanup(state);
+                                    GameState_Init(state);
+                                }
+                            }
+                        }
+                        packet_state = 0;
+                        break;
+                    }
                 }
                 break;
         }
