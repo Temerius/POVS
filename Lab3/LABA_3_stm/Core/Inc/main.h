@@ -31,7 +31,13 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "game_config.h"
+#include "game_types.h"
+#include "utils.h"
+#include "input.h"
+#include "protocol.h"
+#include "game_state.h"
+#include "player.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -1,0 +1,125 @@
+/* game_config.h - Централизованная конфигурация игры */
+
+#ifndef GAME_CONFIG_H
+#define GAME_CONFIG_H
+
+#include <stdint.h>
+
+// === БУФЕРЫ USART ===
+#define RX_BUFFER_SIZE 256
+#define TX_BUFFER_SIZE 512
+
+// === ПАРАМЕТРЫ ЭКРАНА ===
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
+#define FPS 60
+#define FRAME_TIME_MS (1000 / FPS)
+
+// === ИГРОК ===
+#define PLAYER_SIZE 50
+#define PLAYER_BASE_SPEED 3.0f
+#define PLAYER_MAX_HEALTH 100
+#define PLAYER_MAX_ANGLE 45.0f
+#define PLAYER_ROTATION_SPEED 1.0f
+#define PLAYER_AUTO_RETURN_SPEED 1.5f
+#define PLAYER_SIDE_SPEED_MULTIPLIER 3.0f
+#define PLAYER_SHOOT_COOLDOWN 30  // frames
+#define PLAYER_SHOOT_ANGLE_OFFSET 20.0f  // градусы
+#define PLAYER_MIN_ANGLE_FOR_SIDE_SHOT 5.0f
+#define PLAYER_COLLISION_DAMAGE 2
+#define PLAYER_COLLISION_PUSHBACK 15.0f
+#define PLAYER_EDGE_MARGIN 100.0f
+
+// === СНАРЯДЫ ===
+#define PROJECTILE_SPEED 4.0f
+#define PROJECTILE_LIFETIME 270  // frames (4.5 секунды при 60 FPS)
+#define PROJECTILE_RADIUS 5.0f
+#define PROJECTILE_DAMAGE_TO_PLAYER 20
+
+// === ВРАГИ - ПРОСТЫЕ ===
+#define ENEMY_SIMPLE_SIZE 40
+#define ENEMY_SIMPLE_BASE_SPEED 2.2f
+#define ENEMY_SIMPLE_HEALTH 1
+#define ENEMY_SIMPLE_SHOOT_DELAY 150  // frames
+#define ENEMY_SIMPLE_POINTS 100
+#define ENEMY_SIMPLE_DETECTION_RANGE 250.0f
+#define ENEMY_SIMPLE_AVOIDANCE_FORCE 0.15f
+#define ENEMY_SIMPLE_TURN_SMOOTHNESS 0.05f
+#define ENEMY_SIMPLE_ATTACK_CHANCE 0.8f  // 80%
+#define ENEMY_SIMPLE_PROJECTILE_SPEED 3.5f
+#define ENEMY_SIMPLE_TORPEDO_DAMAGE 30
+#define ENEMY_SIMPLE_CAN_SEE_RANGE_X 400.0f
+#define ENEMY_SIMPLE_CAN_SEE_RANGE_Y 300.0f
+
+// === ВРАГИ - СЛОЖНЫЕ ===
+#define ENEMY_HARD_SIZE 60
+#define ENEMY_HARD_BASE_SPEED 1.6f
+#define ENEMY_HARD_HEALTH 3
+#define ENEMY_HARD_SHOOT_DELAY 240  // frames
+#define ENEMY_HARD_POINTS 300
+#define ENEMY_HARD_DETECTION_RANGE 300.0f
+#define ENEMY_HARD_AVOIDANCE_FORCE 0.2f
+#define ENEMY_HARD_TURN_SMOOTHNESS 0.03f
+#define ENEMY_HARD_AGGRESSIVE_CHANCE 0.7f  // 70%
+#define ENEMY_HARD_PURSUIT_TIMER 120  // frames
+#define ENEMY_HARD_PROJECTILES_COUNT 3
+#define ENEMY_HARD_PROJECTILE_SPEED 2.8f
+#define ENEMY_HARD_PROJECTILE_SPREAD 0.15f  // радианы
+#define ENEMY_HARD_TORPEDO_DAMAGE 1000
+#define ENEMY_HARD_CAN_SEE_RANGE_X 500.0f
+#define ENEMY_HARD_CAN_SEE_RANGE_Y 400.0f
+#define ENEMY_HARD_ARMOR_FLASH_DURATION 20  // frames
+#define ENEMY_HARD_MIN_PATROL_DISTANCE 300.0f
+#define ENEMY_HARD_PATROL_POINTS_MAX 4
+
+// === ФИЗИКА ===
+#define COLLISION_RADIUS_PLAYER (PLAYER_SIZE / 2.0f)
+#define COLLISION_RADIUS_ENEMY_SIMPLE (ENEMY_SIMPLE_SIZE / 2.0f)
+#define COLLISION_RADIUS_ENEMY_HARD (ENEMY_HARD_SIZE / 2.0f)
+
+// === АКТИВАЦИЯ И ОЧИСТКА ===
+#define ENEMY_ACTIVATION_DISTANCE -2  // экранов от игрока
+#define ENEMY_DELETE_DISTANCE 3000.0f  // пикселей позади игрока
+
+// === МАТЕМАТИКА ===
+#define PI 3.14159265358979323846f
+#define DEG_TO_RAD(deg) ((deg) * PI / 180.0f)
+#define RAD_TO_DEG(rad) ((rad) * 180.0f / PI)
+
+// === ЛИМИТЫ МАССИВОВ ===
+#define MAX_ENEMIES_SIMPLE 15
+#define MAX_ENEMIES_HARD 10
+#define MAX_PROJECTILES 50
+#define MAX_OBSTACLES 50
+
+// БЕРЕГ
+#define SHORE_WIDTH 150
+#define SHORE_INDENT_MIN 40
+#define SHORE_INDENT_MAX 100
+#define SHORE_SEGMENT_HEIGHT_MIN 80
+#define SHORE_SEGMENT_HEIGHT_MAX 150
+#define SHORE_EDGE_MARGIN 200
+
+
+// КАМЕРА
+#define CAMERA_OFFSET 200
+
+
+
+// === ВОДОВОРОТЫ ===
+#define WHIRLPOOL_RADIUS 45.0f
+#define WHIRLPOOL_ROTATION_SPEED 8.0f
+#define WHIRLPOOL_ANIMATION_SPEED 0.1f
+#define WHIRLPOOL_PULSE_AMOUNT 5.0f
+#define WHIRLPOOL_COOLDOWN 180  // frames (3 секунды)
+#define WHIRLPOOL_MIN_DISTANCE 300.0f
+#define WHIRLPOOL_TELEPORT_DISTANCE 1200.0f
+#define WHIRLPOOL_SPAWN_CHANCE 0.1f
+#define WHIRLPOOL_PLAYER_OFFSET -150.0f  // offset от целевого водоворота
+#define WHIRLPOOL_EDGE_MARGIN 300.0f
+#define WHIRLPOOL_ISLAND_SAFE_DISTANCE 50.0f
+#define WHIRLPOOL_MAX_COUNT 6
+#define WHIRLPOOL_PLACEMENT_ATTEMPTS 20
+
+
+#endif // GAME_CONFIG_H
