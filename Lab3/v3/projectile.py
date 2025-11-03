@@ -1,17 +1,19 @@
-# projectile.py - Снаряды с увеличенной дальностью
+# projectile.py - Снаряды игрока и врагов
+
 import pygame
 import math
 from config import *
 
 class Projectile:
-    def __init__(self, x, y, angle, speed=4.0, color=(255, 255, 0), is_player_shot=True):
+    def __init__(self, x, y, angle, speed=PROJECTILE_SPEED, 
+                 color=PROJECTILE_COLOR_PLAYER, is_player_shot=True):
         self.x = x
         self.y = y
         self.angle = angle
         self.speed = speed
         self.color = color
-        self.lifetime = 270  # 4.5 секунды при 60 FPS (в 3 раза больше, чем было 90)
-        self.radius = 5
+        self.lifetime = PROJECTILE_LIFETIME
+        self.radius = PROJECTILE_RADIUS
         self.is_player_shot = is_player_shot
     
     def update(self):
@@ -22,17 +24,20 @@ class Projectile:
     
     def collides_with(self, obstacle):
         """Проверка столкновения с объектом"""
+        # Берега и острова
         if hasattr(obstacle, 'contains_point') and obstacle.contains_point(self.x, self.y, self.radius):
             return True
-        elif hasattr(obstacle, 'x') and hasattr(obstacle, 'y') and hasattr(obstacle, 'radius'):
-            # Расчет расстояния до центра объекта
+        
+        # Враги и другие объекты с координатами и радиусом
+        if hasattr(obstacle, 'x') and hasattr(obstacle, 'y') and hasattr(obstacle, 'radius'):
             dx = self.x - obstacle.x
             dy = self.y - obstacle.y
             distance = math.sqrt(dx*dx + dy*dy)
             return distance < self.radius + obstacle.radius
+        
         return False
     
     def draw(self, screen, camera_y):
         """Отрисовка снаряда"""
         y_screen = int(self.y - camera_y)
-        pygame.draw.circle(screen, self.color, (int(self.x), int(y_screen)), self.radius)
+        pygame.draw.circle(screen, self.color, (int(self.x), y_screen), self.radius)
