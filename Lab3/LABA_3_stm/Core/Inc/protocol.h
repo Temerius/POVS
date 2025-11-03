@@ -7,6 +7,10 @@
 #include "main.h"
 #include "game_types.h"
 
+// === СТАРТОВЫЕ И КОНЕЧНЫЕ БАЙТЫ ===
+#define START_BYTE 0xAA
+#define END_BYTE 0x55
+
 // === ТИПЫ ПАКЕТОВ ===
 #define PKT_GAME_STATE     0x01  // STM32 -> PC
 #define PKT_ADD_ENEMY      0x02  // PC -> STM32
@@ -15,10 +19,14 @@
 #define PKT_INIT_GAME      0x05  // PC -> STM32
 #define PKT_ADD_WHIRLPOOL  0x06  // PC -> STM32
 
-// === СТРУКТУРЫ ПАКЕТОВ ===
+// === ОПТИМИЗИРОВАННЫЕ РАЗМЕРЫ ПАКЕТОВ ===
+#define MAX_ENEMIES_IN_PACKET 6      // Уменьшено для надежности
+#define MAX_PROJECTILES_IN_PACKET 10 // Уменьшено для надежности
+#define MAX_WHIRLPOOLS_IN_PACKET 3   // Уменьшено для надежности
 
-// Пакет состояния игры (STM32 -> PC)
-typedef struct __attribute__((packed)) {
+// === СТРУКТУРЫ ПАКЕТОВ ===
+#pragma pack(push, 1)
+typedef struct {
     uint8_t header;              // PKT_GAME_STATE
     
     // Игрок
@@ -27,35 +35,39 @@ typedef struct __attribute__((packed)) {
     float player_angle;
     int16_t player_health;
     uint16_t player_score;
+    uint16_t player_shoot_cooldown;
     
-    // Враги (сжато)
-    uint8_t enemy_count;         // общее количество
-    struct __attribute__((packed)) {
-        uint8_t type;            // 0=simple, 1=hard
+    // Враги
+    uint8_t enemy_count;
+    struct {
+        uint8_t type;
         float x;
         float y;
         int8_t health;
-    } enemies[15];               // максимум 15 для экономии
+    } enemies[MAX_ENEMIES_IN_PACKET];
     
-    // Снаряды (сжато)
+    // Снаряды
     uint8_t projectile_count;
-    struct __attribute__((packed)) {
+    struct {
         float x;
         float y;
         uint8_t is_player_shot;
-    } projectiles[30];           // максимум 30
+    } projectiles[MAX_PROJECTILES_IN_PACKET];
     
     // Водовороты
     uint8_t whirlpool_count;
-    struct __attribute__((packed)) {
+    struct {
         float x;
         float y;
         uint8_t used;
-    } whirlpools[WHIRLPOOL_MAX_COUNT];  // максимум WHIRLPOOL_MAX_COUNT водоворотов
+    } whirlpools[MAX_WHIRLPOOLS_IN_PACKET];
     
     float camera_y;
-    uint16_t checksum;
+    uint32_t frame_counter;
+    uint8_t crc;                 // CRC8 для проверки целостности
+    uint8_t end_byte;            // Должен быть равен END_BYTE
 } GameStatePacket;
+#pragma pack(pop)
 
 // Пакет добавления врага (PC -> STM32)
 typedef struct __attribute__((packed)) {
@@ -63,7 +75,8 @@ typedef struct __attribute__((packed)) {
     uint8_t type;                // 0=simple, 1=hard
     float x;
     float y;
-    uint16_t checksum;
+    uint8_t crc;
+    uint8_t end_byte;
 } AddEnemyPacket;
 
 // Пакет добавления препятствия (PC -> STM32)
@@ -73,7 +86,8 @@ typedef struct __attribute__((packed)) {
     float x;
     float y;
     float radius;
-    uint16_t checksum;
+    uint8_t crc;
+    uint8_t end_byte;
 } AddObstaclePacket;
 
 // Пакет добавления водоворота (PC -> STM32)
@@ -81,33 +95,28 @@ typedef struct __attribute__((packed)) {
     uint8_t header;              // PKT_ADD_WHIRLPOOL
     float x;
     float y;
-    uint16_t checksum;
+    uint8_t crc;
+    uint8_t end_byte;
 } AddWhirlpoolPacket;
 
 // Пакет очистки (PC -> STM32)
 typedef struct __attribute__((packed)) {
     uint8_t header;              // PKT_CLEANUP
     float threshold_y;
-    uint16_t checksum;
+    uint8_t crc;
+    uint8_t end_byte;
 } CleanupPacket;
 
 // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
 extern uint8_t rx_buffer[RX_BUFFER_SIZE];
-extern uint8_t tx_buffer[TX_BUFFER_SIZE];
+extern volatile uint16_t rx_write_pos;  // Позиция записи в буфере
 extern volatile uint8_t uart_tx_busy;
 
 // === API ФУНКЦИИ ===
-
-// Инициализация протокола
 void Protocol_Init(UART_HandleTypeDef* huart);
-
-// Отправка состояния игры
 void Protocol_SendGameState(GameState* state);
-
-// Обработка входящих данных
 void Protocol_ProcessIncoming(GameState* state);
-
-// Расчёт контрольной суммы
-uint16_t Protocol_CalculateChecksum(uint8_t* data, uint16_t len);
+void Protocol_CleanupRxBuffer(void);
+uint8_t Protocol_CalculateCRC(uint8_t* data, uint16_t len);
 
 #endif // PROTOCOL_H

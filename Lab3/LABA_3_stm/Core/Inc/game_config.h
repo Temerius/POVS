@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 // === БУФЕРЫ USART ===
-#define RX_BUFFER_SIZE 256
+#define RX_BUFFER_SIZE 1024
 #define TX_BUFFER_SIZE 512
 
 // === ПАРАМЕТРЫ ЭКРАНА ===
@@ -14,6 +14,13 @@
 #define SCREEN_HEIGHT 800
 #define FPS 60
 #define FRAME_TIME_MS (1000 / FPS)
+
+
+#define MAX_ENEMIES_IN_PACKET 6      
+#define MAX_PROJECTILES_IN_PACKET 10
+#define MAX_WHIRLPOOLS_IN_PACKET 3   
+
+#define GAME_STATE_SEND_INTERVAL 3
 
 // === ИГРОК ===
 #define PLAYER_SIZE 50
