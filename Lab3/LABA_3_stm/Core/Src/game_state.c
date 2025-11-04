@@ -11,6 +11,7 @@
 #include "projectiles.h"
 #include "collisions.h"
 #include "whirlpool.h"
+#include "cleanup.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -25,6 +26,7 @@ void GameState_Init(GameState* state) {
     state->player.shoot_cooldown = 0;
     state->player.score = 0;
     state->player.radius = COLLISION_RADIUS_PLAYER;
+    state->skipped_packets = 0;
     
     // Инициализация врагов (простые)
     memset(state->enemies_simple, 0, sizeof(state->enemies_simple));
@@ -69,6 +71,21 @@ void GameState_Update(GameState* state, InputState* input) {
     // Обновление снарядов
     Projectiles_Update(state);
     
+
+    if (state->frame_counter % AUTO_CLEANUP_INTERVAL == 0) {
+        // Порог очистки: игрок.y + безопасное расстояние
+        float cleanup_threshold = state->player.position.y + ENEMY_DELETE_DISTANCE;
+        
+        // Очистка всех типов объектов
+        Enemies_CleanupOld(state, cleanup_threshold);
+        Obstacles_CleanupOld(state, cleanup_threshold);
+        
+        if (state->whirlpool_manager) {
+            WhirlpoolManager_Cleanup(state->whirlpool_manager, cleanup_threshold);
+        }
+        
+    }
+
     // Обновление водоворотов
     if (state->whirlpool_manager) {
         WhirlpoolManager_Update(state->whirlpool_manager, state);

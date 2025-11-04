@@ -1,4 +1,4 @@
-/* whirlpool.c - Реализация водоворотов с полной логикой на STM32 */
+/* whirlpool.c - Реализация водоворотов с полной логикой на STM32 (ИСПРАВЛЕНО) */
 
 #include "whirlpool.h"
 #include <string.h>
@@ -10,6 +10,7 @@ void WhirlpoolManager_Init(struct WhirlpoolManager* manager) {
 }
 
 void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state) {
+    // 1. Обновление анимации и cooldown для всех водоворотов
     for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
         Whirlpool* whirlpool = &manager->whirlpools[i];
         
@@ -24,8 +25,13 @@ void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state)
                 whirlpool->used_recently = 0;
             }
         }
+    }
+    
+    // 2. ИСПРАВЛЕНО: Проверка коллизии с игроком и телепортация
+    for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
+        Whirlpool* whirlpool = &manager->whirlpools[i];
         
-        // Проверка коллизии с игроком
+        // Проверка коллизии с игроком (только если не использован недавно)
         if (!whirlpool->used_recently && 
             Whirlpool_CollidesWith(whirlpool, 
                                   state->player.position.x, 
@@ -48,6 +54,9 @@ void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state)
             if (target) {
                 // Выполняем телепортацию
                 WhirlpoolManager_TeleportPlayer(manager, whirlpool, target, &state->player);
+                
+                // ВАЖНО: После телепортации выходим, чтобы не проверять другие водовороты в этом кадре
+                return;
             }
         }
     }
@@ -74,22 +83,22 @@ uint8_t WhirlpoolManager_Add(struct WhirlpoolManager* manager, float x, float y)
 
 void WhirlpoolManager_Cleanup(struct WhirlpoolManager* manager, float threshold_y) {
     for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
-        if (manager->whirlpools[i].position.y > threshold_y) {
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Добавляем проверку на валидность водоворота
+        if (manager->whirlpools[i].position.y > threshold_y && 
+            manager->whirlpools[i].position.y > 0) { // Защита от невалидных координат
+            
             // Удаляем водоворот (перемещаем последний на место удаляемого)
             if (i < manager->whirlpool_count - 1) {
                 manager->whirlpools[i] = manager->whirlpools[manager->whirlpool_count - 1];
             }
             manager->whirlpool_count--;
-            i--;
+            i--; // Проверяем этот индекс снова
         }
     }
 }
 
 uint8_t Whirlpool_CollidesWith(Whirlpool* whirlpool, float x, float y, float radius) {
-    if (whirlpool->used_recently) {
-        return 0;
-    }
-    
+    // ИСПРАВЛЕНО: Не проверяем used_recently здесь, это делается выше
     float dx = x - whirlpool->position.x;
     float dy = y - whirlpool->position.y;
     float dist = Utils_Distance(0, 0, dx, dy);
@@ -109,10 +118,16 @@ Whirlpool* WhirlpoolManager_FindTarget(struct WhirlpoolManager* manager, Whirlpo
             continue;
         }
         
-        // Проверяем, что водоворот находится достаточно далеко позади
+        // Проверяем, что водоворот находится достаточно далеко позади (вверху по экрану)
+        // current->position.y > candidate->position.y означает что candidate выше (меньше Y)
         float distance = current->position.y - candidate->position.y;
+        
+        // Водоворот должен быть:
+        // 1. Достаточно далеко позади (distance >= WHIRLPOOL_TELEPORT_DISTANCE)
+        // 2. Не слишком далеко (distance < WHIRLPOOL_TELEPORT_DISTANCE * 1.5)
+        // 3. Выше world_top (candidate->position.y > world_top)
         if (distance >= WHIRLPOOL_TELEPORT_DISTANCE && 
-            distance < WHIRLPOOL_TELEPORT_DISTANCE * 1.5f &&  // Ограничиваем максимальное расстояние
+            distance < WHIRLPOOL_TELEPORT_DISTANCE * 1.5f &&
             candidate->position.y > world_top) {
             
             // Выбираем водоворот, который ближе всего к идеальному расстоянию
@@ -132,6 +147,11 @@ Whirlpool* WhirlpoolManager_CreateForTeleport(struct WhirlpoolManager* manager,
                                             float world_top,
                                             Obstacle* obstacles,
                                             uint8_t obstacle_count) {
+    // Проверяем, есть ли место для нового водоворота
+    if (manager->whirlpool_count >= WHIRLPOOL_MAX_COUNT) {
+        return NULL;
+    }
+    
     // Попытка найти подходящее место для нового водоворота
     for (uint8_t attempt = 0; attempt < WHIRLPOOL_PLACEMENT_ATTEMPTS; attempt++) {
         // Генерируем координаты для нового водоворота
@@ -162,8 +182,22 @@ Whirlpool* WhirlpoolManager_CreateForTeleport(struct WhirlpoolManager* manager,
             safe = 0;
         }
         
+        // Проверка расстояния до других водоворотов
+        if (safe) {
+            for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
+                float dx = new_x - manager->whirlpools[i].position.x;
+                float dy = new_y - manager->whirlpools[i].position.y;
+                float dist = Utils_Distance(0, 0, dx, dy);
+                
+                if (dist < WHIRLPOOL_MIN_DISTANCE * 2.5f) {
+                    safe = 0;
+                    break;
+                }
+            }
+        }
+        
         // Если место безопасно, создаем водоворот
-        if (safe && manager->whirlpool_count < WHIRLPOOL_MAX_COUNT) {
+        if (safe) {
             Whirlpool* new_whirlpool = &manager->whirlpools[manager->whirlpool_count];
             new_whirlpool->position.x = new_x;
             new_whirlpool->position.y = new_y;

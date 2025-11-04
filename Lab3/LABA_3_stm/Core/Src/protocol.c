@@ -47,6 +47,55 @@ void Protocol_Init(UART_HandleTypeDef* huart) {
 
 void Protocol_SendGameState(GameState* state) {
     if (uart_tx_busy || huart_handle == NULL) {
+        // Если предыдущая передача не завершилась, увеличиваем счётчик пропущенных пакетов
+        state->skipped_packets++;
+        
+        // Если пропущено много пакетов, отправляем debug-сообщение
+        if (state->skipped_packets % 100 == 0 && state->frame_counter % 100 == 0) {
+            // БЕЗОПАСНАЯ АЛЬТЕРНАТИВА ДЛЯ snprintf
+            char message[32];
+            memset(message, 0, sizeof(message));
+            
+            // Формируем строку вручную, чтобы избежать проблем с форматированием
+            const char* prefix = "Skipped ";
+            const char* suffix = " pkts";
+            
+            // Копируем префикс
+            strncpy(message, prefix, sizeof(message)-1);
+            
+            // Конвертируем число в строку
+            uint32_t num = state->skipped_packets;
+            char num_str[10]; // Достаточно для 32-битного числа
+            int pos = 0;
+            
+            // Специальный случай для нуля
+            if (num == 0) {
+                num_str[pos++] = '0';
+            } else {
+                // Обработка числа
+                while (num > 0 && pos < (int)sizeof(num_str)-1) {
+                    num_str[pos++] = '0' + (num % 10);
+                    num /= 10;
+                }
+            }
+            num_str[pos] = '\0';
+            
+            // Разворачиваем строку с числом (т.к. мы заполняли её с конца)
+            for (int i = 0; i < pos/2; i++) {
+                char temp = num_str[i];
+                num_str[i] = num_str[pos-1-i];
+                num_str[pos-1-i] = temp;
+            }
+            
+            // Добавляем число к сообщению
+            strncat(message, num_str, sizeof(message)-strlen(message)-1);
+            
+            // Добавляем суффикс
+            strncat(message, suffix, sizeof(message)-strlen(message)-1);
+            
+            Protocol_SendDebug(0, 0, 0, 0, 0, 0, message);
+        }
+        
         return;
     }
     
@@ -208,6 +257,10 @@ void Protocol_SendGameState(GameState* state) {
     // Отправка через DMA
     if (HAL_UART_Transmit_DMA(huart_handle, tx_buffer, idx) == HAL_OK) {
         uart_tx_busy = 1;
+    } else {
+        // Ошибка начала передачи
+        uart_tx_busy = 0;
+        state->skipped_packets++;
     }
 }
 
@@ -268,8 +321,12 @@ void Protocol_ProcessIncoming(GameState* state) {
     
     uint16_t dma_pos = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
     
+
+    uint16_t processed_bytes = 0;
+    const uint16_t MAX_BYTES_PER_CALL = 128;
+
     // Обрабатываем все доступные данные
-    while (rx_write_pos != dma_pos) {
+    while (rx_write_pos != dma_pos && processed_bytes < MAX_BYTES_PER_CALL) {
         // Ищем стартовый байт
         if (rx_buffer[rx_write_pos] != START_BYTE) {
             rx_write_pos++;
@@ -508,5 +565,16 @@ void Protocol_ProcessIncoming(GameState* state) {
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
         }
+
+        processed_bytes++;
+    }
+
+    uint16_t used = (dma_pos >= rx_write_pos) ? 
+                    (dma_pos - rx_write_pos) : 
+                    (RX_BUFFER_SIZE - rx_write_pos + dma_pos);
+    
+    if (used > (RX_BUFFER_SIZE * 9 / 10)) {
+        rx_write_pos = dma_pos;
+        Protocol_SendDebug(0, 0, 0, 0, 0, 0, "Forced buffer reset");
     }
 }

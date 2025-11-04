@@ -3,6 +3,7 @@
 #include "cleanup.h"
 #include "enemies.h"
 #include "utils.h"
+#include "whirlpool.h"
 
 void Enemies_CleanupOld(GameState* state, float threshold_y) {
     // Очистка простых врагов
@@ -20,11 +21,18 @@ void Enemies_CleanupOld(GameState* state, float threshold_y) {
             i--;
         }
     }
+
+    if (state->whirlpool_manager) {
+        WhirlpoolManager_Cleanup(state->whirlpool_manager, threshold_y);
+    }
 }
 
 void Obstacles_CleanupOld(GameState* state, float threshold_y) {
     for (uint8_t i = 0; i < state->obstacle_count; i++) {
-        if (state->obstacles[i].position.y > threshold_y) {
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Добавляем проверку на валидность препятствия
+        if (state->obstacles[i].position.y > threshold_y && 
+            state->obstacles[i].position.y > 0) { // Защита от невалидных координат
+            
             Obstacles_Remove(state, i);
             i--;
         }

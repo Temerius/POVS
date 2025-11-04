@@ -146,6 +146,7 @@ typedef struct {
     
     uint8_t game_running;
     uint32_t frame_counter;
+    uint32_t skipped_packets;
 } GameState;
 
 #endif // GAME_TYPES_H

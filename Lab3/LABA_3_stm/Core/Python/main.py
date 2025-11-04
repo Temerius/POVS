@@ -202,6 +202,7 @@ class UARTProtocol:
         self.received_packets = 0
         self.error_packets = 0
         self.last_packet_time = 0
+        self.crc_error_count = 0
         
         try:
             self.ser = serial.Serial(port, baudrate, timeout=UART_TIMEOUT)
@@ -463,26 +464,41 @@ class UARTProtocol:
             return None
         
         try:
-            # Читаем все доступные данные
+            # Читаем все доступные данные с ограничением
             if self.ser.in_waiting > 0:
-                self.packet_buffer += self.ser.read(self.ser.in_waiting)
+                bytes_to_read = min(self.ser.in_waiting, 256)
+                self.packet_buffer += self.ser.read(bytes_to_read)
+                
+                # Ограничение максимального размера буфера
+                if len(self.packet_buffer) > 4096:
+                    # Сбрасываем буфер при переполнении
+                    self.packet_buffer = self.packet_buffer[-2048:]
+                    self.error_packets += 1
+                    if self.debug:
+                        print("⚠️ Буфер переполнен, сброшено старое содержимое")
             
             # Ищем начало пакета
-            while len(self.packet_buffer) > 0:
+            packets_processed = 0
+            max_packets_per_frame = 3  # Ограничение на количество пакетов за кадр
+            
+            while len(self.packet_buffer) > 0 and packets_processed < max_packets_per_frame:
                 # Ищем стартовый байт
                 start_pos = self.packet_buffer.find(bytes([START_BYTE]))
                 
                 if start_pos == -1:
-                    # Нет стартового байта - сохраняем остаток и выходим
-                    if len(self.packet_buffer) > 100:
-                        self.packet_buffer = self.packet_buffer[-100:]
+                    # Нет стартового байта - сбрасываем весь буфер при накоплении ошибок
+                    if self.crc_error_count > 5:
+                        self.packet_buffer = b''
+                        self.crc_error_count = 0
+                        if self.debug:
+                            print("⚠️ Много ошибок CRC, буфер полностью сброшен")
                     return None
                 
                 # Удаляем все до стартового байта
                 self.packet_buffer = self.packet_buffer[start_pos:]
                 
                 # Проверяем минимальный размер пакета
-                if len(self.packet_buffer) < 10:  # Минимальный размер пакета
+                if len(self.packet_buffer) < 10:
                     return None
                 
                 # Ищем конечный байт
@@ -505,10 +521,24 @@ class UARTProtocol:
                 crc_calculated = self.calculate_crc(packet_data[1:-2])
                 
                 if crc_received != crc_calculated:
+                    self.crc_error_count += 1
                     self.error_packets += 1
-                    if self.debug:
-                        print(f"✗ Ошибка контрольной суммы: {crc_calculated} != {crc_received}")
+                    
+                    # Если много ошибок подряд, сбрасываем весь буфер
+                    if self.crc_error_count > 10:
+                        self.packet_buffer = b''
+                        self.crc_error_count = 0
+                        if self.debug:
+                            print("⚠️ Критическое количество ошибок CRC, полный сброс буфера")
+                    else:
+                        if self.debug:
+                            print(f"✗ CRC error: calc={crc_calculated}, recv={crc_received}")
+                    
+                    # ВАЖНО: Возвращаемся к поиску стартового байта в оставшемся буфере
                     continue
+                
+                # Сброс счётчика ошибок при успешном приёме
+                self.crc_error_count = max(0, self.crc_error_count - 1)
                 
                 # Проверка заголовка
                 if packet_data[1] != PKT_GAME_STATE:
@@ -540,7 +570,7 @@ class UARTProtocol:
                     # 3. Enemy data
                     enemies = []
                     for i in range(min(enemy_count, MAX_ENEMIES_IN_PACKET)):
-                        if offset + 11 > len(packet_data):  # БЫЛО 10, СТАЛО 11
+                        if offset + 11 > len(packet_data):
                             raise ValueError(f"Недостаточно данных для enemy {i} (требуется 11, доступно {len(packet_data)-offset})")
                         
                         # ИСПРАВЛЕНО: Распаковка 11 байт (добавили direction)
@@ -550,10 +580,10 @@ class UARTProtocol:
                             'x': ex, 
                             'y': ey, 
                             'health': ehealth,
-                            'direction': direction  # НОВОЕ
+                            'direction': direction
                         })
                         debug_info.append(f"  Enemy {i}: type={enemy_type}, x={ex:.1f}, y={ey:.1f}, health={ehealth}, dir={direction}")
-                        offset += 11  # БЫЛО 10, СТАЛО 11
+                        offset += 11
                     
                     # 4. Projectile count (1 byte)
                     if offset >= len(packet_data):
@@ -598,17 +628,15 @@ class UARTProtocol:
                     debug_info.append(f"Camera: y={camera_y:.1f}, frame={frame_counter}")
                     offset += 8
                     
-                    # 9. CRC и END_BYTE уже проверены, поэтому мы здесь
-                    
                     self.received_packets += 1
                     if self.debug:
                         self._log_packet("in", PKT_GAME_STATE, 
                                     f"(player_y={player_y:.1f}, enemies={len(enemies)})")
-                        if self.debug:
-                            print("✓ Успешная распаковка пакета:")
-                            for info in debug_info:
-                                print(f"  - {info}")
+                        print("✓ Успешная распаковка пакета:")
+                        for info in debug_info:
+                            print(f"  - {info}")
                     
+                    packets_processed += 1
                     return GameStateFromSTM32(
                         player_x, player_y, player_angle, player_health, player_score, player_shoot_cooldown,
                         enemies, projectiles, whirlpools, camera_y, frame_counter
@@ -621,29 +649,23 @@ class UARTProtocol:
                         print("Содержимое пакета (первые 50 байт):", packet_data[:50])
                         print("Длина пакета:", len(packet_data))
                         print("Текущий offset:", offset)
-                        print("Данные игрока (первые 20 байт):", packet_data[2:22])
-                        # Попробуем распаковать только данные игрока для диагностики
-                        try:
-                            player_data = packet_data[2:20]  # 18 байт для игрока
-                            print("Попытка распаковки данных игрока:")
-                            print("  player_x:", struct.unpack('<f', player_data[0:4])[0])
-                            print("  player_y:", struct.unpack('<f', player_data[4:8])[0])
-                            print("  player_angle:", struct.unpack('<f', player_data[8:12])[0])
-                            print("  player_health:", struct.unpack('<h', player_data[12:14])[0])
-                            print("  player_score:", struct.unpack('<H', player_data[14:16])[0])
-                            print("  player_shoot_cooldown:", struct.unpack('<H', player_data[16:18])[0])
-                        except Exception as ex:
-                            print(f"  Ошибка при распаковке данных игрока: {ex}")
-                    return None
-    
+                    
+                    # ВАЖНО: Не возвращаемся к поиску стартового байта - пропускаем текущий пакет
+                    # и продолжаем обработку оставшегося буфера
+                    continue
+            
+            return None
+        
         except Exception as e:
             self.error_packets += 1
+            # Критическая ошибка - сбрасываем буфер
+            self.packet_buffer = b''
+            self.crc_error_count = 0
             if self.debug:
                 import traceback
-                print(f"✗ Ошибка приёма данных: {e}")
+                print(f"✗ Критическая ошибка приёма данных: {e}")
                 print(traceback.format_exc())
             return None
-
 
     def print_statistics(self):
         """Вывод статистики UART-трафика"""
