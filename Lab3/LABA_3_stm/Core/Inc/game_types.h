@@ -52,6 +52,8 @@ typedef struct {
     
     uint8_t active;
     uint8_t alive;
+
+    uint8_t current_direction;
     
     // AI параметры
     float wander_angle;
@@ -76,6 +78,8 @@ typedef struct {
     
     uint8_t active;
     uint8_t alive;
+
+    uint8_t current_direction;
     
     // AI параметры расширенные
     float wander_angle;

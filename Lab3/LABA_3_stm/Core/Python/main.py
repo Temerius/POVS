@@ -42,7 +42,7 @@ PROJECTILE_COLOR_ENEMY = (255, 50, 50)
 WHIRLPOOL_RADIUS = 45
 
 MAX_ENEMIES_IN_PACKET = 6
-MAX_PROJECTILES_IN_PACKET = 10
+MAX_PROJECTILES_IN_PACKET = 20
 MAX_WHIRLPOOLS_IN_PACKET = 3
 
 # Генерация мира
@@ -52,8 +52,8 @@ WORLD_INITIAL_SEGMENTS = 3
 WORLD_CLEANUP_DISTANCE = 2000
 WORLD_ISLAND_SPAWN_CHANCE = 0.85
 WORLD_ENEMY_SPAWN_DISTANCE = -1500
-ENEMY_SIMPLE_SPAWN_CHANCE = 0.25
-ENEMY_HARD_SPAWN_CHANCE = 0.10
+ENEMY_SIMPLE_SPAWN_CHANCE = 0.30
+ENEMY_HARD_SPAWN_CHANCE = 0.15
 WHIRLPOOL_SPAWN_CHANCE = 0.1
 WHIRLPOOL_MAX_COUNT = 6
 
@@ -537,16 +537,23 @@ class UARTProtocol:
                     debug_info.append(f"Enemy count: {enemy_count}")
                     offset += 1
                     
-                    # 3. Enemies data
+                    # 3. Enemy data
                     enemies = []
                     for i in range(min(enemy_count, MAX_ENEMIES_IN_PACKET)):
-                        if offset + 9 > len(packet_data):
-                            raise ValueError(f"Недостаточно данных для enemy {i} (требуется 9, доступно {len(packet_data)-offset})")
+                        if offset + 11 > len(packet_data):  # БЫЛО 10, СТАЛО 11
+                            raise ValueError(f"Недостаточно данных для enemy {i} (требуется 11, доступно {len(packet_data)-offset})")
                         
-                        enemy_type, ex, ey, ehealth = struct.unpack('<Bffb', packet_data[offset:offset+9])
-                        enemies.append({'type': enemy_type, 'x': ex, 'y': ey, 'health': ehealth})
-                        debug_info.append(f"  Enemy {i}: type={enemy_type}, x={ex:.1f}, y={ey:.1f}, health={ehealth}")
-                        offset += 9
+                        # ИСПРАВЛЕНО: Распаковка 11 байт (добавили direction)
+                        enemy_type, ex, ey, ehealth, direction = struct.unpack('<BffBB', packet_data[offset:offset+11])
+                        enemies.append({
+                            'type': enemy_type, 
+                            'x': ex, 
+                            'y': ey, 
+                            'health': ehealth,
+                            'direction': direction  # НОВОЕ
+                        })
+                        debug_info.append(f"  Enemy {i}: type={enemy_type}, x={ex:.1f}, y={ey:.1f}, health={ehealth}, dir={direction}")
+                        offset += 11  # БЫЛО 10, СТАЛО 11
                     
                     # 4. Projectile count (1 byte)
                     if offset >= len(packet_data):
@@ -977,6 +984,14 @@ class Game:
     
     def _draw_enemies(self, camera_y):
         """Рисуем врагов"""
+        # Словарь направлений
+        direction_map = {
+            0: 'up',
+            1: 'right',
+            2: 'down',
+            3: 'left'
+        }
+        
         for enemy in self.game_state.enemies:
             x = int(enemy['x'])
             y_screen = int(enemy['y'] - camera_y)
@@ -984,21 +999,38 @@ class Game:
             if y_screen < -100 or y_screen > SCREEN_HEIGHT + 100:
                 continue
             
-            sprite = self.enemy_simple_sprite if enemy['type'] == 0 else self.enemy_hard_sprite
+            # Выбираем базовый спрайт
+            base_sprite = self.enemy_simple_sprite if enemy['type'] == 0 else self.enemy_hard_sprite
+            
+            # Поворачиваем спрайт в зависимости от направления
+            direction = enemy.get('direction', 2)  # По умолчанию down
+            
+            if direction == 0:  # up
+                sprite = pygame.transform.rotate(base_sprite, 0)
+            elif direction == 1:  # right
+                sprite = pygame.transform.rotate(base_sprite, -90)
+            elif direction == 2:  # down (базовое)
+                sprite = base_sprite
+            elif direction == 3:  # left
+                sprite = pygame.transform.rotate(base_sprite, 90)
+            else:
+                sprite = base_sprite
+            
             rect = sprite.get_rect(center=(x, y_screen))
             self.screen.blit(sprite, rect.topleft)
             
-            # Полоска здоровья
-            if enemy['health'] > 0:
-                bar_width = 30
-                bar_height = 4
-                health_ratio = enemy['health'] / (1 if enemy['type'] == 0 else 3)
+            # # Полоска здоровья (остается без изменений)
+            # if enemy['health'] > 0:
+            #     bar_width = 30
+            #     bar_height = 4
+            #     health_ratio = enemy['health'] / (1 if enemy['type'] == 0 else 3)
                 
-                pygame.draw.rect(self.screen, RED, 
-                               (x - bar_width//2, y_screen - 25, bar_width, bar_height))
-                pygame.draw.rect(self.screen, (0, 255, 0), 
-                               (x - bar_width//2, y_screen - 25, int(bar_width * health_ratio), bar_height))
-    
+            #     pygame.draw.rect(self.screen, RED, 
+            #                 (x - bar_width//2, y_screen - 25, bar_width, bar_height))
+            #     pygame.draw.rect(self.screen, (0, 255, 0), 
+            #                 (x - bar_width//2, y_screen - 25, int(bar_width * health_ratio), bar_height))
+
+
     def _draw_projectiles(self, camera_y):
         """Рисуем снаряды"""
         for proj in self.game_state.projectiles:

@@ -1,4 +1,4 @@
-/* enemies.c - Логика врагов */
+/* enemies.c - Логика врагов (ИСПРАВЛЕНО) */
 
 #include "game_config.h"
 #include "enemies.h"
@@ -10,13 +10,20 @@ void Enemies_Update(GameState* state) {
     for (uint8_t i = 0; i < state->enemy_simple_count; i++) {
         EnemySimple* enemy = &state->enemies_simple[i];
         
-        if (!enemy->alive || !enemy->active) continue;
+        if (!enemy->alive) continue;
         
         // Активация врага при приближении к игроку
         if (!enemy->active && enemy->position.y > state->player.position.y + ENEMY_ACTIVATION_DISTANCE * SCREEN_HEIGHT) {
             enemy->active = 1;
             enemy->strategy = (Utils_RandomFloat() < ENEMY_SIMPLE_ATTACK_CHANCE) ? STRATEGY_ATTACK : STRATEGY_PATROL;
+            
+            // ИСПРАВЛЕНИЕ: Инициализация начальной скорости
+            enemy->velocity.x = 0;
+            enemy->velocity.y = ENEMY_SIMPLE_BASE_SPEED;
+            enemy->target_angle = Utils_DegToRad(90); // Вниз
         }
+        
+        if (!enemy->active) continue;
         
         // Удаление врага, если он слишком далеко позади игрока
         if (enemy->position.y > state->player.position.y + ENEMY_DELETE_DISTANCE) {
@@ -28,17 +35,33 @@ void Enemies_Update(GameState* state) {
         // Обновление AI
         EnemySimple_UpdateAI(enemy, &state->player);
         
-        // Применение движения
-        float angle_diff = enemy->target_angle - atan2f(enemy->velocity.y, enemy->velocity.x);
+        // ИСПРАВЛЕНИЕ: Плавное применение поворота
+        // Текущий угол движения
+        float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
+        
+        // Разница между целевым и текущим углом
+        float angle_diff = enemy->target_angle - current_angle;
         angle_diff = Utils_NormalizeAngle(angle_diff);
+        
+        // Плавный поворот
         float turn_amount = angle_diff * ENEMY_SIMPLE_TURN_SMOOTHNESS;
+        float new_angle = current_angle + turn_amount;
         
-        enemy->velocity.x = cosf(enemy->target_angle + turn_amount) * ENEMY_SIMPLE_BASE_SPEED;
-        enemy->velocity.y = sinf(enemy->target_angle + turn_amount) * ENEMY_SIMPLE_BASE_SPEED;
+        // Обновляем velocity
+        enemy->velocity.x = cosf(new_angle) * ENEMY_SIMPLE_BASE_SPEED;
+        enemy->velocity.y = sinf(new_angle) * ENEMY_SIMPLE_BASE_SPEED;
         
+        if (fabsf(enemy->velocity.x) > fabsf(enemy->velocity.y) * 0.7f) {
+            enemy->current_direction = (enemy->velocity.x > 0) ? 1 : 3; // 1=right, 3=left
+        } else {
+            enemy->current_direction = (enemy->velocity.y > 0) ? 2 : 0; // 2=down, 0=up
+        }
+
+        // Сохраняем предыдущую позицию
         float prev_x = enemy->position.x;
         float prev_y = enemy->position.y;
         
+        // Применяем движение
         enemy->position.x += enemy->velocity.x;
         enemy->position.y += enemy->velocity.y;
         
@@ -46,7 +69,9 @@ void Enemies_Update(GameState* state) {
         if (Enemies_CheckCollision(state, enemy->position.x, enemy->position.y, enemy->radius)) {
             enemy->position.x = prev_x;
             enemy->position.y = prev_y;
+            // Случайный поворот при столкновении
             enemy->target_angle += Utils_DegToRad(Utils_RandomRange(90, 270));
+            enemy->target_angle = Utils_NormalizeAngle(enemy->target_angle);
         }
         
         // Ограничение по краям
@@ -74,21 +99,28 @@ void Enemies_Update(GameState* state) {
         }
     }
     
-    // Обновление сложных врагов (аналогично, но с более сложной логикой)
+    // Обновление сложных врагов
     for (uint8_t i = 0; i < state->enemy_hard_count; i++) {
         EnemyHard* enemy = &state->enemies_hard[i];
         
-        if (!enemy->alive || !enemy->active) continue;
+        if (!enemy->alive) continue;
         
         // Активация врага
         if (!enemy->active && enemy->position.y > state->player.position.y + ENEMY_ACTIVATION_DISTANCE * SCREEN_HEIGHT) {
             enemy->active = 1;
             enemy->strategy = (Utils_RandomFloat() < ENEMY_HARD_AGGRESSIVE_CHANCE) ? STRATEGY_AGGRESSIVE : STRATEGY_PATROL;
             
+            // ИСПРАВЛЕНИЕ: Инициализация начальной скорости
+            enemy->velocity.x = 0;
+            enemy->velocity.y = ENEMY_HARD_BASE_SPEED;
+            enemy->target_angle = Utils_DegToRad(90); // Вниз
+            
             if (enemy->strategy == STRATEGY_PATROL) {
                 Enemies_GeneratePatrolPoints(enemy, &state->player);
             }
         }
+        
+        if (!enemy->active) continue;
         
         // Удаление врага
         if (enemy->position.y > state->player.position.y + ENEMY_DELETE_DISTANCE) {
@@ -100,18 +132,37 @@ void Enemies_Update(GameState* state) {
         // Обновление AI
         EnemyHard_UpdateAI(enemy, &state->player, state->obstacles, state->obstacle_count);
         
-        // Применение движения
+        // ИСПРАВЛЕНИЕ: Плавное применение поворота для сложных врагов
+        float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
+        float angle_diff = enemy->target_angle - current_angle;
+        angle_diff = Utils_NormalizeAngle(angle_diff);
+        
+        float turn_amount = angle_diff * ENEMY_HARD_TURN_SMOOTHNESS;
+        float new_angle = current_angle + turn_amount;
+        
+        enemy->velocity.x = cosf(new_angle) * ENEMY_HARD_BASE_SPEED;
+        enemy->velocity.y = sinf(new_angle) * ENEMY_HARD_BASE_SPEED;
+
+        if (fabsf(enemy->velocity.x) > fabsf(enemy->velocity.y) * 0.7f) {
+            enemy->current_direction = (enemy->velocity.x > 0) ? 1 : 3; // 1=right, 3=left
+        } else {
+            enemy->current_direction = (enemy->velocity.y > 0) ? 2 : 0; // 2=down, 0=up
+        }
+        
+        // Сохраняем предыдущую позицию
         float prev_x = enemy->position.x;
         float prev_y = enemy->position.y;
         
-        enemy->position.x += cosf(enemy->target_angle) * ENEMY_HARD_BASE_SPEED;
-        enemy->position.y += sinf(enemy->target_angle) * ENEMY_HARD_BASE_SPEED;
+        // Применяем движение
+        enemy->position.x += enemy->velocity.x;
+        enemy->position.y += enemy->velocity.y;
         
         // Проверка коллизий
         if (Enemies_CheckCollision(state, enemy->position.x, enemy->position.y, enemy->radius)) {
             enemy->position.x = prev_x;
             enemy->position.y = prev_y;
             enemy->target_angle += Utils_DegToRad(Utils_RandomRange(90, 270));
+            enemy->target_angle = Utils_NormalizeAngle(enemy->target_angle);
         }
         
         // Ограничение по краям

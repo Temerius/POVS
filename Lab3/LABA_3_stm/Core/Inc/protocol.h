@@ -43,7 +43,7 @@ void Protocol_SendDebug(uint8_t packet_type, uint8_t packet_size, uint8_t parse_
 
 // === ОПТИМИЗИРОВАННЫЕ РАЗМЕРЫ ПАКЕТОВ ===
 #define MAX_ENEMIES_IN_PACKET 6      // Уменьшено для надежности
-#define MAX_PROJECTILES_IN_PACKET 10 // Уменьшено для надежности
+#define MAX_PROJECTILES_IN_PACKET 20 // Уменьшено для надежности
 #define MAX_WHIRLPOOLS_IN_PACKET 3   // Уменьшено для надежности
 
 // === СТРУКТУРЫ ПАКЕТОВ ===

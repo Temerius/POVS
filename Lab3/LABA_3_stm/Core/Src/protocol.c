@@ -100,6 +100,7 @@ void Protocol_SendGameState(GameState* state) {
             tx_buffer[idx++] = *((uint8_t*)&state->enemies_simple[i].position.y + 3);
             
             tx_buffer[idx++] = state->enemies_simple[i].health;
+            tx_buffer[idx++] = state->enemies_simple[i].current_direction;
             
             enemy_count++;
         }
@@ -120,6 +121,7 @@ void Protocol_SendGameState(GameState* state) {
             tx_buffer[idx++] = *((uint8_t*)&state->enemies_hard[i].position.y + 3);
             
             tx_buffer[idx++] = state->enemies_hard[i].health;
+            tx_buffer[idx++] = state->enemies_simple[i].current_direction;
             
             enemy_count++;
         }
@@ -381,6 +383,7 @@ void Protocol_ProcessIncoming(GameState* state) {
                     enemy->wander_angle = 0;
                     enemy->wander_timer = 0;
                     enemy->strategy = STRATEGY_ATTACK;
+                    enemy->current_direction = 2;
                     
                     state->enemy_simple_count++;
                     Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_simple_count, 
@@ -408,6 +411,7 @@ void Protocol_ProcessIncoming(GameState* state) {
                     enemy->patrol_point_index = 0;
                     enemy->patrol_points_count = 0;
                     enemy->strategy = STRATEGY_AGGRESSIVE;
+                    enemy->current_direction = 2;
                     
                     state->enemy_hard_count++;
                     Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_hard_count, 
