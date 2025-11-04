@@ -77,6 +77,7 @@ PKT_ADD_OBSTACLE = 0x03
 PKT_CLEANUP = 0x04
 PKT_INIT_GAME = 0x05
 PKT_ADD_WHIRLPOOL = 0x06
+PKT_DEBUG = 0x07
 
 
 START_BYTE = 0xAA
@@ -246,6 +247,112 @@ class UARTProtocol:
             PKT_ADD_WHIRLPOOL: "ADD_WHIRLPOOL"
         }
         return names.get(packet_type, f"UNKNOWN_{packet_type:02X}")
+    
+
+    def receive_debug_packet(self) -> Optional[dict]:
+        """Получение и обработка debug-пакета от STM32"""
+        if not self.ser:
+            return None
+        
+        try:
+            if self.ser.in_waiting > 0:
+                self.packet_buffer += self.ser.read(self.ser.in_waiting)
+            
+            while len(self.packet_buffer) > 0:
+                # Ищем стартовый байт
+                start_pos = self.packet_buffer.find(bytes([START_BYTE]))
+                if start_pos == -1:
+                    if len(self.packet_buffer) > 100:
+                        self.packet_buffer = self.packet_buffer[-100:]
+                    return None
+                
+                self.packet_buffer = self.packet_buffer[start_pos:]
+                
+                if len(self.packet_buffer) < 10:
+                    return None
+                
+                # Проверяем, что это debug-пакет
+                if self.packet_buffer[1] != PKT_DEBUG:
+                    # Пропускаем этот пакет и продолжаем поиск
+                    self.packet_buffer = self.packet_buffer[1:]
+                    continue
+                
+                # Ищем конечный байт
+                end_pos = self.packet_buffer.find(bytes([END_BYTE]))
+                if end_pos == -1:
+                    return None
+                
+                # Извлекаем пакет (START + TYPE + 6 байт данных + 32 байта сообщение + CRC + END)
+                packet_data = self.packet_buffer[:end_pos + 1]
+                self.packet_buffer = self.packet_buffer[end_pos + 1:]
+                
+                if len(packet_data) < 20:  # Минимальный размер debug-пакета
+                    continue
+                
+                # Проверка CRC
+                crc_received = packet_data[-2]
+                crc_calculated = self.calculate_crc(packet_data[1:-2])
+                
+                # if crc_received != crc_calculated:
+                #     print(f"✗ Debug packet CRC error: {crc_calculated} != {crc_received}")
+                #     continue
+                
+                # Распаковка debug-пакета
+                offset = 2  # Пропускаем START_BYTE и PKT_DEBUG
+                
+                packet_type = packet_data[offset]
+                packet_size = packet_data[offset + 1]
+                parse_state = packet_data[offset + 2]
+                crc_recv = packet_data[offset + 3]
+                crc_calc = packet_data[offset + 4]
+                success = packet_data[offset + 5]
+                
+                # Извлекаем текстовое сообщение (32 байта)
+                message_bytes = packet_data[offset + 6:offset + 38]
+                try:
+                    message = message_bytes.decode('utf-8', errors='ignore').rstrip('\x00')
+                except:
+                    message = str(message_bytes)
+                
+                return {
+                    'packet_type': packet_type,
+                    'packet_size': packet_size,
+                    'parse_state': parse_state,
+                    'crc_received': crc_recv,
+                    'crc_calculated': crc_calc,
+                    'success': bool(success),
+                    'message': message
+                }
+        
+        except Exception as e:
+            print(f"✗ Ошибка приёма debug-пакета: {e}")
+            return None
+        
+
+    def print_debug_packet(self, debug_info):
+        """Красивый вывод debug-пакета"""
+        packet_names = {
+            0x01: "GAME_STATE",
+            0x02: "ADD_ENEMY",
+            0x03: "ADD_OBSTACLE",
+            0x04: "CLEANUP",
+            0x05: "INIT_GAME",
+            0x06: "ADD_WHIRLPOOL",
+            0xFF: "UNKNOWN"
+        }
+        
+        packet_name = packet_names.get(debug_info['packet_type'], f"0x{debug_info['packet_type']:02X}")
+        status = "✓ SUCCESS" if debug_info['success'] else "✗ FAILED"
+        
+        print(f"\n{'='*60}")
+        print(f"[DEBUG PACKET] {status}")
+        print(f"  Type: {packet_name}")
+        print(f"  Size: {debug_info['packet_size']} bytes")
+        print(f"  Parse State: {debug_info['parse_state']}")
+        print(f"  CRC: received=0x{debug_info['crc_received']:02X}, "
+            f"calculated=0x{debug_info['crc_calculated']:02X}")
+        print(f"  Message: {debug_info['message']}")
+        print(f"{'='*60}\n")
     
     def send_add_enemy(self, enemy_type, x, y):
         if not self.ser:
@@ -1030,6 +1137,11 @@ class Game:
         
         while running:
             # Обработка событий
+
+            # debug_info = self.uart.receive_debug_packet()
+            # if debug_info:
+            #     self.uart.print_debug_packet(debug_info)
+
             running = self.handle_events()
             
             # Обновление игры

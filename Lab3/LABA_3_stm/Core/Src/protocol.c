@@ -222,200 +222,287 @@ void Protocol_CleanupRxBuffer(void) {
     }
 }
 
+
+void Protocol_SendDebug(uint8_t packet_type, uint8_t packet_size, uint8_t parse_state,
+                       uint8_t crc_received, uint8_t crc_calculated, 
+                       uint8_t success, const char* message) {
+    if (uart_tx_busy || huart_handle == NULL) {
+        return;
+    }
+    
+    // Формируем debug-пакет
+    uint16_t idx = 0;
+    tx_buffer[idx++] = START_BYTE;
+    tx_buffer[idx++] = PKT_DEBUG;
+    tx_buffer[idx++] = packet_type;
+    tx_buffer[idx++] = packet_size;
+    tx_buffer[idx++] = parse_state;
+    tx_buffer[idx++] = crc_received;
+    tx_buffer[idx++] = crc_calculated;
+    tx_buffer[idx++] = success;
+    
+    // Копируем сообщение (максимум 32 байта)
+    for (uint8_t i = 0; i < 32; i++) {
+        if (message && message[i] != '\0') {
+            tx_buffer[idx++] = message[i];
+        } else {
+            tx_buffer[idx++] = '\0';
+        }
+    }
+    
+    // Вычисляем CRC для debug-пакета
+    uint8_t crc = Protocol_CalculateCRC(&tx_buffer[1], idx-1);
+    tx_buffer[idx++] = crc;
+    tx_buffer[idx++] = END_BYTE;
+    
+    // Отправка
+    HAL_UART_Transmit_DMA(huart_handle, tx_buffer, idx);
+    uart_tx_busy = 1;
+}
+
+
 void Protocol_ProcessIncoming(GameState* state) {
     if (huart_handle == NULL) return;
-    
-    //Protocol_CleanupRxBuffer();
     
     uint16_t dma_pos = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
     
     // Обрабатываем все доступные данные
     while (rx_write_pos != dma_pos) {
-        uint8_t byte = rx_buffer[rx_write_pos];
-        
-        switch (packet_state) {
-            case 0: // Ожидание стартового байта
-                if (byte == START_BYTE) {
-                    packet_state = 1;
-                    packet_idx = 0;
-                    packet_data[packet_idx++] = byte;
-                }
-                break;
-                
-            case 1: // Получение типа пакета
-                packet_type = byte;
-                packet_data[packet_idx++] = byte;
-                packet_state = 2;
-                break;
-                
-            case 2: // Получение данных пакета
-                packet_data[packet_idx++] = byte;
-                
-                // Проверка завершения пакета на основе типа
-                switch (packet_type) {
-                    case PKT_ADD_ENEMY: {
-                        if (byte == END_BYTE) {
-                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(9) + CRC(1) + END(1) = 13
-                            if (packet_idx == 13) {
-                                // Рассчитываем CRC только для данных (без START_BYTE и END_BYTE)
-                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 11);
-                                if (crc_calculated == packet_data[11]) {
-                                    uint8_t enemy_type = packet_data[2];
-                                    float x = *(float*)&packet_data[3];
-                                    float y = *(float*)&packet_data[7];
-                                    
-                                    if (enemy_type == 0 && state->enemy_simple_count < MAX_ENEMIES_SIMPLE) {
-                                        EnemySimple* enemy = &state->enemies_simple[state->enemy_simple_count];
-                                        
-                                        enemy->position.x = x;
-                                        enemy->position.y = y;
-                                        enemy->initial_y = y;
-                                        enemy->health = ENEMY_SIMPLE_HEALTH;
-                                        enemy->max_health = ENEMY_SIMPLE_HEALTH;
-                                        enemy->shoot_cooldown = 0;
-                                        enemy->shoot_delay = ENEMY_SIMPLE_SHOOT_DELAY;
-                                        enemy->radius = COLLISION_RADIUS_ENEMY_SIMPLE;
-                                        enemy->points = ENEMY_SIMPLE_POINTS;
-                                        enemy->active = 0;
-                                        enemy->alive = 1;
-                                        enemy->wander_angle = 0;
-                                        enemy->wander_timer = 0;
-                                        enemy->strategy = STRATEGY_ATTACK;
-                                        
-                                        state->enemy_simple_count++;
-                                    }
-                                    else if (enemy_type == 1 && state->enemy_hard_count < MAX_ENEMIES_HARD) {
-                                        EnemyHard* enemy = &state->enemies_hard[state->enemy_hard_count];
-                                        
-                                        enemy->position.x = x;
-                                        enemy->position.y = y;
-                                        enemy->initial_y = y;
-                                        enemy->health = ENEMY_HARD_HEALTH;
-                                        enemy->max_health = ENEMY_HARD_HEALTH;
-                                        enemy->shoot_cooldown = 0;
-                                        enemy->shoot_delay = ENEMY_HARD_SHOOT_DELAY;
-                                        enemy->radius = COLLISION_RADIUS_ENEMY_HARD;
-                                        enemy->points = ENEMY_HARD_POINTS;
-                                        enemy->armor_timer = 0;
-                                        enemy->active = 0;
-                                        enemy->alive = 1;
-                                        enemy->wander_angle = 0;
-                                        enemy->wander_timer = 0;
-                                        enemy->pursuit_timer = 0;
-                                        enemy->pursuit_direction = 0;
-                                        enemy->patrol_point_index = 0;
-                                        enemy->patrol_points_count = 0;
-                                        enemy->strategy = STRATEGY_AGGRESSIVE;
-                                        
-                                        state->enemy_hard_count++;
-                                    }
-                                }
-                            }
-                        }
-                        packet_state = 0;
-                        break;
-                    }
-                    
-                    case PKT_ADD_OBSTACLE: {
-                        if (byte == END_BYTE) {
-                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(13) + CRC(1) + END(1) = 17
-                            if (packet_idx == 17) {
-                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 15);
-                                if (crc_calculated == packet_data[15]) {
-                                    uint8_t obstacle_type = packet_data[2];
-                                    float x = *(float*)&packet_data[3];
-                                    float y = *(float*)&packet_data[7];
-                                    float value = *(float*)&packet_data[11];
-                                    
-                                    if (state->obstacle_count < MAX_OBSTACLES) {
-                                        Obstacle* obstacle = &state->obstacles[state->obstacle_count];
-                                        
-                                        obstacle->position.x = x;
-                                        obstacle->position.y = y;
-                                        
-                                        // Для берегов используем значение как радиус (ширина берега)
-                                        if (obstacle_type == OBSTACLE_SHORE_LEFT || 
-                                            obstacle_type == OBSTACLE_SHORE_RIGHT) {
-                                            obstacle->radius = value;
-                                        } 
-                                        // Для островов используем значение как радиус острова
-                                        else {
-                                            obstacle->radius = value;
-                                        }
-                                        
-                                        obstacle->type = (ObstacleType)obstacle_type;
-                                        obstacle->active = 1;
-                                        
-                                        state->obstacle_count++;
-                                    }
-                                }
-                            }
-                        }
-                        packet_state = 0;
-                        break;
-                    }
-                    
-                    case PKT_ADD_WHIRLPOOL: {
-                        if (byte == END_BYTE) {
-                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(8) + CRC(1) + END(1) = 12
-                            if (packet_idx == 12) {
-                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 10);
-                                if (crc_calculated == packet_data[10]) {
-                                    float x = *(float*)&packet_data[2];
-                                    float y = *(float*)&packet_data[6];
-                                    
-                                    if (state->whirlpool_manager) {
-                                        WhirlpoolManager_Add(state->whirlpool_manager, x, y);
-                                    }
-                                }
-                            }
-                        }
-                        packet_state = 0;
-                        break;
-                    }
-                    
-                    case PKT_CLEANUP: {
-                        if (byte == END_BYTE) {
-                            // Проверяем размер пакета: START(1) + TYPE(1) + DATA(4) + CRC(1) + END(1) = 8
-                            if (packet_idx == 8) {
-                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 6);
-                                if (crc_calculated == packet_data[6]) {
-                                    float threshold_y = *(float*)&packet_data[2];
-                                    
-                                    Enemies_CleanupOld(state, threshold_y);
-                                    Obstacles_CleanupOld(state, threshold_y);
-                                    if (state->whirlpool_manager) {
-                                        WhirlpoolManager_Cleanup(state->whirlpool_manager, threshold_y);
-                                    }
-                                }
-                            }
-                        }
-                        packet_state = 0;
-                        break;
-                    }
-                    
-                    case PKT_INIT_GAME: {
-                        if (byte == END_BYTE) {
-                            // Проверяем размер пакета: START(1) + TYPE(1) + CRC(1) + END(1) = 4
-                            if (packet_idx == 4) {
-                                uint8_t crc_calculated = Protocol_CalculateCRC(&packet_data[1], 2);
-                                if (crc_calculated == packet_data[2]) {
-                                    GameState_Cleanup(state);
-                                    GameState_Init(state);
-                                }
-                            }
-                        }
-                        packet_state = 0;
-                        break;
-                    }
-                }
-                break;
+        // Ищем стартовый байт
+        if (rx_buffer[rx_write_pos] != START_BYTE) {
+            rx_write_pos++;
+            if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            continue;
         }
         
-        // Перемещаем позицию записи
-        rx_write_pos++;
-        if (rx_write_pos >= RX_BUFFER_SIZE) {
-            rx_write_pos = 0;
+        // Нашли START_BYTE
+        uint16_t packet_start = rx_write_pos;
+        uint16_t idx = rx_write_pos;
+        
+        // Проверяем, есть ли хотя бы 4 байта (минимальный пакет)
+        uint16_t available = (dma_pos >= idx) ? (dma_pos - idx) : (RX_BUFFER_SIZE - idx + dma_pos);
+        if (available < 4) {
+            // Недостаточно данных, ждём
+            return;
+        }
+        
+        // Читаем тип пакета
+        idx++;
+        if (idx >= RX_BUFFER_SIZE) idx = 0;
+        uint8_t packet_type = rx_buffer[idx];
+        
+        // Protocol_SendDebug(packet_type, 0, 0, 0, 0, 1, "Found packet type");
+        
+        // Определяем ожидаемый размер пакета по типу
+        uint16_t expected_size = 0;
+        switch (packet_type) {
+            case PKT_ADD_ENEMY:
+                expected_size = 13;  // START(1) + TYPE(1) + enemy_type(1) + x(4) + y(4) + CRC(1) + END(1)
+                break;
+            case PKT_ADD_OBSTACLE:
+                expected_size = 17;  // START(1) + TYPE(1) + type(1) + x(4) + y(4) + radius(4) + CRC(1) + END(1)
+                break;
+            case PKT_ADD_WHIRLPOOL:
+                expected_size = 12;  // START(1) + TYPE(1) + x(4) + y(4) + CRC(1) + END(1)
+                break;
+            case PKT_CLEANUP:
+                expected_size = 8;   // START(1) + TYPE(1) + threshold_y(4) + CRC(1) + END(1)
+                break;
+            case PKT_INIT_GAME:
+                expected_size = 4;   // START(1) + TYPE(1) + CRC(1) + END(1)
+                break;
+            default:
+                // Неизвестный тип пакета, пропускаем START_BYTE и продолжаем поиск
+                Protocol_SendDebug(packet_type, 0, 0, 0, 0, 0, "Unknown packet type");
+                rx_write_pos++;
+                if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+                continue;
+        }
+        
+        // Проверяем, достаточно ли данных для полного пакета
+        available = (dma_pos >= packet_start) ? (dma_pos - packet_start) : (RX_BUFFER_SIZE - packet_start + dma_pos);
+        if (available < expected_size) {
+            // Недостаточно данных, ждём
+            Protocol_SendDebug(packet_type, expected_size, available, 0, 0, 0, "Waiting for data");
+            return;
+        }
+        
+        // Копируем пакет в линейный буфер для удобства обработки
+        uint8_t packet_buffer[32];  // Максимальный размер пакета
+        idx = packet_start;
+        for (uint16_t i = 0; i < expected_size; i++) {
+            packet_buffer[i] = rx_buffer[idx];
+            idx++;
+            if (idx >= RX_BUFFER_SIZE) idx = 0;
+        }
+        
+        // Проверяем END_BYTE
+        if (packet_buffer[expected_size - 1] != END_BYTE) {
+            Protocol_SendDebug(packet_type, expected_size, 0, 0, 0, 0, "No END byte");
+            // Пропускаем этот START_BYTE и ищем следующий
+            rx_write_pos++;
+            if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            continue;
+        }
+        
+        // Проверяем CRC (все байты кроме START, CRC и END)
+        uint8_t crc_calculated = Protocol_CalculateCRC(&packet_buffer[1], expected_size - 3);
+        uint8_t crc_received = packet_buffer[expected_size - 2];
+        
+        if (crc_calculated != crc_received) {
+            Protocol_SendDebug(packet_type, expected_size, 0, crc_received, crc_calculated, 0, "CRC mismatch");
+            // Пропускаем этот START_BYTE и ищем следующий
+            rx_write_pos++;
+            if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            continue;
+        }
+        
+        // CRC OK, обрабатываем пакет
+        switch (packet_type) {
+            case PKT_ADD_ENEMY: {
+                uint8_t enemy_type = packet_buffer[2];
+                float x = *(float*)&packet_buffer[3];
+                float y = *(float*)&packet_buffer[7];
+                
+                if (enemy_type == 0 && state->enemy_simple_count < MAX_ENEMIES_SIMPLE) {
+                    EnemySimple* enemy = &state->enemies_simple[state->enemy_simple_count];
+                    
+                    enemy->position.x = x;
+                    enemy->position.y = y;
+                    enemy->initial_y = y;
+                    enemy->health = ENEMY_SIMPLE_HEALTH;
+                    enemy->max_health = ENEMY_SIMPLE_HEALTH;
+                    enemy->shoot_cooldown = 0;
+                    enemy->shoot_delay = ENEMY_SIMPLE_SHOOT_DELAY;
+                    enemy->radius = COLLISION_RADIUS_ENEMY_SIMPLE;
+                    enemy->points = ENEMY_SIMPLE_POINTS;
+                    enemy->active = 0;
+                    enemy->alive = 1;
+                    enemy->wander_angle = 0;
+                    enemy->wander_timer = 0;
+                    enemy->strategy = STRATEGY_ATTACK;
+                    
+                    state->enemy_simple_count++;
+                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_simple_count, 
+                                     crc_received, crc_calculated, 1, "Enemy simple OK");
+                }
+                else if (enemy_type == 1 && state->enemy_hard_count < MAX_ENEMIES_HARD) {
+                    EnemyHard* enemy = &state->enemies_hard[state->enemy_hard_count];
+                    
+                    enemy->position.x = x;
+                    enemy->position.y = y;
+                    enemy->initial_y = y;
+                    enemy->health = ENEMY_HARD_HEALTH;
+                    enemy->max_health = ENEMY_HARD_HEALTH;
+                    enemy->shoot_cooldown = 0;
+                    enemy->shoot_delay = ENEMY_HARD_SHOOT_DELAY;
+                    enemy->radius = COLLISION_RADIUS_ENEMY_HARD;
+                    enemy->points = ENEMY_HARD_POINTS;
+                    enemy->armor_timer = 0;
+                    enemy->active = 0;
+                    enemy->alive = 1;
+                    enemy->wander_angle = 0;
+                    enemy->wander_timer = 0;
+                    enemy->pursuit_timer = 0;
+                    enemy->pursuit_direction = 0;
+                    enemy->patrol_point_index = 0;
+                    enemy->patrol_points_count = 0;
+                    enemy->strategy = STRATEGY_AGGRESSIVE;
+                    
+                    state->enemy_hard_count++;
+                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_hard_count, 
+                                     crc_received, crc_calculated, 1, "Enemy hard OK");
+                }
+                else {
+                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, 0, 
+                                     crc_received, crc_calculated, 0, "Array full");
+                }
+                break;
+            }
+            
+            case PKT_ADD_OBSTACLE: {
+                uint8_t obstacle_type = packet_buffer[2];
+                float x = *(float*)&packet_buffer[3];
+                float y = *(float*)&packet_buffer[7];
+                float radius = *(float*)&packet_buffer[11];
+                
+                if (state->obstacle_count < MAX_OBSTACLES) {
+                    Obstacle* obstacle = &state->obstacles[state->obstacle_count];
+                    
+                    obstacle->position.x = x;
+                    obstacle->position.y = y;
+                    obstacle->radius = radius;
+                    obstacle->type = (ObstacleType)obstacle_type;
+                    obstacle->active = 1;
+                    
+                    state->obstacle_count++;
+                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, state->obstacle_count, 
+                                     crc_received, crc_calculated, 1, "Obstacle OK");
+                }
+                else {
+                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
+                                     crc_received, crc_calculated, 0, "Array full");
+                }
+                break;
+            }
+            
+            case PKT_ADD_WHIRLPOOL: {
+                float x = *(float*)&packet_buffer[2];
+                float y = *(float*)&packet_buffer[6];
+                
+                if (state->whirlpool_manager) {
+                    uint8_t success = WhirlpoolManager_Add(state->whirlpool_manager, x, y);
+                    if (success) {
+                        Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 
+                                         state->whirlpool_manager->whirlpool_count, 
+                                         crc_received, crc_calculated, 1, "Whirlpool OK");
+                    }
+                    else {
+                        Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
+                                         crc_received, crc_calculated, 0, "Array full");
+                    }
+                }
+                else {
+                    Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
+                                     crc_received, crc_calculated, 0, "Manager NULL");
+                }
+                break;
+            }
+            
+            case PKT_CLEANUP: {
+                float threshold_y = *(float*)&packet_buffer[2];
+                
+                uint8_t enemies_before = state->enemy_simple_count + state->enemy_hard_count;
+                uint8_t obstacles_before = state->obstacle_count;
+                
+                Enemies_CleanupOld(state, threshold_y);
+                Obstacles_CleanupOld(state, threshold_y);
+                if (state->whirlpool_manager) {
+                    WhirlpoolManager_Cleanup(state->whirlpool_manager, threshold_y);
+                }
+                
+                uint8_t enemies_after = state->enemy_simple_count + state->enemy_hard_count;
+                uint8_t cleaned = enemies_before - enemies_after;
+                
+                Protocol_SendDebug(PKT_CLEANUP, expected_size, cleaned, 
+                                 crc_received, crc_calculated, 1, "Cleanup OK");
+                break;
+            }
+            
+            case PKT_INIT_GAME: {
+                GameState_Cleanup(state);
+                GameState_Init(state);
+                Protocol_SendDebug(PKT_INIT_GAME, expected_size, 0, 
+                                 crc_received, crc_calculated, 1, "Init OK");
+                break;
+            }
+        }
+        
+        // Успешно обработали пакет, перемещаем указатель на конец пакета
+        rx_write_pos = packet_start;
+        for (uint16_t i = 0; i < expected_size; i++) {
+            rx_write_pos++;
+            if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
         }
     }
 }

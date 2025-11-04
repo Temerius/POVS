@@ -18,7 +18,28 @@
 #define PKT_CLEANUP        0x04  // PC -> STM32
 #define PKT_INIT_GAME      0x05  // PC -> STM32
 #define PKT_ADD_WHIRLPOOL  0x06  // PC -> STM32
-#define PKT_DEBUG          0x07  // STM32 -> PC
+#define PKT_DEBUG          0x07  // STM32 -> PC (новый!)
+
+// Структура debug-пакета
+#pragma pack(push, 1)
+typedef struct {
+    uint8_t header;              // PKT_DEBUG
+    uint8_t received_packet_type; // Тип полученного пакета
+    uint8_t packet_size;          // Размер полученного пакета
+    uint8_t parse_state;          // Состояние парсера
+    uint8_t crc_received;         // Полученный CRC
+    uint8_t crc_calculated;       // Вычисленный CRC
+    uint8_t success;              // 1 = успех, 0 = ошибка
+    char message[32];             // Текстовое сообщение
+    uint8_t crc;                  // CRC debug-пакета
+    uint8_t end_byte;             // END_BYTE
+} DebugPacket;
+#pragma pack(pop)
+
+// Добавьте прототип функции
+void Protocol_SendDebug(uint8_t packet_type, uint8_t packet_size, uint8_t parse_state,
+                       uint8_t crc_received, uint8_t crc_calculated, 
+                       uint8_t success, const char* message);
 
 // === ОПТИМИЗИРОВАННЫЕ РАЗМЕРЫ ПАКЕТОВ ===
 #define MAX_ENEMIES_IN_PACKET 6      // Уменьшено для надежности
