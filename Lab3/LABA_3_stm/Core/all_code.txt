@@ -49,8 +49,7 @@ void Player_CheckEnemyCollisions(GameState* state);
 // Обновление всех врагов
 void Enemies_Update(GameState* state);
 
-// Обновление AI простого врага
-void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player);
+void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count);
 
 // Обновление AI сложного врага
 void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count);
@@ -89,8 +88,8 @@ void Enemies_RemoveHard(GameState* state, uint8_t index);
 #include <stdint.h>
 
 // === БУФЕРЫ USART ===
-#define RX_BUFFER_SIZE 1024
-#define TX_BUFFER_SIZE 512
+#define RX_BUFFER_SIZE 2048
+#define TX_BUFFER_SIZE 1024
 
 // === ПАРАМЕТРЫ ЭКРАНА ===
 #define SCREEN_WIDTH 1200
@@ -104,6 +103,7 @@ void Enemies_RemoveHard(GameState* state, uint8_t index);
 #define MAX_WHIRLPOOLS_IN_PACKET 3   
 
 #define GAME_STATE_SEND_INTERVAL 3
+#define AUTO_CLEANUP_INTERVAL 120
 
 // === ИГРОК ===
 #define PLAYER_SIZE 50
@@ -407,6 +407,7 @@ typedef struct {
     
     uint8_t game_running;
     uint32_t frame_counter;
+    uint32_t skipped_packets;
 } GameState;
 
 #endif // GAME_TYPES_H
@@ -935,6 +936,7 @@ void WhirlpoolManager_TeleportPlayer(struct WhirlpoolManager* manager,
 #include "cleanup.h"
 #include "enemies.h"
 #include "utils.h"
+#include "whirlpool.h"
 
 void Enemies_CleanupOld(GameState* state, float threshold_y) {
     // Очистка простых врагов
@@ -952,11 +954,17 @@ void Enemies_CleanupOld(GameState* state, float threshold_y) {
             i--;
         }
     }
+
+    if (state->whirlpool_manager) {
+        WhirlpoolManager_Cleanup(state->whirlpool_manager, threshold_y);
+    }
 }
 
 void Obstacles_CleanupOld(GameState* state, float threshold_y) {
     for (uint8_t i = 0; i < state->obstacle_count; i++) {
-        if (state->obstacles[i].position.y > threshold_y) {
+        if (state->obstacles[i].active && 
+            state->obstacles[i].position.y > threshold_y) {
+            
             Obstacles_Remove(state, i);
             i--;
         }
@@ -1186,8 +1194,7 @@ void Enemies_Update(GameState* state) {
         }
         
         // Обновление AI
-        EnemySimple_UpdateAI(enemy, &state->player);
-        
+        EnemySimple_UpdateAI(enemy, &state->player, state->obstacles, state->obstacle_count);        
         // ИСПРАВЛЕНИЕ: Плавное применение поворота
         // Текущий угол движения
         float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
@@ -1344,55 +1351,107 @@ void Enemies_Update(GameState* state) {
     }
 }
 
-void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player) {
-    // Проверка видимости игрока
+void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
     uint8_t can_see_player = Enemies_CanSeePlayer(enemy, player);
     
+    // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ
+    float base_target_angle;
+    
     if (enemy->strategy == STRATEGY_ATTACK && can_see_player) {
-        // Целевой угол - направление к игроку
-        enemy->target_angle = atan2f(player->position.y - enemy->position.y, 
+        base_target_angle = atan2f(player->position.y - enemy->position.y, 
                                    player->position.x - enemy->position.x);
     }
     else {
-        // Патрулирование
         enemy->wander_timer--;
         if (enemy->wander_timer == 0) {
             enemy->wander_timer = Utils_RandomRange(90, 180);
             enemy->wander_angle = Utils_RandomRangeFloat(-PI/6, PI/6);
         }
+        base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+    }
+    
+    // 2. ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ ВПЕРЕДИ
+    float avoid_vector_x = 0;
+    float avoid_vector_y = 0;
+    
+    int8_t angle_offsets[] = {-30, 0, 30};
+    for (uint8_t i = 0; i < 3; i++) {
+        float check_angle = enemy->target_angle + Utils_DegToRad(angle_offsets[i]);
+        float check_dist = ENEMY_SIMPLE_DETECTION_RANGE;
         
-        enemy->target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+        float check_x = enemy->position.x + cosf(check_angle) * check_dist;
+        float check_y = enemy->position.y + sinf(check_angle) * check_dist;
+        
+        // Проверка островов
+        for (uint8_t j = 0; j < obstacle_count; j++) {
+            if (!obstacles[j].active) continue;
+            
+            float dx_check = check_x - obstacles[j].position.x;
+            float dy_check = check_y - obstacles[j].position.y;
+            float dist_check = sqrtf(dx_check*dx_check + dy_check*dy_check);
+            
+            if (dist_check < obstacles[j].radius + 20) {
+                float dx = enemy->position.x - obstacles[j].position.x;
+                float dy = enemy->position.y - obstacles[j].position.y;
+                float dist = sqrtf(dx*dx + dy*dy);
+                
+                if (dist > 0) {
+                    float strength = 1.0f / fmaxf(dist / 100.0f, 0.5f);
+                    avoid_vector_x += (dx / dist) * strength;
+                    avoid_vector_y += (dy / dist) * strength;
+                }
+            }
+        }
+        
+        // Проверка берегов
+        if (check_x < SHORE_WIDTH + 20) {
+            avoid_vector_x += 1.5f;
+        }
+        else if (check_x > SCREEN_WIDTH - SHORE_WIDTH - 20) {
+            avoid_vector_x -= 1.5f;
+        }
+    }
+    
+    // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+    float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
+    
+    if (avoid_magnitude > 0.1f) {
+        float avoid_angle = atan2f(avoid_vector_y, avoid_vector_x);
+        enemy->target_angle = avoid_angle;
+    }
+    else {
+        enemy->target_angle = base_target_angle;
     }
 }
 
 void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
-    // Проверка видимости игрока
     uint8_t can_see_player = Enemies_CanSeePlayerHard(enemy, player);
+    
+    // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ
+    float base_target_angle;
     
     if (enemy->strategy == STRATEGY_AGGRESSIVE) {
         if (can_see_player) {
-            // Предсказание движения игрока
             float predict_x = player->position.x + (player->hull_angle / 45) * 50;
             float predict_y = player->position.y - 50;
             
-            enemy->target_angle = atan2f(predict_y - enemy->position.y, 
+            base_target_angle = atan2f(predict_y - enemy->position.y, 
                                        predict_x - enemy->position.x);
             enemy->pursuit_timer = ENEMY_HARD_PURSUIT_TIMER;
-            enemy->pursuit_direction = enemy->target_angle;
+            enemy->pursuit_direction = base_target_angle;
         }
         else if (enemy->pursuit_timer > 0) {
             enemy->pursuit_timer--;
-            enemy->target_angle = enemy->pursuit_direction;
+            base_target_angle = enemy->pursuit_direction;
         }
         else {
-            // Блуждание
             enemy->wander_timer--;
             if (enemy->wander_timer <= 0) {
                 enemy->wander_timer = Utils_RandomRange(180, 300);
                 enemy->wander_angle += Utils_RandomRangeFloat(-0.05f, 0.05f);
                 enemy->wander_angle = Utils_Clamp(enemy->wander_angle, -PI/6, PI/6);
             }
-            enemy->target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+            base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
         }
     }
     else { // STRATEGY_PATROL
@@ -1404,7 +1463,7 @@ void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, u
             Vector2* target = &enemy->patrol_points[enemy->patrol_point_index];
             float dx = target->x - enemy->position.x;
             float dy = target->y - enemy->position.y;
-            float distance = Utils_Distance(0, 0, dx, dy);
+            float distance = sqrtf(dx*dx + dy*dy);
             
             if (distance < ENEMY_HARD_MIN_PATROL_DISTANCE) {
                 enemy->patrol_point_index++;
@@ -1417,9 +1476,68 @@ void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, u
                 target = &enemy->patrol_points[enemy->patrol_point_index];
                 dx = target->x - enemy->position.x;
                 dy = target->y - enemy->position.y;
-                enemy->target_angle = atan2f(dy, dx);
+                base_target_angle = atan2f(dy, dx);
+            }
+            else {
+                base_target_angle = Utils_DegToRad(90);
             }
         }
+        else {
+            base_target_angle = Utils_DegToRad(90);
+        }
+    }
+    
+    // 2. ПРОДВИНУТОЕ ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ
+    float avoid_vector_x = 0;
+    float avoid_vector_y = 0;
+    
+    int8_t angle_offsets[] = {-45, -22, 0, 22, 45};
+    for (uint8_t i = 0; i < 5; i++) {
+        float check_angle = enemy->target_angle + Utils_DegToRad(angle_offsets[i]);
+        float check_dist = ENEMY_HARD_DETECTION_RANGE;
+        
+        float check_x = enemy->position.x + cosf(check_angle) * check_dist;
+        float check_y = enemy->position.y + sinf(check_angle) * check_dist;
+        
+        // Проверка островов
+        for (uint8_t j = 0; j < obstacle_count; j++) {
+            if (!obstacles[j].active) continue;
+            
+            float dx_check = check_x - obstacles[j].position.x;
+            float dy_check = check_y - obstacles[j].position.y;
+            float dist_check = sqrtf(dx_check*dx_check + dy_check*dy_check);
+            
+            if (dist_check < obstacles[j].radius + 30) {
+                float dx = enemy->position.x - obstacles[j].position.x;
+                float dy = enemy->position.y - obstacles[j].position.y;
+                float dist = sqrtf(dx*dx + dy*dy);
+                
+                if (dist > 0) {
+                    float strength = 1.2f / fmaxf(dist / 100.0f, 0.3f);
+                    avoid_vector_x += (dx / dist) * strength;
+                    avoid_vector_y += (dy / dist) * strength;
+                }
+            }
+        }
+        
+        // Проверка берегов
+        if (check_x < SHORE_WIDTH + 30) {
+            avoid_vector_x += 2.0f;
+        }
+        else if (check_x > SCREEN_WIDTH - SHORE_WIDTH - 30) {
+            avoid_vector_x -= 2.0f;
+        }
+    }
+    
+    // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+    float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
+    
+    if (avoid_magnitude > 0.1f) {
+        float avoid_angle = atan2f(avoid_vector_y, avoid_vector_x);
+        enemy->target_angle = avoid_angle;
+    }
+    else {
+        enemy->target_angle = base_target_angle;
     }
 }
 
@@ -1577,6 +1695,7 @@ void Enemies_RemoveHard(GameState* state, uint8_t index) {
 #include "projectiles.h"
 #include "collisions.h"
 #include "whirlpool.h"
+#include "cleanup.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -1591,6 +1710,7 @@ void GameState_Init(GameState* state) {
     state->player.shoot_cooldown = 0;
     state->player.score = 0;
     state->player.radius = COLLISION_RADIUS_PLAYER;
+    state->skipped_packets = 0;
     
     // Инициализация врагов (простые)
     memset(state->enemies_simple, 0, sizeof(state->enemies_simple));
@@ -1635,6 +1755,21 @@ void GameState_Update(GameState* state, InputState* input) {
     // Обновление снарядов
     Projectiles_Update(state);
     
+
+    if (state->frame_counter % AUTO_CLEANUP_INTERVAL == 0) {
+        // Порог очистки: игрок.y + безопасное расстояние
+        float cleanup_threshold = state->player.position.y + ENEMY_DELETE_DISTANCE;
+        
+        // Очистка всех типов объектов
+        Enemies_CleanupOld(state, cleanup_threshold);
+        Obstacles_CleanupOld(state, cleanup_threshold);
+        
+        if (state->whirlpool_manager) {
+            WhirlpoolManager_Cleanup(state->whirlpool_manager, cleanup_threshold);
+        }
+        
+    }
+
     // Обновление водоворотов
     if (state->whirlpool_manager) {
         WhirlpoolManager_Update(state->whirlpool_manager, state);
@@ -2130,6 +2265,55 @@ void Protocol_Init(UART_HandleTypeDef* huart) {
 
 void Protocol_SendGameState(GameState* state) {
     if (uart_tx_busy || huart_handle == NULL) {
+        // Если предыдущая передача не завершилась, увеличиваем счётчик пропущенных пакетов
+        state->skipped_packets++;
+        
+        // Если пропущено много пакетов, отправляем debug-сообщение
+        if (state->skipped_packets % 100 == 0 && state->frame_counter % 100 == 0) {
+            // БЕЗОПАСНАЯ АЛЬТЕРНАТИВА ДЛЯ snprintf
+            char message[32];
+            memset(message, 0, sizeof(message));
+            
+            // Формируем строку вручную, чтобы избежать проблем с форматированием
+            const char* prefix = "Skipped ";
+            const char* suffix = " pkts";
+            
+            // Копируем префикс
+            strncpy(message, prefix, sizeof(message)-1);
+            
+            // Конвертируем число в строку
+            uint32_t num = state->skipped_packets;
+            char num_str[10]; // Достаточно для 32-битного числа
+            int pos = 0;
+            
+            // Специальный случай для нуля
+            if (num == 0) {
+                num_str[pos++] = '0';
+            } else {
+                // Обработка числа
+                while (num > 0 && pos < (int)sizeof(num_str)-1) {
+                    num_str[pos++] = '0' + (num % 10);
+                    num /= 10;
+                }
+            }
+            num_str[pos] = '\0';
+            
+            // Разворачиваем строку с числом (т.к. мы заполняли её с конца)
+            for (int i = 0; i < pos/2; i++) {
+                char temp = num_str[i];
+                num_str[i] = num_str[pos-1-i];
+                num_str[pos-1-i] = temp;
+            }
+            
+            // Добавляем число к сообщению
+            strncat(message, num_str, sizeof(message)-strlen(message)-1);
+            
+            // Добавляем суффикс
+            strncat(message, suffix, sizeof(message)-strlen(message)-1);
+            
+            Protocol_SendDebug(0, 0, 0, 0, 0, 0, message);
+        }
+        
         return;
     }
     
@@ -2291,6 +2475,10 @@ void Protocol_SendGameState(GameState* state) {
     // Отправка через DMA
     if (HAL_UART_Transmit_DMA(huart_handle, tx_buffer, idx) == HAL_OK) {
         uart_tx_busy = 1;
+    } else {
+        // Ошибка начала передачи
+        uart_tx_busy = 0;
+        state->skipped_packets++;
     }
 }
 
@@ -2350,70 +2538,49 @@ void Protocol_ProcessIncoming(GameState* state) {
     if (huart_handle == NULL) return;
     
     uint16_t dma_pos = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
-    
-    // Обрабатываем все доступные данные
-    while (rx_write_pos != dma_pos) {
-        // Ищем стартовый байт
+    uint16_t processed_bytes = 0;
+    const uint16_t MAX_BYTES_PER_CALL = 128;
+
+    while (rx_write_pos != dma_pos && processed_bytes < MAX_BYTES_PER_CALL) {
         if (rx_buffer[rx_write_pos] != START_BYTE) {
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
-        // Нашли START_BYTE
         uint16_t packet_start = rx_write_pos;
         uint16_t idx = rx_write_pos;
         
-        // Проверяем, есть ли хотя бы 4 байта (минимальный пакет)
         uint16_t available = (dma_pos >= idx) ? (dma_pos - idx) : (RX_BUFFER_SIZE - idx + dma_pos);
         if (available < 4) {
-            // Недостаточно данных, ждём
             return;
         }
         
-        // Читаем тип пакета
         idx++;
         if (idx >= RX_BUFFER_SIZE) idx = 0;
         uint8_t packet_type = rx_buffer[idx];
         
-        // Protocol_SendDebug(packet_type, 0, 0, 0, 0, 1, "Found packet type");
-        
-        // Определяем ожидаемый размер пакета по типу
         uint16_t expected_size = 0;
         switch (packet_type) {
-            case PKT_ADD_ENEMY:
-                expected_size = 13;  // START(1) + TYPE(1) + enemy_type(1) + x(4) + y(4) + CRC(1) + END(1)
-                break;
-            case PKT_ADD_OBSTACLE:
-                expected_size = 17;  // START(1) + TYPE(1) + type(1) + x(4) + y(4) + radius(4) + CRC(1) + END(1)
-                break;
-            case PKT_ADD_WHIRLPOOL:
-                expected_size = 12;  // START(1) + TYPE(1) + x(4) + y(4) + CRC(1) + END(1)
-                break;
-            case PKT_CLEANUP:
-                expected_size = 8;   // START(1) + TYPE(1) + threshold_y(4) + CRC(1) + END(1)
-                break;
-            case PKT_INIT_GAME:
-                expected_size = 4;   // START(1) + TYPE(1) + CRC(1) + END(1)
-                break;
+            case PKT_ADD_ENEMY: expected_size = 13; break;
+            case PKT_ADD_OBSTACLE: expected_size = 17; break;
+            case PKT_ADD_WHIRLPOOL: expected_size = 12; break;
+            case PKT_CLEANUP: expected_size = 8; break;
+            case PKT_INIT_GAME: expected_size = 4; break;
             default:
-                // Неизвестный тип пакета, пропускаем START_BYTE и продолжаем поиск
-                Protocol_SendDebug(packet_type, 0, 0, 0, 0, 0, "Unknown packet type");
                 rx_write_pos++;
                 if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+                processed_bytes++;
                 continue;
         }
         
-        // Проверяем, достаточно ли данных для полного пакета
         available = (dma_pos >= packet_start) ? (dma_pos - packet_start) : (RX_BUFFER_SIZE - packet_start + dma_pos);
         if (available < expected_size) {
-            // Недостаточно данных, ждём
-            Protocol_SendDebug(packet_type, expected_size, available, 0, 0, 0, "Waiting for data");
             return;
         }
         
-        // Копируем пакет в линейный буфер для удобства обработки
-        uint8_t packet_buffer[32];  // Максимальный размер пакета
+        uint8_t packet_buffer[32];
         idx = packet_start;
         for (uint16_t i = 0; i < expected_size; i++) {
             packet_buffer[i] = rx_buffer[idx];
@@ -2421,24 +2588,20 @@ void Protocol_ProcessIncoming(GameState* state) {
             if (idx >= RX_BUFFER_SIZE) idx = 0;
         }
         
-        // Проверяем END_BYTE
         if (packet_buffer[expected_size - 1] != END_BYTE) {
-            Protocol_SendDebug(packet_type, expected_size, 0, 0, 0, 0, "No END byte");
-            // Пропускаем этот START_BYTE и ищем следующий
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
-        // Проверяем CRC (все байты кроме START, CRC и END)
         uint8_t crc_calculated = Protocol_CalculateCRC(&packet_buffer[1], expected_size - 3);
         uint8_t crc_received = packet_buffer[expected_size - 2];
         
         if (crc_calculated != crc_received) {
-            Protocol_SendDebug(packet_type, expected_size, 0, crc_received, crc_calculated, 0, "CRC mismatch");
-            // Пропускаем этот START_BYTE и ищем следующий
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
@@ -2513,6 +2676,13 @@ void Protocol_ProcessIncoming(GameState* state) {
                 float y = *(float*)&packet_buffer[7];
                 float radius = *(float*)&packet_buffer[11];
                 
+                // ИСПРАВЛЕНИЕ: Добавляем валидацию координат
+                if (x < 0 || x > SCREEN_WIDTH || radius <= 0 || radius > 500) {
+                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
+                                    crc_received, crc_calculated, 0, "Invalid coords");
+                    break;
+                }
+                
                 if (state->obstacle_count < MAX_OBSTACLES) {
                     Obstacle* obstacle = &state->obstacles[state->obstacle_count];
                     
@@ -2523,12 +2693,22 @@ void Protocol_ProcessIncoming(GameState* state) {
                     obstacle->active = 1;
                     
                     state->obstacle_count++;
-                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, state->obstacle_count, 
-                                     crc_received, crc_calculated, 1, "Obstacle OK");
                 }
                 else {
-                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
-                                     crc_received, crc_calculated, 0, "Array full");
+                    // ИСПРАВЛЕНИЕ: Попытка освободить место принудительной очисткой
+                    float cleanup_threshold = state->player.position.y + ENEMY_DELETE_DISTANCE;
+                    Obstacles_CleanupOld(state, cleanup_threshold);
+                    
+                    // Повторная попытка добавления
+                    if (state->obstacle_count < MAX_OBSTACLES) {
+                        Obstacle* obstacle = &state->obstacles[state->obstacle_count];
+                        obstacle->position.x = x;
+                        obstacle->position.y = y;
+                        obstacle->radius = radius;
+                        obstacle->type = (ObstacleType)obstacle_type;
+                        obstacle->active = 1;
+                        state->obstacle_count++;
+                    }
                 }
                 break;
             }
@@ -2584,13 +2764,23 @@ void Protocol_ProcessIncoming(GameState* state) {
                 break;
             }
         }
-        
-        // Успешно обработали пакет, перемещаем указатель на конец пакета
-        rx_write_pos = packet_start;
+
         for (uint16_t i = 0; i < expected_size; i++) {
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
         }
+
+        processed_bytes += expected_size;
+
+     
+    }
+
+    uint16_t used = (dma_pos >= rx_write_pos) ? 
+                    (dma_pos - rx_write_pos) : 
+                    (RX_BUFFER_SIZE - rx_write_pos + dma_pos);
+    
+    if (used > (RX_BUFFER_SIZE / 2)) {
+        rx_write_pos = dma_pos;
     }
 }
 
@@ -2608,15 +2798,13 @@ void WhirlpoolManager_Init(struct WhirlpoolManager* manager) {
 }
 
 void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state) {
-    // 1. Обновление анимации и cooldown для всех водоворотов
+    // 1. Обновление анимации и cooldown
     for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
         Whirlpool* whirlpool = &manager->whirlpools[i];
         
-        // Обновление анимации
         whirlpool->rotation = fmodf(whirlpool->rotation + WHIRLPOOL_ROTATION_SPEED, 360.0f);
         whirlpool->animation_phase = fmodf(whirlpool->animation_phase + WHIRLPOOL_ANIMATION_SPEED, 2.0f * PI);
         
-        // Обновление cooldown
         if (whirlpool->cooldown_timer > 0) {
             whirlpool->cooldown_timer--;
             if (whirlpool->cooldown_timer == 0) {
@@ -2625,22 +2813,22 @@ void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state)
         }
     }
     
-    // 2. ИСПРАВЛЕНО: Проверка коллизии с игроком и телепортация
+    // 2. Проверка коллизии с игроком
     for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
         Whirlpool* whirlpool = &manager->whirlpools[i];
         
-        // Проверка коллизии с игроком (только если не использован недавно)
-        if (!whirlpool->used_recently && 
-            Whirlpool_CollidesWith(whirlpool, 
-                                  state->player.position.x, 
-                                  state->player.position.y, 
-                                  COLLISION_RADIUS_PLAYER)) {
-            
-            // Поиск подходящего водоворота для телепортации
+        if (whirlpool->used_recently) {
+            continue;
+        }
+        
+        float dx = state->player.position.x - whirlpool->position.x;
+        float dy = state->player.position.y - whirlpool->position.y;
+        float dist = sqrtf(dx*dx + dy*dy);
+        
+        if (dist < whirlpool->radius + COLLISION_RADIUS_PLAYER) {
             Whirlpool* target = WhirlpoolManager_FindTarget(manager, whirlpool, state->world_top);
             
-            // Если не найден подходящий, создаем новый
-            if (!target) {
+            if (!target && manager->whirlpool_count < WHIRLPOOL_MAX_COUNT) {
                 target = WhirlpoolManager_CreateForTeleport(manager, 
                                                           whirlpool, 
                                                           state->world_top,
@@ -2648,17 +2836,14 @@ void WhirlpoolManager_Update(struct WhirlpoolManager* manager, GameState* state)
                                                           state->obstacle_count);
             }
             
-            // Если удалось найти или создать целевой водоворот
             if (target) {
-                // Выполняем телепортацию
                 WhirlpoolManager_TeleportPlayer(manager, whirlpool, target, &state->player);
-                
-                // ВАЖНО: После телепортации выходим, чтобы не проверять другие водовороты в этом кадре
                 return;
             }
         }
     }
 }
+
 
 uint8_t WhirlpoolManager_Add(struct WhirlpoolManager* manager, float x, float y) {
     if (manager->whirlpool_count >= WHIRLPOOL_MAX_COUNT) {
@@ -2681,13 +2866,16 @@ uint8_t WhirlpoolManager_Add(struct WhirlpoolManager* manager, float x, float y)
 
 void WhirlpoolManager_Cleanup(struct WhirlpoolManager* manager, float threshold_y) {
     for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
-        if (manager->whirlpools[i].position.y > threshold_y) {
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Добавляем проверку на валидность водоворота
+        if (manager->whirlpools[i].position.y > threshold_y && 
+            manager->whirlpools[i].position.y > 0) { // Защита от невалидных координат
+            
             // Удаляем водоворот (перемещаем последний на место удаляемого)
             if (i < manager->whirlpool_count - 1) {
                 manager->whirlpools[i] = manager->whirlpools[manager->whirlpool_count - 1];
             }
             manager->whirlpool_count--;
-            i--; // Проверяем этот индекс снова, так как мы переместили другой элемент
+            i--; // Проверяем этот индекс снова
         }
     }
 }

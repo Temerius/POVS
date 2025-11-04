@@ -7,7 +7,6 @@
 
 static UART_HandleTypeDef* huart_handle = NULL;
 
-// Глобальные переменные (уже объявлены в globals.h)
 volatile uint8_t uart_tx_busy = 0;
 uint8_t tx_buffer[TX_BUFFER_SIZE];
 uint8_t rx_buffer[RX_BUFFER_SIZE];
@@ -16,7 +15,7 @@ volatile uint16_t rx_write_pos = 0;
 // Состояние парсинга входящих данных
 static uint8_t packet_state = 0;
 static uint8_t packet_type = 0;
-static uint8_t packet_data[512];
+static uint8_t packet_data[RX_BUFFER_SIZE];
 static uint16_t packet_idx = 0;
 
 uint8_t Protocol_CalculateCRC(uint8_t* data, uint16_t len) {
@@ -41,7 +40,6 @@ void Protocol_Init(UART_HandleTypeDef* huart) {
     packet_type = 0;
     packet_idx = 0;
     
-    // Запускаем приём DMA в циклическом режиме
     HAL_UART_Receive_DMA(huart, rx_buffer, RX_BUFFER_SIZE);
 }
 
@@ -320,74 +318,49 @@ void Protocol_ProcessIncoming(GameState* state) {
     if (huart_handle == NULL) return;
     
     uint16_t dma_pos = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
-    
-
     uint16_t processed_bytes = 0;
-    const uint16_t MAX_BYTES_PER_CALL = 128;
+    //const uint16_t MAX_BYTES_PER_CALL = 128;
 
-    // Обрабатываем все доступные данные
-    while (rx_write_pos != dma_pos && processed_bytes < MAX_BYTES_PER_CALL) {
-        // Ищем стартовый байт
+    while (rx_write_pos != dma_pos/*&& processed_bytes < MAX_BYTES_PER_CALL */) {
         if (rx_buffer[rx_write_pos] != START_BYTE) {
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
-        // Нашли START_BYTE
         uint16_t packet_start = rx_write_pos;
         uint16_t idx = rx_write_pos;
         
-        // Проверяем, есть ли хотя бы 4 байта (минимальный пакет)
         uint16_t available = (dma_pos >= idx) ? (dma_pos - idx) : (RX_BUFFER_SIZE - idx + dma_pos);
         if (available < 4) {
-            // Недостаточно данных, ждём
             return;
         }
         
-        // Читаем тип пакета
         idx++;
         if (idx >= RX_BUFFER_SIZE) idx = 0;
         uint8_t packet_type = rx_buffer[idx];
         
-        // Protocol_SendDebug(packet_type, 0, 0, 0, 0, 1, "Found packet type");
-        
-        // Определяем ожидаемый размер пакета по типу
         uint16_t expected_size = 0;
         switch (packet_type) {
-            case PKT_ADD_ENEMY:
-                expected_size = 13;  // START(1) + TYPE(1) + enemy_type(1) + x(4) + y(4) + CRC(1) + END(1)
-                break;
-            case PKT_ADD_OBSTACLE:
-                expected_size = 17;  // START(1) + TYPE(1) + type(1) + x(4) + y(4) + radius(4) + CRC(1) + END(1)
-                break;
-            case PKT_ADD_WHIRLPOOL:
-                expected_size = 12;  // START(1) + TYPE(1) + x(4) + y(4) + CRC(1) + END(1)
-                break;
-            case PKT_CLEANUP:
-                expected_size = 8;   // START(1) + TYPE(1) + threshold_y(4) + CRC(1) + END(1)
-                break;
-            case PKT_INIT_GAME:
-                expected_size = 4;   // START(1) + TYPE(1) + CRC(1) + END(1)
-                break;
+            case PKT_ADD_ENEMY: expected_size = 13; break;
+            case PKT_ADD_OBSTACLE: expected_size = 17; break;
+            case PKT_ADD_WHIRLPOOL: expected_size = 12; break;
+            case PKT_CLEANUP: expected_size = 8; break;
+            case PKT_INIT_GAME: expected_size = 4; break;
             default:
-                // Неизвестный тип пакета, пропускаем START_BYTE и продолжаем поиск
-                Protocol_SendDebug(packet_type, 0, 0, 0, 0, 0, "Unknown packet type");
                 rx_write_pos++;
                 if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+                processed_bytes++;
                 continue;
         }
         
-        // Проверяем, достаточно ли данных для полного пакета
         available = (dma_pos >= packet_start) ? (dma_pos - packet_start) : (RX_BUFFER_SIZE - packet_start + dma_pos);
         if (available < expected_size) {
-            // Недостаточно данных, ждём
-            Protocol_SendDebug(packet_type, expected_size, available, 0, 0, 0, "Waiting for data");
             return;
         }
         
-        // Копируем пакет в линейный буфер для удобства обработки
-        uint8_t packet_buffer[32];  // Максимальный размер пакета
+        uint8_t packet_buffer[32];
         idx = packet_start;
         for (uint16_t i = 0; i < expected_size; i++) {
             packet_buffer[i] = rx_buffer[idx];
@@ -395,24 +368,20 @@ void Protocol_ProcessIncoming(GameState* state) {
             if (idx >= RX_BUFFER_SIZE) idx = 0;
         }
         
-        // Проверяем END_BYTE
         if (packet_buffer[expected_size - 1] != END_BYTE) {
-            Protocol_SendDebug(packet_type, expected_size, 0, 0, 0, 0, "No END byte");
-            // Пропускаем этот START_BYTE и ищем следующий
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
-        // Проверяем CRC (все байты кроме START, CRC и END)
         uint8_t crc_calculated = Protocol_CalculateCRC(&packet_buffer[1], expected_size - 3);
         uint8_t crc_received = packet_buffer[expected_size - 2];
         
         if (crc_calculated != crc_received) {
-            Protocol_SendDebug(packet_type, expected_size, 0, crc_received, crc_calculated, 0, "CRC mismatch");
-            // Пропускаем этот START_BYTE и ищем следующий
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
+            processed_bytes++;
             continue;
         }
         
@@ -428,13 +397,13 @@ void Protocol_ProcessIncoming(GameState* state) {
                     
                     enemy->position.x = x;
                     enemy->position.y = y;
-                    enemy->initial_y = y;
+                    //enemy->initial_y = y;
                     enemy->health = ENEMY_SIMPLE_HEALTH;
-                    enemy->max_health = ENEMY_SIMPLE_HEALTH;
+                    //enemy->max_health = ENEMY_SIMPLE_HEALTH;
                     enemy->shoot_cooldown = 0;
                     enemy->shoot_delay = ENEMY_SIMPLE_SHOOT_DELAY;
                     enemy->radius = COLLISION_RADIUS_ENEMY_SIMPLE;
-                    enemy->points = ENEMY_SIMPLE_POINTS;
+                    //enemy->points = ENEMY_SIMPLE_POINTS;
                     enemy->active = 0;
                     enemy->alive = 1;
                     enemy->wander_angle = 0;
@@ -487,6 +456,13 @@ void Protocol_ProcessIncoming(GameState* state) {
                 float y = *(float*)&packet_buffer[7];
                 float radius = *(float*)&packet_buffer[11];
                 
+                // ИСПРАВЛЕНИЕ: Добавляем валидацию координат
+                if (x < 0 || x > SCREEN_WIDTH || radius <= 0 || radius > 500) {
+                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
+                                    crc_received, crc_calculated, 0, "Invalid coords");
+                    break;
+                }
+                
                 if (state->obstacle_count < MAX_OBSTACLES) {
                     Obstacle* obstacle = &state->obstacles[state->obstacle_count];
                     
@@ -497,12 +473,22 @@ void Protocol_ProcessIncoming(GameState* state) {
                     obstacle->active = 1;
                     
                     state->obstacle_count++;
-                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, state->obstacle_count, 
-                                     crc_received, crc_calculated, 1, "Obstacle OK");
                 }
                 else {
-                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
-                                     crc_received, crc_calculated, 0, "Array full");
+                    // ИСПРАВЛЕНИЕ: Попытка освободить место принудительной очисткой
+                    float cleanup_threshold = state->player.position.y + ENEMY_DELETE_DISTANCE;
+                    Obstacles_CleanupOld(state, cleanup_threshold);
+                    
+                    // Повторная попытка добавления
+                    if (state->obstacle_count < MAX_OBSTACLES) {
+                        Obstacle* obstacle = &state->obstacles[state->obstacle_count];
+                        obstacle->position.x = x;
+                        obstacle->position.y = y;
+                        obstacle->radius = radius;
+                        obstacle->type = (ObstacleType)obstacle_type;
+                        obstacle->active = 1;
+                        state->obstacle_count++;
+                    }
                 }
                 break;
             }
@@ -558,23 +544,22 @@ void Protocol_ProcessIncoming(GameState* state) {
                 break;
             }
         }
-        
-        // Успешно обработали пакет, перемещаем указатель на конец пакета
-        rx_write_pos = packet_start;
+
         for (uint16_t i = 0; i < expected_size; i++) {
             rx_write_pos++;
             if (rx_write_pos >= RX_BUFFER_SIZE) rx_write_pos = 0;
         }
 
-        processed_bytes++;
+        processed_bytes += expected_size;
+
+     
     }
 
     uint16_t used = (dma_pos >= rx_write_pos) ? 
                     (dma_pos - rx_write_pos) : 
                     (RX_BUFFER_SIZE - rx_write_pos + dma_pos);
     
-    if (used > (RX_BUFFER_SIZE * 9 / 10)) {
+    if (used > (RX_BUFFER_SIZE / 2)) {
         rx_write_pos = dma_pos;
-        Protocol_SendDebug(0, 0, 0, 0, 0, 0, "Forced buffer reset");
     }
 }

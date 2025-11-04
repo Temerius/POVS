@@ -29,9 +29,8 @@ void Enemies_CleanupOld(GameState* state, float threshold_y) {
 
 void Obstacles_CleanupOld(GameState* state, float threshold_y) {
     for (uint8_t i = 0; i < state->obstacle_count; i++) {
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Добавляем проверку на валидность препятствия
-        if (state->obstacles[i].position.y > threshold_y && 
-            state->obstacles[i].position.y > 0) { // Защита от невалидных координат
+        if (state->obstacles[i].active && 
+            state->obstacles[i].position.y > threshold_y) {
             
             Obstacles_Remove(state, i);
             i--;

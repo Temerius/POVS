@@ -66,10 +66,10 @@ int main(void)
             game.frame_counter++;
         }
         
-        // Периодическая очистка буфера
-        if (game.frame_counter % 60 == 0) {
-            Protocol_CleanupRxBuffer();
-        }
+        // // Периодическая очистка буфера
+        // if (game.frame_counter % 60 == 0) {
+        //     Protocol_CleanupRxBuffer();
+        // }
     }
 }
 

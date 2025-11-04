@@ -8,8 +8,7 @@
 // Обновление всех врагов
 void Enemies_Update(GameState* state);
 
-// Обновление AI простого врага
-void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player);
+void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count);
 
 // Обновление AI сложного врага
 void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count);

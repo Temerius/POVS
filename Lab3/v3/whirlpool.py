@@ -216,3 +216,114 @@ class WhirlpoolManager:
         
         if len(self.whirlpools) < before:
             print(f"🗑️ Удалено водоворотов: {before - len(self.whirlpools)}, осталось: {len(self.whirlpools)}")
+
+Whirlpool* WhirlpoolManager_CreateForTeleport(struct WhirlpoolManager* manager, 
+                                            Whirlpool* current, 
+                                            float world_top,
+                                            Obstacle* obstacles,
+                                            uint8_t obstacle_count) {
+    // Проверяем, есть ли место для нового водоворота
+    if (manager->whirlpool_count >= WHIRLPOOL_MAX_COUNT) {
+        return NULL;
+    }
+
+// Попытка найти подходящее место для нового водоворота
+for (uint8_t attempt = 0; attempt < WHIRLPOOL_PLACEMENT_ATTEMPTS; attempt++) {
+    // Генерируем координаты для нового водоворота
+    float new_y = current->position.y - WHIRLPOOL_TELEPORT_DISTANCE - 
+                 Utils_RandomRangeFloat(0, 500);
+    float new_x = Utils_RandomRangeFloat(WHIRLPOOL_EDGE_MARGIN, 
+                                        SCREEN_WIDTH - WHIRLPOOL_EDGE_MARGIN);
+    
+    // Проверяем безопасность размещения
+    uint8_t safe = 1;
+    
+    // Проверка расстояния до препятствий
+    for (uint8_t i = 0; i < obstacle_count; i++) {
+        if (!obstacles[i].active) continue;
+        
+        float dx = new_x - obstacles[i].position.x;
+        float dy = new_y - obstacles[i].position.y;
+        float dist = Utils_Distance(0, 0, dx, dy);
+        
+        if (dist < obstacles[i].radius + WHIRLPOOL_ISLAND_SAFE_DISTANCE) {
+            safe = 0;
+            break;
+        }
+    }
+    
+    // Проверка нахождения в пределах мира
+    if (new_y <= world_top) {
+        safe = 0;
+    }
+    
+    // Проверка расстояния до других водоворотов
+    if (safe) {
+        for (uint8_t i = 0; i < manager->whirlpool_count; i++) {
+            float dx = new_x - manager->whirlpools[i].position.x;
+            float dy = new_y - manager->whirlpools[i].position.y;
+            float dist = Utils_Distance(0, 0, dx, dy);
+            
+            if (dist < WHIRLPOOL_MIN_DISTANCE * 2.5f) {
+                safe = 0;
+                break;
+            }
+        }
+    }
+    
+    // Если место безопасно, создаем водоворот
+    if (safe) {
+        Whirlpool* new_whirlpool = &manager->whirlpools[manager->whirlpool_count];
+        new_whirlpool->position.x = new_x;
+        new_whirlpool->position.y = new_y;
+        new_whirlpool->radius = WHIRLPOOL_RADIUS;
+        new_whirlpool->rotation = 0.0f;
+        new_whirlpool->used_recently = 0;
+        new_whirlpool->cooldown_timer = 0;
+        new_whirlpool->animation_phase = 0.0f;
+        
+        manager->whirlpool_count++;
+        return new_whirlpool;
+    }
+}
+
+// ИСПРАВЛЕНИЕ 4: Создаем водоворот даже при неудачных попытках (как в рабочей версии)
+// Если не удалось найти безопасное место, создаем водоворот без строгих проверок
+float new_y = current->position.y - WHIRLPOOL_TELEPORT_DISTANCE - 
+             Utils_RandomRangeFloat(0, 500);
+float new_x = Utils_RandomRangeFloat(WHIRLPOOL_EDGE_MARGIN, 
+                                    SCREEN_WIDTH - WHIRLPOOL_EDGE_MARGIN);
+
+// Принудительно устанавливаем минимальное значение Y
+if (new_y <= world_top) {
+    new_y = world_top + 100;
+}
+
+Whirlpool* new_whirlpool = &manager->whirlpools[manager->whirlpool_count];
+new_whirlpool->position.x = new_x;
+new_whirlpool->position.y = new_y;
+new_whirlpool->radius = WHIRLPOOL_RADIUS;
+new_whirlpool->rotation = 0.0f;
+new_whirlpool->used_recently = 0;
+new_whirlpool->cooldown_timer = 0;
+new_whirlpool->animation_phase = 0.0f;
+
+manager->whirlpool_count++;
+return new_whirlpool;
+}
+
+void WhirlpoolManager_TeleportPlayer(struct WhirlpoolManager* manager, 
+                                   Whirlpool* source, 
+                                   Whirlpool* target, 
+                                   Player* player) {
+    // Телепортация игрока
+    player->position.x = target->position.x;
+    player->position.y = target->position.y + WHIRLPOOL_PLAYER_OFFSET;
+
+// Помечаем оба водоворота как использованные
+source->used_recently = 1;
+source->cooldown_timer = WHIRLPOOL_COOLDOWN;
+
+target->used_recently = 1;
+target->cooldown_timer = WHIRLPOOL_COOLDOWN;
+}

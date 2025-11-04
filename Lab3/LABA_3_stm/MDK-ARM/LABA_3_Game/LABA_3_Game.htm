@@ -3,9 +3,9 @@
 <title>Static Call Graph - [LABA_3_Game\LABA_3_Game.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LABA_3_Game\LABA_3_Game.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Tue Nov  4 16:46:04 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Tue Nov  4 18:18:13 2025
 <BR><P>
-<H3>Maximum Stack Usage =        280 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        336 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 <P>
@@ -216,7 +216,7 @@ Global Symbols
 <P><STRONG><a name="[fd]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[47]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 280 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 336 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -616,7 +616,7 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f103xb.o(RESET)
 </UL>
 <P><STRONG><a name="[62]"></a>Enemies_CleanupOld</STRONG> (Thumb, 158 bytes, Stack size 32 bytes, cleanup.o(.text.Enemies_CleanupOld))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = Enemies_CleanupOld &rArr; WhirlpoolManager_Cleanup &rArr; __aeabi_fcmple
+<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = Enemies_CleanupOld &rArr; WhirlpoolManager_Cleanup &rArr; __aeabi_fcmpge
 </UL>
 <BR>[Calls]<UL><LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Cleanup
 <LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_RemoveHard
@@ -672,8 +672,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 </UL>
 
-<P><STRONG><a name="[74]"></a>Enemies_Update</STRONG> (Thumb, 3038 bytes, Stack size 64 bytes, enemies.o(.text.Enemies_Update))
-<BR><BR>[Stack]<UL><LI>Max Depth = 200<LI>Call Chain = Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
+<P><STRONG><a name="[74]"></a>Enemies_Update</STRONG> (Thumb, 3062 bytes, Stack size 72 bytes, enemies.o(.text.Enemies_Update))
+<BR><BR>[Stack]<UL><LI>Max Depth = 256<LI>Call Chain = Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
@@ -698,32 +698,44 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Update
 </UL>
 
-<P><STRONG><a name="[79]"></a>EnemyHard_UpdateAI</STRONG> (Thumb, 564 bytes, Stack size 32 bytes, enemies.o(.text.EnemyHard_UpdateAI))
-<BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
+<P><STRONG><a name="[79]"></a>EnemyHard_UpdateAI</STRONG> (Thumb, 3208 bytes, Stack size 80 bytes, enemies.o(.text.EnemyHard_UpdateAI))
+<BR><BR>[Stack]<UL><LI>Max Depth = 184<LI>Call Chain = EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
 <LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sqrtf
+<LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sinf
+<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cosf
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atan2f
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ui2f
+<LI><a href="#[69]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2f
 <LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fdiv
+<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmplt
+<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
 <LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpge
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpgt
 </UL>
 <BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 </UL>
 
-<P><STRONG><a name="[75]"></a>EnemySimple_UpdateAI</STRONG> (Thumb, 250 bytes, Stack size 32 bytes, enemies.o(.text.EnemySimple_UpdateAI))
-<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = EnemySimple_UpdateAI &rArr; atan2f &rArr; __aeabi_fsub
+<P><STRONG><a name="[75]"></a>EnemySimple_UpdateAI</STRONG> (Thumb, 6352 bytes, Stack size 80 bytes, enemies.o(.text.EnemySimple_UpdateAI))
+<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = EnemySimple_UpdateAI &rArr; sinf &rArr; __mathlib_rredf2 &rArr; __aeabi_fsub
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
+<LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sqrtf
+<LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sinf
+<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cosf
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atan2f
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ui2f
+<LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fdiv
+<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmplt
+<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
 <LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpge
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpgt
 </UL>
 <BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 </UL>
@@ -768,7 +780,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[82]"></a>GameState_Update</STRONG> (Thumb, 162 bytes, Stack size 16 bytes, game_state.o(.text.GameState_Update))
-<BR><BR>[Stack]<UL><LI>Max Depth = 216<LI>Call Chain = GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
+<BR><BR>[Stack]<UL><LI>Max Depth = 272<LI>Call Chain = GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Update
@@ -1047,7 +1059,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f103xb.o(RESET)
 </UL>
-<P><STRONG><a name="[85]"></a>Obstacles_CleanupOld</STRONG> (Thumb, 132 bytes, Stack size 32 bytes, cleanup.o(.text.Obstacles_CleanupOld))
+<P><STRONG><a name="[85]"></a>Obstacles_CleanupOld</STRONG> (Thumb, 122 bytes, Stack size 32 bytes, cleanup.o(.text.Obstacles_CleanupOld))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = Obstacles_CleanupOld &rArr; __aeabi_fcmple
 </UL>
 <BR>[Calls]<UL><LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
@@ -1167,17 +1179,21 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[aa]"></a>Protocol_ProcessIncoming</STRONG> (Thumb, 2024 bytes, Stack size 120 bytes, protocol.o(.text.Protocol_ProcessIncoming))
+<P><STRONG><a name="[aa]"></a>Protocol_ProcessIncoming</STRONG> (Thumb, 1940 bytes, Stack size 120 bytes, protocol.o(.text.Protocol_ProcessIncoming))
 <BR><BR>[Stack]<UL><LI>Max Depth = 200 + Unknown Stack Size
 <LI>Call Chain = Protocol_ProcessIncoming &rArr; GameState_Init &rArr; malloc &rArr; __Heap_Full &rArr; __Heap_ProvideMemory &rArr; free
 </UL>
-<BR>[Calls]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_SendDebug
+<BR>[Calls]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
+<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_SendDebug
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Add
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Obstacles_CleanupOld
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Cleanup
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_CleanupOld
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Cleanup
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Init
+<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmplt
+<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpgt
 </UL>
 <BR>[Called By]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1233,17 +1249,17 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 </UL>
 
-<P><STRONG><a name="[66]"></a>WhirlpoolManager_Cleanup</STRONG> (Thumb, 132 bytes, Stack size 32 bytes, whirlpool.o(.text.WhirlpoolManager_Cleanup))
-<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = WhirlpoolManager_Cleanup &rArr; __aeabi_fcmple
+<P><STRONG><a name="[66]"></a>WhirlpoolManager_Cleanup</STRONG> (Thumb, 110 bytes, Stack size 32 bytes, whirlpool.o(.text.WhirlpoolManager_Cleanup))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = WhirlpoolManager_Cleanup &rArr; __aeabi_fcmpge
 </UL>
-<BR>[Calls]<UL><LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
+<BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpge
 </UL>
 <BR>[Called By]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_CleanupOld
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Update
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 </UL>
 
-<P><STRONG><a name="[b4]"></a>WhirlpoolManager_CreateForTeleport</STRONG> (Thumb, 820 bytes, Stack size 64 bytes, whirlpool.o(.text.WhirlpoolManager_CreateForTeleport))
+<P><STRONG><a name="[b4]"></a>WhirlpoolManager_CreateForTeleport</STRONG> (Thumb, 998 bytes, Stack size 64 bytes, whirlpool.o(.text.WhirlpoolManager_CreateForTeleport))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = WhirlpoolManager_CreateForTeleport &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
@@ -1254,6 +1270,7 @@ Global Symbols
 <LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmplt
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmple
 <LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpge
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fcmpgt
 </UL>
 <BR>[Called By]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Update
 </UL>
@@ -1267,7 +1284,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Init
 </UL>
 
-<P><STRONG><a name="[86]"></a>WhirlpoolManager_Update</STRONG> (Thumb, 546 bytes, Stack size 72 bytes, whirlpool.o(.text.WhirlpoolManager_Update))
+<P><STRONG><a name="[86]"></a>WhirlpoolManager_Update</STRONG> (Thumb, 550 bytes, Stack size 72 bytes, whirlpool.o(.text.WhirlpoolManager_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 184<LI>Call Chain = WhirlpoolManager_Update &rArr; WhirlpoolManager_CreateForTeleport &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
@@ -1284,7 +1301,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[48]"></a>main</STRONG> (Thumb, 494 bytes, Stack size 64 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 280 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 336 + Unknown Stack Size
 <LI>Call Chain = main &rArr; GameState_Update &rArr; Enemies_Update &rArr; EnemyHard_UpdateAI &rArr; Enemies_GeneratePatrolPoints &rArr; sqrtf &rArr; _fsqrt &rArr; __fpl_fnaninf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_CleanupRxBuffer
@@ -1395,6 +1412,8 @@ Global Symbols
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
 </UL>
 <BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_Update
+<LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 </UL>
 
@@ -1426,6 +1445,8 @@ Global Symbols
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
 </UL>
 <BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_Update
+<LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 </UL>
 
@@ -1440,6 +1461,7 @@ Global Symbols
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Update
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_CheckEnemyCollisions
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
@@ -1461,6 +1483,7 @@ Global Symbols
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_CheckEnemyCollisions
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Update
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GameState_Init
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__mathlib_rredf2
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__mathlib_flt_infnan2
@@ -1494,13 +1517,16 @@ Global Symbols
 <P><STRONG><a name="[6c]"></a>__aeabi_fcmpgt</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, fcmp.o(x$fpl$fcmp))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_fcmpgt
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleMovement
+<BR>[Called By]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_CreateForTeleport
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleMovement
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleRotation
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_Shoot
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 </UL>
 
 <P><STRONG><a name="[ce]"></a>_fgr</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, fcmp.o(x$fpl$fcmp), UNUSED)
@@ -1518,6 +1544,7 @@ Global Symbols
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_CheckEnemyCollisions
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
+<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Cleanup
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_Shoot
 </UL>
 
@@ -1531,11 +1558,13 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_CreateForTeleport
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleRotation
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Update
+<LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Obstacles_CleanupOld
-<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Cleanup
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_CleanupOld
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 </UL>
 
 <P><STRONG><a name="[d1]"></a>_fleq</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, fcmp.o(x$fpl$fcmp), UNUSED)
@@ -1550,8 +1579,11 @@ Global Symbols
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleRotation
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WhirlpoolManager_Update
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
+<LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Projectiles_CheckCollisions
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Protocol_ProcessIncoming
 </UL>
 
 <P><STRONG><a name="[d3]"></a>_fls</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, fcmp.o(x$fpl$fcmp), UNUSED)
@@ -1570,6 +1602,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Player_HandleMovement
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemySimple_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__mathlib_flt_invalid
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atan2f
@@ -1603,6 +1636,7 @@ Global Symbols
 
 <P><STRONG><a name="[69]"></a>__aeabi_i2f</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, fflt_clz.o(x$fpl$fflt))
 <BR><BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_GeneratePatrolPoints
+<LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EnemyHard_UpdateAI
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enemies_Update
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__mathlib_rredf2
 </UL>

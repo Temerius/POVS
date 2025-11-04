@@ -33,8 +33,7 @@ void Enemies_Update(GameState* state) {
         }
         
         // Обновление AI
-        EnemySimple_UpdateAI(enemy, &state->player);
-        
+        EnemySimple_UpdateAI(enemy, &state->player, state->obstacles, state->obstacle_count);        
         // ИСПРАВЛЕНИЕ: Плавное применение поворота
         // Текущий угол движения
         float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
@@ -191,55 +190,107 @@ void Enemies_Update(GameState* state) {
     }
 }
 
-void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player) {
-    // Проверка видимости игрока
+void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
     uint8_t can_see_player = Enemies_CanSeePlayer(enemy, player);
     
+    // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ
+    float base_target_angle;
+    
     if (enemy->strategy == STRATEGY_ATTACK && can_see_player) {
-        // Целевой угол - направление к игроку
-        enemy->target_angle = atan2f(player->position.y - enemy->position.y, 
+        base_target_angle = atan2f(player->position.y - enemy->position.y, 
                                    player->position.x - enemy->position.x);
     }
     else {
-        // Патрулирование
         enemy->wander_timer--;
         if (enemy->wander_timer == 0) {
             enemy->wander_timer = Utils_RandomRange(90, 180);
             enemy->wander_angle = Utils_RandomRangeFloat(-PI/6, PI/6);
         }
+        base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+    }
+    
+    // 2. ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ ВПЕРЕДИ
+    float avoid_vector_x = 0;
+    float avoid_vector_y = 0;
+    
+    int8_t angle_offsets[] = {-30, 0, 30};
+    for (uint8_t i = 0; i < 3; i++) {
+        float check_angle = enemy->target_angle + Utils_DegToRad(angle_offsets[i]);
+        float check_dist = ENEMY_SIMPLE_DETECTION_RANGE;
         
-        enemy->target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+        float check_x = enemy->position.x + cosf(check_angle) * check_dist;
+        float check_y = enemy->position.y + sinf(check_angle) * check_dist;
+        
+        // Проверка островов
+        for (uint8_t j = 0; j < obstacle_count; j++) {
+            if (!obstacles[j].active) continue;
+            
+            float dx_check = check_x - obstacles[j].position.x;
+            float dy_check = check_y - obstacles[j].position.y;
+            float dist_check = sqrtf(dx_check*dx_check + dy_check*dy_check);
+            
+            if (dist_check < obstacles[j].radius + 20) {
+                float dx = enemy->position.x - obstacles[j].position.x;
+                float dy = enemy->position.y - obstacles[j].position.y;
+                float dist = sqrtf(dx*dx + dy*dy);
+                
+                if (dist > 0) {
+                    float strength = 1.0f / fmaxf(dist / 100.0f, 0.5f);
+                    avoid_vector_x += (dx / dist) * strength;
+                    avoid_vector_y += (dy / dist) * strength;
+                }
+            }
+        }
+        
+        // Проверка берегов
+        if (check_x < SHORE_WIDTH + 20) {
+            avoid_vector_x += 1.5f;
+        }
+        else if (check_x > SCREEN_WIDTH - SHORE_WIDTH - 20) {
+            avoid_vector_x -= 1.5f;
+        }
+    }
+    
+    // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+    float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
+    
+    if (avoid_magnitude > 0.1f) {
+        float avoid_angle = atan2f(avoid_vector_y, avoid_vector_x);
+        enemy->target_angle = avoid_angle;
+    }
+    else {
+        enemy->target_angle = base_target_angle;
     }
 }
 
 void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
-    // Проверка видимости игрока
     uint8_t can_see_player = Enemies_CanSeePlayerHard(enemy, player);
+    
+    // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ
+    float base_target_angle;
     
     if (enemy->strategy == STRATEGY_AGGRESSIVE) {
         if (can_see_player) {
-            // Предсказание движения игрока
             float predict_x = player->position.x + (player->hull_angle / 45) * 50;
             float predict_y = player->position.y - 50;
             
-            enemy->target_angle = atan2f(predict_y - enemy->position.y, 
+            base_target_angle = atan2f(predict_y - enemy->position.y, 
                                        predict_x - enemy->position.x);
             enemy->pursuit_timer = ENEMY_HARD_PURSUIT_TIMER;
-            enemy->pursuit_direction = enemy->target_angle;
+            enemy->pursuit_direction = base_target_angle;
         }
         else if (enemy->pursuit_timer > 0) {
             enemy->pursuit_timer--;
-            enemy->target_angle = enemy->pursuit_direction;
+            base_target_angle = enemy->pursuit_direction;
         }
         else {
-            // Блуждание
             enemy->wander_timer--;
             if (enemy->wander_timer <= 0) {
                 enemy->wander_timer = Utils_RandomRange(180, 300);
                 enemy->wander_angle += Utils_RandomRangeFloat(-0.05f, 0.05f);
                 enemy->wander_angle = Utils_Clamp(enemy->wander_angle, -PI/6, PI/6);
             }
-            enemy->target_angle = Utils_DegToRad(90) + enemy->wander_angle;
+            base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
         }
     }
     else { // STRATEGY_PATROL
@@ -251,7 +302,7 @@ void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, u
             Vector2* target = &enemy->patrol_points[enemy->patrol_point_index];
             float dx = target->x - enemy->position.x;
             float dy = target->y - enemy->position.y;
-            float distance = Utils_Distance(0, 0, dx, dy);
+            float distance = sqrtf(dx*dx + dy*dy);
             
             if (distance < ENEMY_HARD_MIN_PATROL_DISTANCE) {
                 enemy->patrol_point_index++;
@@ -264,9 +315,68 @@ void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, u
                 target = &enemy->patrol_points[enemy->patrol_point_index];
                 dx = target->x - enemy->position.x;
                 dy = target->y - enemy->position.y;
-                enemy->target_angle = atan2f(dy, dx);
+                base_target_angle = atan2f(dy, dx);
+            }
+            else {
+                base_target_angle = Utils_DegToRad(90);
             }
         }
+        else {
+            base_target_angle = Utils_DegToRad(90);
+        }
+    }
+    
+    // 2. ПРОДВИНУТОЕ ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ
+    float avoid_vector_x = 0;
+    float avoid_vector_y = 0;
+    
+    int8_t angle_offsets[] = {-45, -22, 0, 22, 45};
+    for (uint8_t i = 0; i < 5; i++) {
+        float check_angle = enemy->target_angle + Utils_DegToRad(angle_offsets[i]);
+        float check_dist = ENEMY_HARD_DETECTION_RANGE;
+        
+        float check_x = enemy->position.x + cosf(check_angle) * check_dist;
+        float check_y = enemy->position.y + sinf(check_angle) * check_dist;
+        
+        // Проверка островов
+        for (uint8_t j = 0; j < obstacle_count; j++) {
+            if (!obstacles[j].active) continue;
+            
+            float dx_check = check_x - obstacles[j].position.x;
+            float dy_check = check_y - obstacles[j].position.y;
+            float dist_check = sqrtf(dx_check*dx_check + dy_check*dy_check);
+            
+            if (dist_check < obstacles[j].radius + 30) {
+                float dx = enemy->position.x - obstacles[j].position.x;
+                float dy = enemy->position.y - obstacles[j].position.y;
+                float dist = sqrtf(dx*dx + dy*dy);
+                
+                if (dist > 0) {
+                    float strength = 1.2f / fmaxf(dist / 100.0f, 0.3f);
+                    avoid_vector_x += (dx / dist) * strength;
+                    avoid_vector_y += (dy / dist) * strength;
+                }
+            }
+        }
+        
+        // Проверка берегов
+        if (check_x < SHORE_WIDTH + 30) {
+            avoid_vector_x += 2.0f;
+        }
+        else if (check_x > SCREEN_WIDTH - SHORE_WIDTH - 30) {
+            avoid_vector_x -= 2.0f;
+        }
+    }
+    
+    // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+    float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
+    
+    if (avoid_magnitude > 0.1f) {
+        float avoid_angle = atan2f(avoid_vector_y, avoid_vector_x);
+        enemy->target_angle = avoid_angle;
+    }
+    else {
+        enemy->target_angle = base_target_angle;
     }
 }
 
