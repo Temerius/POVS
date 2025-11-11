@@ -29,5 +29,6 @@ laba_3_game/protocol.o: ..\Core\Src\protocol.c ..\Core\Inc\protocol.h \
   ..\Core\Inc\game_config.h ..\Core\Inc\game_types.h ..\Core\Inc\utils.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\math.h \
   ..\Core\Inc\globals.h ..\Core\Inc\input.h ..\Core\Inc\game_state.h \
-  ..\Core\Inc\player.h ..\Core\Inc\cleanup.h ..\Core\Inc\whirlpool.h \
+  ..\Core\Inc\player.h ..\Core\Inc\world_generation.h \
+  ..\Core\Inc\cleanup.h ..\Core\Inc\whirlpool.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\string.h

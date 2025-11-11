@@ -1,6 +1,7 @@
 /* main.c - Endless Sea Battle Ship - STM32 Main Loop */
 
 #include "main.h"
+#include "world_generation.h"
 #include <string.h>
 
 /* Private variables */
@@ -56,20 +57,21 @@ int main(void)
             // 4. Update game state if running
             if (game.game_running) {
                 GameState_Update(&game, &input);
+                
+                // 5. ГЕНЕРАЦИЯ НОВОГО МИРА
+                // Проверяем, нужно ли генерировать новый сегмент
+                if (game.player.position.y < game.world_top + WORLD_GENERATION_AHEAD) {
+                    WorldGen_GenerateSegment(&game);
+                }
             }
             
-            // 5. Send game state to PC (с ограничением частоты)
-            if (game.frame_counter % 3 == 0) {
+            // 6. Send game state to PC (с ограничением частоты)
+            if (game.frame_counter % GAME_STATE_SEND_INTERVAL == 0) {
                 Protocol_SendGameState(&game);
             }
             
             game.frame_counter++;
         }
-        
-        // // Периодическая очистка буфера
-        // if (game.frame_counter % 60 == 0) {
-        //     Protocol_CleanupRxBuffer();
-        // }
     }
 }
 
@@ -89,7 +91,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
         HAL_UART_Receive_DMA(&huart2, rx_buffer, RX_BUFFER_SIZE);
     }
 }
-
 
 /* System Clock Configuration */
 void SystemClock_Config(void)

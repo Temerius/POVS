@@ -30,4 +30,4 @@ laba_3_game/stm32f1xx_it.o: ..\Core\Src\stm32f1xx_it.c ..\Core\Inc\main.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\math.h \
   ..\Core\Inc\globals.h ..\Core\Inc\input.h ..\Core\Inc\protocol.h \
   ..\Core\Inc\game_state.h ..\Core\Inc\player.h \
-  ..\Core\Inc\stm32f1xx_it.h
+  ..\Core\Inc\world_generation.h ..\Core\Inc\stm32f1xx_it.h

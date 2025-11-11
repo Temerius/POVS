@@ -25,6 +25,7 @@
 "laba_3_game\player.o"
 "laba_3_game\projectiles.o"
 "laba_3_game\whirlpool.o"
+"laba_3_game\world_generation.o"
 "laba_3_game\input.o"
 "laba_3_game\protocol.o"
 "laba_3_game\globals.o"

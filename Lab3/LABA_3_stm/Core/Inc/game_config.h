@@ -15,7 +15,6 @@
 #define FPS 60
 #define FRAME_TIME_MS (1000 / FPS)
 
-
 #define MAX_ENEMIES_IN_PACKET 6      
 #define MAX_PROJECTILES_IN_PACKET 20
 #define MAX_WHIRLPOOLS_IN_PACKET 3   
@@ -23,6 +22,15 @@
 #define GAME_STATE_SEND_INTERVAL 3
 #define AUTO_CLEANUP_INTERVAL 120
 #define WHIRLPOOL_PLACEMENT_ATTEMPTS 20
+
+// === ГЕНЕРАЦИЯ МИРА ===
+#define WORLD_SEGMENT_HEIGHT 2000
+#define WORLD_GENERATION_AHEAD 1500
+
+// === СПАВН ОБЪЕКТОВ ===
+#define ENEMY_SIMPLE_SPAWN_CHANCE 0.30f  // 30%
+#define ENEMY_HARD_SPAWN_CHANCE 0.15f    // 15%
+#define WHIRLPOOL_SPAWN_CHANCE 0.1f      // 10%
 
 // === ИГРОК ===
 #define PLAYER_SIZE 50
@@ -109,11 +117,8 @@
 #define SHORE_SEGMENT_HEIGHT_MAX 150
 #define SHORE_EDGE_MARGIN 200
 
-
 // КАМЕРА
 #define CAMERA_OFFSET 200
-
-
 
 // === ВОДОВОРОТЫ ===
 #define WHIRLPOOL_RADIUS 45.0f
@@ -129,6 +134,5 @@
 #define WHIRLPOOL_ISLAND_SAFE_DISTANCE 50.0f
 #define WHIRLPOOL_MAX_COUNT 6
 #define WHIRLPOOL_PLACEMENT_ATTEMPTS 20
-
 
 #endif // GAME_CONFIG_H

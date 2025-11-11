@@ -29,4 +29,5 @@ laba_3_game/stm32f1xx_hal_msp.o: ..\Core\Src\stm32f1xx_hal_msp.c \
   ..\Core\Inc\game_config.h ..\Core\Inc\game_types.h ..\Core\Inc\utils.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\math.h \
   ..\Core\Inc\globals.h ..\Core\Inc\input.h ..\Core\Inc\protocol.h \
-  ..\Core\Inc\game_state.h ..\Core\Inc\player.h
+  ..\Core\Inc\game_state.h ..\Core\Inc\player.h \
+  ..\Core\Inc\world_generation.h

@@ -38,6 +38,7 @@ extern "C" {
 #include "protocol.h"
 #include "game_state.h"
 #include "player.h"
+#include "world_generation.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

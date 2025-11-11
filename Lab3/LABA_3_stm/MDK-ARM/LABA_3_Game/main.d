@@ -30,4 +30,5 @@ laba_3_game/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\math.h \
   ..\Core\Inc\globals.h ..\Core\Inc\input.h ..\Core\Inc\protocol.h \
   ..\Core\Inc\game_state.h ..\Core\Inc\player.h \
+  ..\Core\Inc\world_generation.h \
   D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\Bin\..\include\string.h

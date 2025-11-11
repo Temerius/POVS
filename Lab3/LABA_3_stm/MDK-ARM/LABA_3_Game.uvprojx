@@ -534,6 +534,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\whirlpool.c</FilePath>
             </File>
+            <File>
+              <FileName>world_generation.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\world_generation.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
