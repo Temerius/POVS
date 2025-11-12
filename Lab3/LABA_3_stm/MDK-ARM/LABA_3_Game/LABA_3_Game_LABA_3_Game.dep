@@ -1,7 +1,7 @@
 Dependencies for Project 'LABA_3_Game', Target 'LABA_3_Game': (DO NOT MODIFY !)
 CompilerVersion: 6190000::V6.19::ARMCLANG
 F (startup_stm32f103xb.s)(0x690891E8)(--target=arm-arm-none-eabi -mcpu=cortex-m3 -masm=auto  -Wa,armasm,--diag_suppress=A1950W -c-gdwarf-4-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-Wa,armasm,--pd,"__UVISION_VERSION SETA 538" -Wa,armasm,--pd,"_RTE_ SETA 1" -Wa,armasm,--pd,"STM32F10X_MD SETA 1" -Wa,armasm,--pd,"_RTE_ SETA 1"-o laba_3_game/startup_stm32f103xb.o)
-F (../Core/Src/main.c)(0x691340F2)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/main.o -MD)
+F (../Core/Src/main.c)(0x6913AC58)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/main.o -MD)
 I (..\Core\Inc\main.h)(0x69134047)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal.h)(0x68C7DD7A)
 I (..\Core\Inc\stm32f1xx_hal_conf.h)(0x68F02309)
@@ -30,7 +30,7 @@ I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
@@ -70,7 +70,7 @@ I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
@@ -110,7 +110,7 @@ I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
@@ -540,10 +540,10 @@ I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
-F (..\Core\Src\cleanup.c)(0x690A0CC7)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/cleanup.o -MD)
-I (..\Core\Inc\cleanup.h)(0x6908B022)
+F (..\Core\Src\cleanup.c)(0x6913AAE8)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/cleanup.o -MD)
+I (..\Core\Inc\cleanup.h)(0x6913AAF7)
 I (..\Core\Inc\game_types.h)(0x690A063D)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\enemies.h)(0x690A0EBF)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
@@ -553,7 +553,7 @@ I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
 F (..\Core\Src\collisions.c)(0x6908C24F)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/collisions.o -MD)
 I (..\Core\Inc\collisions.h)(0x6908AFB2)
 I (..\Core\Inc\game_types.h)(0x690A063D)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\projectiles.h)(0x6908AE9A)
 I (..\Core\Inc\enemies.h)(0x690A0EBF)
@@ -561,8 +561,8 @@ I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
 I (..\Core\Inc\globals.h)(0x690900C4)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\string.h)(0x63888F58)
-F (..\Core\Src\enemies.c)(0x690A10BF)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/enemies.o -MD)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+F (..\Core\Src\enemies.c)(0x69134B79)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/enemies.o -MD)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\enemies.h)(0x690A0EBF)
 I (..\Core\Inc\game_types.h)(0x690A063D)
@@ -570,7 +570,7 @@ I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
 I (..\Core\Inc\globals.h)(0x690900C4)
 F (..\Core\Src\game_state.c)(0x690A1AC6)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/game_state.o -MD)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\input.h)(0x6908C94D)
@@ -583,12 +583,12 @@ I (..\Core\Inc\enemies.h)(0x690A0EBF)
 I (..\Core\Inc\projectiles.h)(0x6908AE9A)
 I (..\Core\Inc\collisions.h)(0x6908AFB2)
 I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
-I (..\Core\Inc\cleanup.h)(0x6908B022)
+I (..\Core\Inc\cleanup.h)(0x6913AAF7)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\string.h)(0x63888F58)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdlib.h)(0x63888F58)
 F (..\Core\Src\player.c)(0x6908C12F)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/player.o -MD)
 I (..\Core\Inc\player.h)(0x6908C8E2)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\input.h)(0x6908C94D)
@@ -598,24 +598,24 @@ I (..\Core\Inc\globals.h)(0x690900C4)
 F (..\Core\Src\projectiles.c)(0x6908C117)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/projectiles.o -MD)
 I (..\Core\Inc\projectiles.h)(0x6908AE9A)
 I (..\Core\Inc\game_types.h)(0x690A063D)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
 I (..\Core\Inc\globals.h)(0x690900C4)
 F (..\Core\Src\whirlpool.c)(0x6913411A)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/whirlpool.o -MD)
 I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
 I (..\Core\Inc\globals.h)(0x690900C4)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\string.h)(0x63888F58)
-F (..\Core\Src\world_generation.c)(0x691340C1)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/world_generation.o -MD)
+F (..\Core\Src\world_generation.c)(0x69134B60)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/world_generation.o -MD)
 I (..\Core\Inc\world_generation.h)(0x69133F2F)
 I (..\Core\Inc\game_types.h)(0x690A063D)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
@@ -623,7 +623,7 @@ I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math
 I (..\Core\Inc\globals.h)(0x690900C4)
 F (..\Core\Src\input.c)(0x69091E87)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/input.o -MD)
 I (..\Core\Inc\input.h)(0x6908C94D)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\main.h)(0x69134047)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal.h)(0x68C7DD7A)
@@ -660,7 +660,7 @@ I (..\Core\Inc\protocol.h)(0x6909B6D5)
 I (..\Core\Inc\game_state.h)(0x6908DD86)
 I (..\Core\Inc\player.h)(0x6908C8E2)
 I (..\Core\Inc\world_generation.h)(0x69133F2F)
-F (..\Core\Src\protocol.c)(0x690A3B90)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/protocol.o -MD)
+F (..\Core\Src\protocol.c)(0x69134DB2)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/protocol.o -MD)
 I (..\Core\Inc\protocol.h)(0x6909B6D5)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
 I (..\Core\Inc\main.h)(0x69134047)
@@ -690,7 +690,7 @@ I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
 I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
 I (..\Core\Inc\game_types.h)(0x690A063D)
 I (..\Core\Inc\utils.h)(0x6908B2EB)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
@@ -699,10 +699,52 @@ I (..\Core\Inc\input.h)(0x6908C94D)
 I (..\Core\Inc\game_state.h)(0x6908DD86)
 I (..\Core\Inc\player.h)(0x6908C8E2)
 I (..\Core\Inc\world_generation.h)(0x69133F2F)
-I (..\Core\Inc\cleanup.h)(0x6908B022)
+I (..\Core\Inc\cleanup.h)(0x6913AAF7)
 I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\string.h)(0x63888F58)
 F (..\Core\Src\globals.c)(0x69090139)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/globals.o -MD)
 I (..\Core\Inc\globals.h)(0x690900C4)
 I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
-I (..\Core\Inc\game_config.h)(0x691340E1)
+I (..\Core\Inc\game_config.h)(0x69134735)
+F (..\Core\Src\benchmark.c)(0x6913AC61)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m3 -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc -I ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_LABA_3_Game-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/ARM/CMSIS/5.9.0/CMSIS/Core/Include-ID:/BSUIR/Semester7/POVS/KeilMDKv5.38a.f.taiwebs.com/Keil/STM32F1xx_DFP/2.4.1/Device/Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F10X_MD -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F103xB-o laba_3_game/benchmark.o -MD)
+I (..\Core\Inc\benchmark.h)(0x6913AAAB)
+I (..\Core\Inc\game_types.h)(0x690A063D)
+I (..\Core\Inc\game_config.h)(0x69134735)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stdint.h)(0x63888F58)
+I (..\Core\Inc\main.h)(0x69134047)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal.h)(0x68C7DD7A)
+I (..\Core\Inc\stm32f1xx_hal_conf.h)(0x68F02309)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_rcc.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_def.h)(0x68C7DD7A)
+I (..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f1xx.h)(0x68C7DD7A)
+I (..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f103xb.h)(0x68C7DD7A)
+I (..\Drivers\CMSIS\Include\core_cm3.h)(0x68C7DBEE)
+I (..\Drivers\CMSIS\Include\cmsis_version.h)(0x68C7DBEE)
+I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x68C7DBEE)
+I (..\Drivers\CMSIS\Include\cmsis_armclang.h)(0x68C7DBEE)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\arm_compat.h)(0x63888F58)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\arm_acle.h)(0x63888F58)
+I (..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\system_stm32f1xx.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\Legacy\stm32_hal_legacy.h)(0x68C7DD7A)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\stddef.h)(0x63888F58)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_rcc_ex.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_gpio.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_gpio_ex.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_exti.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_dma.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_dma_ex.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_cortex.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_flash_ex.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h)(0x68C7DD7A)
+I (..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_uart.h)(0x68C7DD7A)
+I (..\Core\Inc\utils.h)(0x6908B2EB)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\math.h)(0x63888F58)
+I (..\Core\Inc\globals.h)(0x690900C4)
+I (..\Core\Inc\input.h)(0x6908C94D)
+I (..\Core\Inc\protocol.h)(0x6909B6D5)
+I (..\Core\Inc\game_state.h)(0x6908DD86)
+I (..\Core\Inc\player.h)(0x6908C8E2)
+I (..\Core\Inc\world_generation.h)(0x69133F2F)
+I (..\Core\Inc\whirlpool.h)(0x6908DFAA)
+I (D:\BSUIR\Semester7\POVS\KeilMDKv5.38a.f.taiwebs.com\ARM\ARMCLANG\include\string.h)(0x63888F58)

@@ -45,54 +45,6 @@ void Protocol_Init(UART_HandleTypeDef* huart) {
 
 void Protocol_SendGameState(GameState* state) {
     if (uart_tx_busy || huart_handle == NULL) {
-        // Если предыдущая передача не завершилась, увеличиваем счётчик пропущенных пакетов
-        state->skipped_packets++;
-        
-        // Если пропущено много пакетов, отправляем debug-сообщение
-        if (state->skipped_packets % 100 == 0 && state->frame_counter % 100 == 0) {
-            // БЕЗОПАСНАЯ АЛЬТЕРНАТИВА ДЛЯ snprintf
-            char message[32];
-            memset(message, 0, sizeof(message));
-            
-            // Формируем строку вручную, чтобы избежать проблем с форматированием
-            const char* prefix = "Skipped ";
-            const char* suffix = " pkts";
-            
-            // Копируем префикс
-            strncpy(message, prefix, sizeof(message)-1);
-            
-            // Конвертируем число в строку
-            uint32_t num = state->skipped_packets;
-            char num_str[10]; // Достаточно для 32-битного числа
-            int pos = 0;
-            
-            // Специальный случай для нуля
-            if (num == 0) {
-                num_str[pos++] = '0';
-            } else {
-                // Обработка числа
-                while (num > 0 && pos < (int)sizeof(num_str)-1) {
-                    num_str[pos++] = '0' + (num % 10);
-                    num /= 10;
-                }
-            }
-            num_str[pos] = '\0';
-            
-            // Разворачиваем строку с числом (т.к. мы заполняли её с конца)
-            for (int i = 0; i < pos/2; i++) {
-                char temp = num_str[i];
-                num_str[i] = num_str[pos-1-i];
-                num_str[pos-1-i] = temp;
-            }
-            
-            // Добавляем число к сообщению
-            strncat(message, num_str, sizeof(message)-strlen(message)-1);
-            
-            // Добавляем суффикс
-            strncat(message, suffix, sizeof(message)-strlen(message)-1);
-            
-            Protocol_SendDebug(0, 0, 0, 0, 0, 0, message);
-        }
         
         return;
     }
@@ -412,8 +364,8 @@ void Protocol_ProcessIncoming(GameState* state) {
                     enemy->current_direction = 2;
                     
                     state->enemy_simple_count++;
-                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_simple_count, 
-                                     crc_received, crc_calculated, 1, "Enemy simple OK");
+                    // Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_simple_count, 
+                    //                  crc_received, crc_calculated, 1, "Enemy simple OK");
                 }
                 else if (enemy_type == 1 && state->enemy_hard_count < MAX_ENEMIES_HARD) {
                     EnemyHard* enemy = &state->enemies_hard[state->enemy_hard_count];
@@ -440,12 +392,12 @@ void Protocol_ProcessIncoming(GameState* state) {
                     enemy->current_direction = 2;
                     
                     state->enemy_hard_count++;
-                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_hard_count, 
-                                     crc_received, crc_calculated, 1, "Enemy hard OK");
+                    // Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, state->enemy_hard_count, 
+                    //                  crc_received, crc_calculated, 1, "Enemy hard OK");
                 }
                 else {
-                    Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, 0, 
-                                     crc_received, crc_calculated, 0, "Array full");
+                    // Protocol_SendDebug(PKT_ADD_ENEMY, expected_size, 0, 
+                    //                  crc_received, crc_calculated, 0, "Array full");
                 }
                 break;
             }
@@ -458,8 +410,8 @@ void Protocol_ProcessIncoming(GameState* state) {
                 
                 // ИСПРАВЛЕНИЕ: Добавляем валидацию координат
                 if (x < 0 || x > SCREEN_WIDTH || radius <= 0 || radius > 500) {
-                    Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
-                                    crc_received, crc_calculated, 0, "Invalid coords");
+                    // Protocol_SendDebug(PKT_ADD_OBSTACLE, expected_size, 0, 
+                    //                 crc_received, crc_calculated, 0, "Invalid coords");
                     break;
                 }
                 
@@ -500,18 +452,18 @@ void Protocol_ProcessIncoming(GameState* state) {
                 if (state->whirlpool_manager) {
                     uint8_t success = WhirlpoolManager_Add(state->whirlpool_manager, x, y);
                     if (success) {
-                        Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 
-                                         state->whirlpool_manager->whirlpool_count, 
-                                         crc_received, crc_calculated, 1, "Whirlpool OK");
+                        // Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 
+                        //                  state->whirlpool_manager->whirlpool_count, 
+                        //                  crc_received, crc_calculated, 1, "Whirlpool OK");
                     }
                     else {
-                        Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
-                                         crc_received, crc_calculated, 0, "Array full");
+                        // Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
+                        //                  crc_received, crc_calculated, 0, "Array full");
                     }
                 }
                 else {
-                    Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
-                                     crc_received, crc_calculated, 0, "Manager NULL");
+                    // Protocol_SendDebug(PKT_ADD_WHIRLPOOL, expected_size, 0, 
+                    //                  crc_received, crc_calculated, 0, "Manager NULL");
                 }
                 break;
             }
@@ -531,16 +483,16 @@ void Protocol_ProcessIncoming(GameState* state) {
                 uint8_t enemies_after = state->enemy_simple_count + state->enemy_hard_count;
                 uint8_t cleaned = enemies_before - enemies_after;
                 
-                Protocol_SendDebug(PKT_CLEANUP, expected_size, cleaned, 
-                                 crc_received, crc_calculated, 1, "Cleanup OK");
+                // Protocol_SendDebug(PKT_CLEANUP, expected_size, cleaned, 
+                //                  crc_received, crc_calculated, 1, "Cleanup OK");
                 break;
             }
             
             case PKT_INIT_GAME: {
                 GameState_Cleanup(state);
                 GameState_Init(state);
-                Protocol_SendDebug(PKT_INIT_GAME, expected_size, 0, 
-                                 crc_received, crc_calculated, 1, "Init OK");
+                // Protocol_SendDebug(PKT_INIT_GAME, expected_size, 0, 
+                //                  crc_received, crc_calculated, 1, "Init OK");
                 break;
             }
         }

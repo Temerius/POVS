@@ -37,7 +37,7 @@ int main(void)
     uint32_t last_tick = HAL_GetTick();
     
     while (1)
-    {
+    {	
         uint32_t current_tick = HAL_GetTick();
         
         if (current_tick - last_tick >= FRAME_TIME_MS) {

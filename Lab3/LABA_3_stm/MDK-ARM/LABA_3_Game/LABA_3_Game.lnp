@@ -29,6 +29,7 @@
 "laba_3_game\input.o"
 "laba_3_game\protocol.o"
 "laba_3_game\globals.o"
+"laba_3_game\benchmark.o"
 --strict --scatter "LABA_3_Game\LABA_3_Game.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

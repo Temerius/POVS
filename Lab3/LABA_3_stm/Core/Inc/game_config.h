@@ -6,8 +6,8 @@
 #include <stdint.h>
 
 // === БУФЕРЫ USART ===
-#define RX_BUFFER_SIZE 2048
-#define TX_BUFFER_SIZE 1024
+#define RX_BUFFER_SIZE 4096
+#define TX_BUFFER_SIZE 2048
 
 // === ПАРАМЕТРЫ ЭКРАНА ===
 #define SCREEN_WIDTH 1200

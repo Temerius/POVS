@@ -215,6 +215,9 @@ class Game:
         # UI
         self.renderer.draw_ui(self.game_state, len(self.islands))
         
+        benchmark_stats = self.uart.get_benchmark_stats()
+        if benchmark_stats:
+            self.renderer.draw_benchmark(self.screen, benchmark_stats)
         pygame.display.flip()
     
     def handle_events(self):

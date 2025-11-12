@@ -31,7 +31,7 @@ void WorldGen_GenerateEnemies(GameState* state, float segment_start, float segme
     float current_y = segment_start;
     
     while (current_y < segment_end) {
-        // Генерируем врагов только если они будут ниже игрока
+        // Генерируем врагов только если они будут ниже игрока (за пределами видимости)
         if (current_y < state->player.position.y + WORLD_ENEMY_SPAWN_DISTANCE) {
             // Простые враги (30% шанс)
             if (Utils_RandomFloat() < ENEMY_SIMPLE_SPAWN_CHANCE) {
@@ -39,6 +39,7 @@ void WorldGen_GenerateEnemies(GameState* state, float segment_start, float segme
                 for (uint8_t attempt = 0; attempt < 10; attempt++) {
                     float x = Utils_RandomRangeFloat(250, SCREEN_WIDTH - 250);
                     
+                    // КРИТИЧНО: Проверяем не только препятствия, но и ВСЕ объекты
                     if (WorldGen_CanPlaceEnemy(state, x, current_y, COLLISION_RADIUS_ENEMY_SIMPLE)) {
                         // Проверяем, есть ли место в массиве
                         if (state->enemy_simple_count < MAX_ENEMIES_SIMPLE) {
@@ -48,7 +49,7 @@ void WorldGen_GenerateEnemies(GameState* state, float segment_start, float segme
                             enemy->position.y = current_y;
                             enemy->initial_y = current_y;
                             enemy->velocity.x = 0;
-                            enemy->velocity.y = 0;
+                            enemy->velocity.y = ENEMY_SIMPLE_BASE_SPEED;
                             enemy->target_angle = Utils_DegToRad(90); // Вниз
                             
                             enemy->health = ENEMY_SIMPLE_HEALTH;
@@ -69,7 +70,7 @@ void WorldGen_GenerateEnemies(GameState* state, float segment_start, float segme
                             
                             state->enemy_simple_count++;
                         }
-                        break;
+                        break; // Успешно создали, выходим из попыток
                     }
                 }
             }
@@ -87,7 +88,7 @@ void WorldGen_GenerateEnemies(GameState* state, float segment_start, float segme
                             enemy->position.y = current_y;
                             enemy->initial_y = current_y;
                             enemy->velocity.x = 0;
-                            enemy->velocity.y = 0;
+                            enemy->velocity.y = ENEMY_HARD_BASE_SPEED;
                             enemy->target_angle = Utils_DegToRad(90); // Вниз
                             
                             enemy->health = ENEMY_HARD_HEALTH;
@@ -153,12 +154,13 @@ void WorldGen_GenerateWhirlpools(GameState* state, float segment_start, float se
 }
 
 uint8_t WorldGen_CanPlaceEnemy(GameState* state, float x, float y, float radius) {
-    // Проверка краёв экрана
+    // Проверка краёв экрана (как в Python: SHORE_EDGE_MARGIN)
     if (x < SHORE_EDGE_MARGIN || x > SCREEN_WIDTH - SHORE_EDGE_MARGIN) {
         return 0;
     }
     
-    // Проверка расстояния до препятствий (островов)
+    // Проверка расстояния до препятствий (островов) - КАК В PYTHON
+    // В Python было: island.radius + radius + 50
     for (uint8_t i = 0; i < state->obstacle_count; i++) {
         if (!state->obstacles[i].active) continue;
         
@@ -166,12 +168,14 @@ uint8_t WorldGen_CanPlaceEnemy(GameState* state, float x, float y, float radius)
         float dy = y - state->obstacles[i].position.y;
         float dist = sqrtf(dx*dx + dy*dy);
         
+        // Дистанция должна быть больше суммы радиусов + зазор
         if (dist < state->obstacles[i].radius + radius + ENEMY_CLEARANCE_EXTRA) {
             return 0;
         }
     }
     
-    // Проверка расстояния до других простых врагов
+    // Проверка расстояния до существующих простых врагов
+    // В Python: если враг в радиусе 100 пикселей - место занято
     for (uint8_t i = 0; i < state->enemy_simple_count; i++) {
         if (!state->enemies_simple[i].alive) continue;
         
@@ -179,6 +183,7 @@ uint8_t WorldGen_CanPlaceEnemy(GameState* state, float x, float y, float radius)
         float dy = y - state->enemies_simple[i].position.y;
         float dist = sqrtf(dx*dx + dy*dy);
         
+        // Минимальное расстояние между врагами
         if (dist < radius + COLLISION_RADIUS_ENEMY_SIMPLE + 100) {
             return 0;
         }
@@ -194,6 +199,21 @@ uint8_t WorldGen_CanPlaceEnemy(GameState* state, float x, float y, float radius)
         
         if (dist < radius + COLLISION_RADIUS_ENEMY_HARD + 100) {
             return 0;
+        }
+    }
+    
+    // Проверка расстояния до водоворотов (если есть)
+    if (state->whirlpool_manager) {
+        for (uint8_t i = 0; i < state->whirlpool_manager->whirlpool_count; i++) {
+            Whirlpool* whirlpool = &state->whirlpool_manager->whirlpools[i];
+            
+            float dx = x - whirlpool->position.x;
+            float dy = y - whirlpool->position.y;
+            float dist = sqrtf(dx*dx + dy*dy);
+            
+            if (dist < whirlpool->radius + radius + 50) {
+                return 0;
+            }
         }
     }
     

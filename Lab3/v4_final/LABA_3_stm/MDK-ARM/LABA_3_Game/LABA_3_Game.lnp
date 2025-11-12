@@ -1,0 +1,26 @@
+--cpu Cortex-M3
+"laba_3_game\startup_stm32f103xb.o"
+"laba_3_game\main.o"
+"laba_3_game\stm32f1xx_it.o"
+"laba_3_game\stm32f1xx_hal_msp.o"
+"laba_3_game\input.o"
+"laba_3_game\protocol.o"
+"laba_3_game\stm32f1xx_hal_gpio_ex.o"
+"laba_3_game\stm32f1xx_hal_tim.o"
+"laba_3_game\stm32f1xx_hal_tim_ex.o"
+"laba_3_game\stm32f1xx_hal_uart.o"
+"laba_3_game\stm32f1xx_hal.o"
+"laba_3_game\stm32f1xx_hal_rcc.o"
+"laba_3_game\stm32f1xx_hal_rcc_ex.o"
+"laba_3_game\stm32f1xx_hal_gpio.o"
+"laba_3_game\stm32f1xx_hal_dma.o"
+"laba_3_game\stm32f1xx_hal_cortex.o"
+"laba_3_game\stm32f1xx_hal_pwr.o"
+"laba_3_game\stm32f1xx_hal_flash.o"
+"laba_3_game\stm32f1xx_hal_flash_ex.o"
+"laba_3_game\stm32f1xx_hal_exti.o"
+"laba_3_game\system_stm32f1xx.o"
+--strict --scatter "LABA_3_Game\LABA_3_Game.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "LABA_3_Game.map" -o LABA_3_Game\LABA_3_Game.axf

@@ -269,3 +269,38 @@ class GameRenderer:
         self.screen.blit(score_text, score_rect)
         self.screen.blit(distance_text, distance_rect)
         self.screen.blit(restart_text, restart_rect)
+
+
+    def draw_benchmark(self, screen, benchmark_stats, x=10, y=120):
+        """Отрисовка статистики бенчмарка от STM32"""
+        if not benchmark_stats:
+            return
+        
+        # Чёрный полупрозрачный фон
+        bg_rect = pygame.Rect(x, y, 250, 80)
+        bg_surf = pygame.Surface((250, 80))
+        bg_surf.set_alpha(180)
+        bg_surf.fill((0, 0, 0))
+        screen.blit(bg_surf, (x, y))
+        
+        # Рамка
+        pygame.draw.rect(screen, (100, 255, 100), bg_rect, 2)
+        
+        # Заголовок
+        title = self.small_font.render("STM32 Performance", True, (100, 255, 100))
+        screen.blit(title, (x + 10, y + 5))
+        
+        # Статистика
+        stats_text = self.small_font.render(benchmark_stats, True, (255, 255, 255))
+        screen.blit(stats_text, (x + 10, y + 30))
+        
+        # Предупреждение о low FPS
+        if "FPS:" in benchmark_stats:
+            try:
+                fps_str = benchmark_stats.split("FPS:")[1].split()[0]
+                fps = int(fps_str)
+                if fps < 50:
+                    warning = self.small_font.render("⚠ LOW FPS", True, (255, 100, 100))
+                    screen.blit(warning, (x + 10, y + 55))
+            except:
+                pass

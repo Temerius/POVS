@@ -564,6 +564,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\globals.c</FilePath>
             </File>
+            <File>
+              <FileName>benchmark.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\benchmark.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
