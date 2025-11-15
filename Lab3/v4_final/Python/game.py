@@ -1,4 +1,3 @@
-# game.py - Главный файл игры с управлением через STM32
 
 import pygame
 import random
@@ -10,7 +9,7 @@ from island import Island, Shore
 from whirlpool import WhirlpoolManager, Whirlpool
 from enemy_simple import SimpleEnemy
 from enemy_hard import HardEnemy
-from uart_protocol import UARTProtocol  # Добавлено!
+from uart_protocol import UARTProtocol 
 
 class Game:
     def __init__(self):
@@ -19,9 +18,8 @@ class Game:
         pygame.display.set_caption("Бескрайнее море — боевой корабль")
         self.clock = pygame.time.Clock()
         
-        # UART для управления с платы
-        self.uart = UARTProtocol(debug=False)  # Добавлено!
-        self.last_miles_sent = 0  # Добавлено!
+        self.uart = UARTProtocol(debug=True)  
+        self.last_miles_sent = 0  
         
         self._init_fonts()
         self._init_game_objects()
@@ -80,18 +78,16 @@ class Game:
         
         print(f"Генерация нового сегмента: {segment_start} -> {segment_end}")
         
-        # Берега
+        
         self.left_shores.append(Shore('left', segment_start, segment_end))
         self.right_shores.append(Shore('right', segment_start, segment_end))
         
-        # Генерация островов
         current_y = segment_start
         islands_generated = 0
         whirlpools_generated = 0
         enemies_generated = 0
         
         while current_y < segment_end:
-            # Острова
             if random.random() < WORLD_ISLAND_SPAWN_CHANCE:
                 x = random.randint(SHORE_WIDTH, SCREEN_WIDTH - SHORE_WIDTH)
                 
@@ -107,7 +103,6 @@ class Game:
                     self.islands.append(island)
                     islands_generated += 1
             
-            # Водовороты
             if random.random() < WHIRLPOOL_SPAWN_CHANCE:
                 x = random.randint(WHIRLPOOL_EDGE_MARGIN, SCREEN_WIDTH - WHIRLPOOL_EDGE_MARGIN)
                 if Whirlpool.can_place_whirlpool(x, current_y, self.islands, 
@@ -119,11 +114,9 @@ class Game:
             
             current_y += random.randint(WORLD_ISLAND_STEP_MIN, WORLD_ISLAND_STEP_MAX)
         
-        # Генерация врагов
         current_y = segment_start
         while current_y < segment_end:
             if current_y < self.player.y + WORLD_ENEMY_SPAWN_DISTANCE:
-                # Простые враги
                 if random.random() < ENEMY_SIMPLE_SPAWN_CHANCE:
                     for _ in range(10):
                         x = random.randint(250, SCREEN_WIDTH - 250)
@@ -133,7 +126,6 @@ class Game:
                             enemies_generated += 1
                             break
                 
-                # Сложные враги
                 if random.random() < ENEMY_HARD_SPAWN_CHANCE:
                     for _ in range(10):
                         x = random.randint(300, SCREEN_WIDTH - 300)
@@ -152,23 +144,34 @@ class Game:
     
     def update(self):
         """Главное обновление игры"""
-        # ИЗМЕНЕНИЕ: Получаем состояние кнопок с платы вместо клавиатуры
-        keys = self.uart.get_pygame_keys()
+        if not self.uart.is_connected():
+            print("Потеря связи с платой!")
+            self.player.health = 0  
+            return
         
-        # Камера
+        if self.uart.check_reset():
+            print("RESET платы - перезапуск игры!")
+            self._restart_game()
+            return
+        
+
+        button_state = self.uart.receive_buttons()
+        keys = button_state.to_pygame_keys()
+        
+
         self.camera_y = self.player.y - SCREEN_HEIGHT + CAMERA_OFFSET
         
-        # ДОБАВЛЕНО: Отправка миль на плату
+ 
         current_miles = int(abs(self.player.y) / PIXELS_PER_MILE)
         if current_miles != self.last_miles_sent:
             self.uart.send_miles(current_miles)
             self.last_miles_sent = current_miles
         
-        # Генерация нового мира
+
         if self.player.y < self.world_top + WORLD_GENERATION_AHEAD:
             self._generate_world_segment()
         
-        # Водовороты
+
         teleport_pos = self.whirlpool_manager.update(
             self.player, 
             self.world_top,
@@ -180,30 +183,27 @@ class Game:
             self.player.x, self.player.y = teleport_pos
             self.teleport_effect_timer = TELEPORT_EFFECT_DURATION
         
-        # Враги
+ 
         self._update_enemies()
         
-        # Игрок
+
         all_obstacles = self.islands + self.left_shores + self.right_shores
         self.player.update(keys, all_obstacles)
         
-        # Стрельба
+
         if keys[pygame.K_SPACE]:
             new_projectiles = self.player.shoot()
             if new_projectiles:
                 self.projectiles.extend(new_projectiles)
         
-        # Волны
+
         self.wave_offset = (self.wave_offset + WAVE_SPEED) % WAVE_HEIGHT
         
-        # Снаряды
         self._update_projectiles(all_obstacles)
         
-        # Эффект телепортации
         if self.teleport_effect_timer > 0:
             self.teleport_effect_timer -= 1
         
-        # Очистка старых объектов
         self._cleanup_old_objects()
     
     def _update_enemies(self):
@@ -244,7 +244,6 @@ class Game:
         for proj in self.projectiles[:]:
             proj.update()
             
-            # Попадание по врагам
             for enemy in self.enemies[:]:
                 if proj.collides_with(enemy):
                     if proj.is_player_shot:
@@ -254,15 +253,12 @@ class Game:
                         projectiles_to_remove.append(proj)
                         break
             
-            # Столкновение с препятствиями
             obstacle_hit = any(proj.collides_with(obstacle) for obstacle in all_obstacles)
             
-            # Попадание по игроку
             player_hit = not proj.is_player_shot and self.player.collides_with(proj.x, proj.y, PROJECTILE_RADIUS)
             if player_hit:
                 self.player.take_damage(PROJECTILE_DAMAGE_TO_PLAYER)
             
-            # Условия удаления
             if (proj.lifetime <= 0 or 
                 proj.x < 0 or 
                 proj.x > SCREEN_WIDTH or
@@ -291,13 +287,13 @@ class Game:
     
     def draw(self):
         """Отрисовка всей игры"""
-        # Море
+        
         self.screen.fill(WATER_BLUE)
         
-        # Волны
+        
         self._draw_waves()
         
-        # Объекты
+        
         for shore in self.left_shores:
             shore.draw(self.screen, self.camera_y)
         for shore in self.right_shores:
@@ -316,7 +312,7 @@ class Game:
         
         self.player.draw(self.screen, self.camera_y)
         
-        # Эффект телепортации
+        
         if self.teleport_effect_timer > 0:
             alpha = int((self.teleport_effect_timer / TELEPORT_EFFECT_DURATION) * 200)
             flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -324,7 +320,7 @@ class Game:
             flash.fill(WHITE)
             self.screen.blit(flash, (0, 0))
         
-        # UI
+        
         self._draw_ui()
         
         pygame.display.flip()
@@ -371,7 +367,6 @@ class Game:
     
     def _draw_ui(self):
         """Отрисовка UI"""
-        # Здоровье
         health_text = self.font.render(f"HP: {max(0, self.player.health)}/{self.player.max_health}", True, WHITE)
         self.screen.blit(health_text, (UI_PADDING, UI_PADDING))
         
@@ -382,30 +377,24 @@ class Game:
                         (UI_PADDING, 60, int(UI_HEALTH_BAR_WIDTH * health_ratio), UI_HEALTH_BAR_HEIGHT))
         pygame.draw.rect(self.screen, WHITE, (UI_PADDING, 60, UI_HEALTH_BAR_WIDTH, UI_HEALTH_BAR_HEIGHT), 3)
         
-        # Счёт
         score_text = self.font.render(f"Счёт: {self.player.score}", True, GOLD)
         self.screen.blit(score_text, (SCREEN_WIDTH - 250, UI_PADDING))
 
-        # Пройденные мили
         miles = int(abs(self.player.y) / PIXELS_PER_MILE)
         miles_text = self.font.render(f"Мили: {miles}", True, WHITE)
         self.screen.blit(miles_text, (SCREEN_WIDTH - 250, 60))
         
-        # Угол поворота
         angle_text = self.big_font.render(f"Угол: {int(self.player.hull_angle)}°", True, CYAN)
         self.screen.blit(angle_text, (SCREEN_WIDTH // 2 - 100, UI_PADDING))
         
-        # Направление выстрела
         if abs(self.player.hull_angle) > PLAYER_MIN_ANGLE_FOR_SIDE_SHOT:
             direction = "↖ ЗАЛП ВЛЕВО-ВВЕРХ" if self.player.hull_angle > PLAYER_MIN_ANGLE_FOR_SIDE_SHOT else "ЗАЛП ВПРАВО-ВВЕРХ ↗"
             dir_color = RED if self.player.shoot_cooldown == 0 else (100, 100, 100)
             dir_text = self.font.render(direction, True, dir_color)
             self.screen.blit(dir_text, (SCREEN_WIDTH // 2 - 200, 75))
         
-        # Управление - ИЗМЕНЕНО!
         self._draw_controls()
         
-        # Статистика
         self._draw_stats()
     
     def _draw_controls(self):
@@ -438,7 +427,6 @@ class Game:
             True, (255, 200, 100))
         self.screen.blit(stats_text, (UI_PADDING, SCREEN_HEIGHT - 40))
         
-        # Информация о водоворотах
         active_whirlpools = sum(1 for w in self.whirlpool_manager.whirlpools if not w.used_recently)
         if whirlpool_count > 0:
             whirlpool_info = self.small_font.render(
@@ -446,7 +434,6 @@ class Game:
                 True, CYAN)
             self.screen.blit(whirlpool_info, (UI_PADDING, SCREEN_HEIGHT - 70))
         
-        # Информация о врагах
         simple_enemies = sum(1 for e in self.enemies if isinstance(e, SimpleEnemy))
         hard_enemies = sum(1 for e in self.enemies if isinstance(e, HardEnemy))
         if enemy_count > 0:
@@ -475,7 +462,6 @@ class Game:
             self.draw()
             self.clock.tick(FPS)
         
-        # ДОБАВЛЕНО: Вывод статистики UART
         self.uart.print_statistics()
         
         pygame.quit()

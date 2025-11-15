@@ -1,5 +1,3 @@
-# enemy_hard.py - Сложные враги с продвинутым AI
-
 import pygame
 import math
 import random
@@ -25,7 +23,6 @@ class HardEnemy:
         self.current_direction = 'down'
         self.active = False
         
-        # AI параметры
         self.detection_range = ENEMY_HARD_DETECTION_RANGE
         self.avoidance_force = ENEMY_HARD_AVOIDANCE_FORCE
         self.wander_timer = 0
@@ -153,11 +150,10 @@ class HardEnemy:
             self.target_angle = math.radians(random.randint(210, 330))
             self.wander_angle = self.target_angle - math.radians(90)
         
-        # Обновление анимации и таймеров
+
         self._update_animation()
         self._update_timers()
         
-        # Стрельба
         if self.shoot_cooldown == 0 and can_see_player:
             return self.shoot(player)
         

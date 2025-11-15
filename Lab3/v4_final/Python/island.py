@@ -1,5 +1,3 @@
-# island.py - Острова с процедурной генерацией
-
 import pygame
 import random
 import math
@@ -13,7 +11,6 @@ class Island:
         self.seed = seed
         random.seed(seed)
         
-        # Генерация уникального оттенка зеленого
         self.color = (
             max(20, min(80, ISLAND_GREEN[0] + random.randint(-15, 15))),
             max(80, min(160, ISLAND_GREEN[1] + random.randint(-20, 20))),
@@ -222,7 +219,6 @@ class Island:
         return dist < self.radius * ISLAND_COLLISION_MULTIPLIER + radius
 
 
-# shore.py - Берега с зубчатыми краями
 
 class Shore:
     def __init__(self, side, start_y, end_y):

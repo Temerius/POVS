@@ -1,4 +1,4 @@
-/* main.c - Управление кнопками и семисегментным индикатором */
+/* main.c - */
 
 #include "main.h"
 #include "protocol.h"
@@ -9,14 +9,14 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
-// Текущий счёт миль
+// счёт миль
 static uint16_t current_miles = 0;
 
 // Display
 volatile uint8_t disp_buf[4] = {0, 0, 0, 0};
 static uint32_t last_refresh_tick = 0;
 static uint8_t current_digit = 0;
-#define DIGIT_ON_MS 2
+#define DIGIT_ON_MS 1
 
 static const uint8_t seg_digits[10] = {
     0b00111111, // 0
@@ -31,18 +31,17 @@ static const uint8_t seg_digits[10] = {
     0b01101111  // 9
 };
 
-// Состояние кнопок
+
 static uint8_t button_left_prev = 0;
 static uint8_t button_right_prev = 0;
 static uint8_t button_fire_prev = 0;
 
-/* Private function prototypes */
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 
-// Display functions
+
 static void shift_out_byte(uint8_t b);
 static void latch_pulse(void);
 static void prepare_display_buffer(uint16_t miles);
@@ -63,37 +62,31 @@ int main(void)
     
     uint32_t last_send_tick = HAL_GetTick();
     
-    while (1)
-    {
-        uint32_t current_tick = HAL_GetTick();
-        
-        // Обновление индикатора (каждые 2 мс)
-        display_refresh_cycle();
-        
-        // Чтение кнопок (инвертированная логика: 0 = нажата)
-        uint8_t left = !HAL_GPIO_ReadPin(CANON_LEFT_GPIO_Port, CANON_LEFT_Pin);
-        uint8_t right = !HAL_GPIO_ReadPin(CANON_RIGHT_GPIO_Port, CANON_RIGHT_Pin);
-        uint8_t fire = !HAL_GPIO_ReadPin(CANON_FIRE_GPIO_Port, CANON_FIRE_Pin);
-        
-        // Отправка состояния кнопок каждые 50 мс
-        if (current_tick - last_send_tick >= 50) {
-            Protocol_SendButtons(left, right, fire);
-            last_send_tick = current_tick;
-        }
-        
-        // Приём миль от PC
-        uint16_t received_miles = current_miles;
-        Protocol_ProcessIncoming(&received_miles);
-        
-        if (received_miles != current_miles) {
-            current_miles = received_miles;
-            prepare_display_buffer(current_miles);
-        }
-        
-        button_left_prev = left;
-        button_right_prev = right;
-        button_fire_prev = fire;
-    }
+    while (1) {
+			uint32_t current_tick = HAL_GetTick();
+			
+
+			display_refresh_cycle();
+
+			uint8_t left = !HAL_GPIO_ReadPin(CANON_LEFT_GPIO_Port, CANON_LEFT_Pin);
+			uint8_t right = !HAL_GPIO_ReadPin(CANON_RIGHT_GPIO_Port, CANON_RIGHT_Pin);
+			uint8_t fire = !HAL_GPIO_ReadPin(CANON_FIRE_GPIO_Port, CANON_FIRE_Pin);
+			
+			if (current_tick - last_send_tick >= 50) {
+					Protocol_SendButtons(left, right, fire);
+					last_send_tick = current_tick;
+			}
+			
+			uint16_t received_miles = current_miles;
+			Protocol_ProcessIncoming(&received_miles);
+			
+			if (received_miles != current_miles) {
+					current_miles = received_miles;
+					prepare_display_buffer(current_miles);
+			}
+			
+			
+	}
 }
 
 /* UART Callbacks */
@@ -104,10 +97,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART2) {
         uart_tx_busy = 0;
+
         HAL_UART_Receive_DMA(&huart2, rx_buffer, 64);
     }
 }
@@ -221,7 +214,7 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    /* Кнопки с подтяжкой вверх */
+
     GPIO_InitStruct.Pin = CANON_LEFT_Pin|CANON_RIGHT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -232,7 +225,7 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(CANON_FIRE_GPIO_Port, &GPIO_InitStruct);
 
-    /* Пины дисплея */
+
     HAL_GPIO_WritePin(GPIOA, CLK_DISP_Pin|DATA_DISP_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, LATCH_DISP_Pin, GPIO_PIN_RESET);
 
@@ -248,6 +241,14 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(LATCH_DISP_GPIO_Port, &GPIO_InitStruct);
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART2) {
+        HAL_UART_Receive_DMA(&huart2, rx_buffer, 64);
+    }
+}
+
+
 
 void Error_Handler(void)
 {

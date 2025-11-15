@@ -1,5 +1,3 @@
-# enemy_simple.py - Простые враги с базовым AI
-
 import pygame
 import math
 import random
@@ -24,7 +22,6 @@ class SimpleEnemy:
         self.current_direction = 'down'
         self.active = False
         
-        # AI параметры
         self.detection_range = ENEMY_SIMPLE_DETECTION_RANGE
         self.avoidance_force = ENEMY_SIMPLE_AVOIDANCE_FORCE
         self.wander_timer = 0
@@ -68,7 +65,6 @@ class SimpleEnemy:
             check_x = self.x + math.cos(check_angle) * check_dist
             check_y = self.y + math.sin(check_angle) * check_dist
             
-            # Проверка островов
             for island in islands:
                 if island.collides_with(check_x, check_y, 20):
                     dx = self.x - island.x
@@ -79,7 +75,6 @@ class SimpleEnemy:
                         avoid_vector[0] += (dx / dist) * strength
                         avoid_vector[1] += (dy / dist) * strength
             
-            # Проверка берегов
             for shore in shores:
                 if shore.collides_with(check_x, check_y, 20):
                     if shore.side == 'left':
@@ -91,7 +86,6 @@ class SimpleEnemy:
     
     def update(self, islands, shores, player, world_top):
         """Обновление врага"""
-        # Активация при приближении
         if not self.active and self.y > player.y + ENEMY_ACTIVATION_DISTANCE * SCREEN_HEIGHT:
             self.active = True
             self.current_strategy = 'attack' if random.random() < ENEMY_SIMPLE_ATTACK_CHANCE else 'patrol'
@@ -148,10 +142,9 @@ class SimpleEnemy:
             self.x = SCREEN_WIDTH - SHORE_EDGE_MARGIN + 80
             self.target_angle = math.radians(random.randint(210, 330))
         
-        # Обновление анимации
+
         self._update_animation()
         
-        # Стрельба
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
         

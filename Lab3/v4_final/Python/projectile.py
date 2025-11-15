@@ -1,5 +1,3 @@
-# projectile.py - Снаряды игрока и врагов
-
 import pygame
 import math
 from config import *
@@ -24,11 +22,11 @@ class Projectile:
     
     def collides_with(self, obstacle):
         """Проверка столкновения с объектом"""
-        # Берега и острова
+
         if hasattr(obstacle, 'contains_point') and obstacle.contains_point(self.x, self.y, self.radius):
             return True
         
-        # Враги и другие объекты с координатами и радиусом
+
         if hasattr(obstacle, 'x') and hasattr(obstacle, 'y') and hasattr(obstacle, 'radius'):
             dx = self.x - obstacle.x
             dy = self.y - obstacle.y

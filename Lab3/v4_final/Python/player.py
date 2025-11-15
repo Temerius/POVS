@@ -1,5 +1,3 @@
-# player.py - Игрок с управлением и стрельбой
-
 import pygame
 import math
 from config import *
@@ -115,10 +113,8 @@ class Player:
         
         self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN
         
-        # Базовый угол - вверх
         angle = math.radians(-90)
         
-        # Корректировка угла в зависимости от поворота
         if self.hull_angle > PLAYER_MIN_ANGLE_FOR_SIDE_SHOT:
             angle += math.radians(PLAYER_SHOOT_ANGLE_OFFSET)
         elif self.hull_angle < -PLAYER_MIN_ANGLE_FOR_SIDE_SHOT:

@@ -25,7 +25,7 @@ extern volatile uint16_t rx_write_pos;
 
 // Пакет кнопок (STM32 -> PC)
 typedef struct {
-    uint8_t start_byte;    
+		uint8_t header;    
     uint8_t type;    // PKT_BUTTONS
     uint8_t left_pressed;  // 0 или 1
     uint8_t right_pressed; // 0 или 1
