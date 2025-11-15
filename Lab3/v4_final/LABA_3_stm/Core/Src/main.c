@@ -16,7 +16,7 @@ static uint16_t current_miles = 0;
 volatile uint8_t disp_buf[4] = {0, 0, 0, 0};
 static uint32_t last_refresh_tick = 0;
 static uint8_t current_digit = 0;
-#define DIGIT_ON_MS 1
+#define DIGIT_ON_MS 0
 
 static const uint8_t seg_digits[10] = {
     0b00111111, // 0
@@ -46,6 +46,7 @@ static void shift_out_byte(uint8_t b);
 static void latch_pulse(void);
 static void prepare_display_buffer(uint16_t miles);
 static void display_refresh_cycle(void);
+static void Buzzer_FireShot(void);
 
 int main(void)
 {
@@ -77,6 +78,11 @@ int main(void)
 					last_send_tick = current_tick;
 			}
 			
+			if (fire && !button_fire_prev) {
+					Buzzer_FireShot();
+			}
+			button_fire_prev = fire;
+			
 			uint16_t received_miles = current_miles;
 			Protocol_ProcessIncoming(&received_miles);
 			
@@ -106,6 +112,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 }
 
 /* Display Functions */
+
+static void Buzzer_FireShot(void) {
+    HAL_GPIO_WritePin(USER_BUZZER_GPIO_Port, USER_BUZZER_Pin, GPIO_PIN_SET);
+    HAL_Delay(50); 
+    HAL_GPIO_WritePin(USER_BUZZER_GPIO_Port, USER_BUZZER_Pin, GPIO_PIN_RESET);
+}
+
 static void shift_out_byte(uint8_t b)
 {
     for(int i = 7; i >= 0; --i) {

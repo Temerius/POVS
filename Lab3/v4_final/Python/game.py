@@ -162,8 +162,12 @@ class Game:
         self.camera_y = self.player.y - SCREEN_HEIGHT + CAMERA_OFFSET
         
  
-        current_miles = int(abs(self.player.y) / PIXELS_PER_MILE)
+        if self.player.y > 0:
+            current_miles = 0
+        else:
+            current_miles = int(abs(self.player.y) / PIXELS_PER_MILE)
         if current_miles != self.last_miles_sent:
+            # print(current_miles)
             self.uart.send_miles(current_miles)
             self.last_miles_sent = current_miles
         
@@ -380,7 +384,10 @@ class Game:
         score_text = self.font.render(f"Счёт: {self.player.score}", True, GOLD)
         self.screen.blit(score_text, (SCREEN_WIDTH - 250, UI_PADDING))
 
-        miles = int(abs(self.player.y) / PIXELS_PER_MILE)
+        if self.player.y > 0:
+            miles = 0
+        else:
+            miles = int(abs(self.player.y) / PIXELS_PER_MILE)
         miles_text = self.font.render(f"Мили: {miles}", True, WHITE)
         self.screen.blit(miles_text, (SCREEN_WIDTH - 250, 60))
         
@@ -403,7 +410,7 @@ class Game:
             "Управление: кнопки на STM32",
             "CANON_LEFT - Лево (плывёшь влево)",
             "CANON_RIGHT - Право (плывёшь вправо)",
-            "CANON_FIRE - Залп вверх-вбок",
+            "CANON_FIRE - Залп",
             "ESC - Выход"
         ]
         

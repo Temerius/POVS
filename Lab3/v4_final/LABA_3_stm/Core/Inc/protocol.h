@@ -1,4 +1,3 @@
-/* protocol.h - Упрощённый протокол: кнопки -> PC, мили <- PC */
 
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
@@ -11,8 +10,8 @@
 #define END_BYTE 0x55
 
 // === ТИПЫ ПАКЕТОВ ===
-#define PKT_BUTTONS        0x01  // STM32 -> PC (состояние кнопок)
-#define PKT_MILES          0x02  // PC -> STM32 (счёт в милях)
+#define PKT_BUTTONS        0x01  
+#define PKT_MILES          0x02  
 
 // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
 extern uint8_t rx_buffer[64];
@@ -23,7 +22,7 @@ extern volatile uint16_t rx_write_pos;
 // === СТРУКТУРЫ ПАКЕТОВ ===
 #pragma pack(push, 1)
 
-// Пакет кнопок (STM32 -> PC)
+
 typedef struct {
 		uint8_t header;    
     uint8_t type;    // PKT_BUTTONS
@@ -34,7 +33,7 @@ typedef struct {
     uint8_t end_byte;
 } ButtonPacket;
 
-// Пакет миль (PC -> STM32)
+
 typedef struct {
     uint8_t header;        // PKT_MILES
     uint16_t miles;        // 0-9999
@@ -50,4 +49,4 @@ void Protocol_SendButtons(uint8_t left, uint8_t right, uint8_t fire);
 void Protocol_ProcessIncoming(uint16_t* miles_out);
 uint8_t Protocol_CalculateCRC(uint8_t* data, uint16_t len);
 
-#endif // PROTOCOL_H
+#endif

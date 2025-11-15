@@ -56,27 +56,74 @@ void Protocol_SendButtons(uint8_t left, uint8_t right, uint8_t fire) {
 }
 
 
+static uint16_t rx_read_pos = 0;
+
 void Protocol_ProcessIncoming(uint16_t* miles_out) {
     if (huart_handle == NULL || miles_out == NULL) return;
-    
 
     uint16_t dma_pos = 64 - __HAL_DMA_GET_COUNTER(huart_handle->hdmarx);
-    
 
-    for (uint16_t i = 0; i < dma_pos; i++) {
+    static enum {
+        WAIT_START,
+        WAIT_TYPE,
+        WAIT_DATA1,
+        WAIT_DATA2,
+        WAIT_CRC,
+        WAIT_END
+    } state = WAIT_START;
 
-        if (rx_buffer[i] == START_BYTE && (i + 5) < 64) {
+    static uint8_t type;
+    static uint8_t data_lo, data_hi;
+    static uint8_t crc_recv;
 
-            if (rx_buffer[i+1] == PKT_MILES && rx_buffer[i+5] == END_BYTE) {
-                uint8_t data_for_crc[3] = {rx_buffer[i+1], rx_buffer[i+2], rx_buffer[i+3]};
+    while (rx_read_pos != dma_pos) {
+        uint8_t b = rx_buffer[rx_read_pos];
+        rx_read_pos++;
+        if (rx_read_pos >= 64) rx_read_pos = 0; 
+
+        switch (state) {
+        case WAIT_START:
+            if (b == START_BYTE) {
+                state = WAIT_TYPE;
+            }
+            break;
+
+        case WAIT_TYPE:
+            type = b;
+            if (type == PKT_MILES) {
+                state = WAIT_DATA1;
+            } else {
+                state = WAIT_START; 
+            }
+            break;
+
+        case WAIT_DATA1:
+            data_lo = b;
+            state = WAIT_DATA2;
+            break;
+
+        case WAIT_DATA2:
+            data_hi = b;
+            state = WAIT_CRC;
+            break;
+
+        case WAIT_CRC:
+            crc_recv = b;
+            state = WAIT_END;
+            break;
+
+        case WAIT_END:
+            if (b == END_BYTE) {
+                uint8_t data_for_crc[3] = {type, data_lo, data_hi};
                 uint8_t crc_calc = Protocol_CalculateCRC(data_for_crc, 3);
-                
-                if (crc_calc == rx_buffer[i+4]) {
-                    uint16_t new_miles = rx_buffer[i+2] | (rx_buffer[i+3] << 8);
+
+                if (crc_calc == crc_recv) {
+                    uint16_t new_miles = data_lo | (data_hi << 8);
                     *miles_out = new_miles;
-                    return;
                 }
             }
+            state = WAIT_START;
+            break;
         }
     }
 }
