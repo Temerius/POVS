@@ -1,4 +1,3 @@
-/* game_types.h - Структуры данных игры (окончательная версия) */
 
 #ifndef GAME_TYPES_H
 #define GAME_TYPES_H
@@ -6,19 +5,19 @@
 #include "game_config.h"
 #include <stdint.h>
 
-// === БАЗОВЫЕ ТИПЫ ===
+ 
 
-// Вектор 2D
+ 
 typedef struct {
     float x;
     float y;
 } Vector2;
 
-// === ИГРОК ===
+ 
 
 typedef struct {
     Vector2 position;
-    float hull_angle;           // -45 до 45 градусов
+    float hull_angle;            
     float base_speed;
     int16_t health;
     int16_t max_health;
@@ -27,16 +26,16 @@ typedef struct {
     float radius;
 } Player;
 
-// === ВРАГИ ===
+ 
 
-// Стратегия AI
+ 
 typedef enum {
     STRATEGY_PATROL = 0,
     STRATEGY_ATTACK = 1,
     STRATEGY_AGGRESSIVE = 2
 } EnemyStrategy;
 
-// Простой враг
+ 
 typedef struct {
     Vector2 position;
     Vector2 velocity;
@@ -55,13 +54,13 @@ typedef struct {
 
     uint8_t current_direction;
     
-    // AI параметры
+     
     float wander_angle;
     uint16_t wander_timer;
     EnemyStrategy strategy;
 } EnemySimple;
 
-// Сложный враг
+ 
 typedef struct {
     Vector2 position;
     Vector2 velocity;
@@ -81,7 +80,7 @@ typedef struct {
 
     uint8_t current_direction;
     
-    // AI параметры расширенные
+     
     float wander_angle;
     uint16_t wander_timer;
     EnemyStrategy strategy;
@@ -93,7 +92,7 @@ typedef struct {
     uint8_t patrol_points_count;
 } EnemyHard;
 
-// === СНАРЯДЫ ===
+ 
 
 typedef struct {
     Vector2 position;
@@ -105,7 +104,7 @@ typedef struct {
     uint8_t active;
 } Projectile;
 
-// === ПРЕПЯТСТВИЯ ===
+ 
 
 typedef enum {
     OBSTACLE_ISLAND = 0,
@@ -120,8 +119,8 @@ typedef struct {
     uint8_t active;
 } Obstacle;
 
-// === ГЛАВНОЕ СОСТОЯНИЕ ИГРЫ ===
-// Предварительное объявление структуры менеджера водоворотов
+ 
+ 
 struct WhirlpoolManager;
 
 typedef struct {
@@ -138,7 +137,7 @@ typedef struct {
     Obstacle obstacles[MAX_OBSTACLES];
     uint8_t obstacle_count;
     
-    // Указатель на менеджер водоворотов
+     
     struct WhirlpoolManager* whirlpool_manager;
     
     float camera_y;
@@ -149,4 +148,4 @@ typedef struct {
     uint32_t skipped_packets;
 } GameState;
 
-#endif // GAME_TYPES_H
+#endif  

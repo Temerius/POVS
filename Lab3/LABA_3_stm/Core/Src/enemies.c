@@ -1,4 +1,3 @@
-/* enemies.c - Логика врагов (ПОЛНЫЙ ПЕРЕНОС ИЗ PYTHON) */
 
 #include "game_config.h"
 #include "enemies.h"
@@ -6,49 +5,49 @@
 #include <math.h>
 
 void Enemies_Update(GameState* state) {
-    // ========== ОБНОВЛЕНИЕ ПРОСТЫХ ВРАГОВ ==========
+     
     for (uint8_t i = 0; i < state->enemy_simple_count; i++) {
         EnemySimple* enemy = &state->enemies_simple[i];
         
         if (!enemy->alive) continue;
         
-        // АКТИВАЦИЯ при приближении к игроку
+         
         if (!enemy->active && enemy->position.y > state->player.position.y + ENEMY_ACTIVATION_DISTANCE * SCREEN_HEIGHT) {
             enemy->active = 1;
-            // Определяем стратегию при активации (как в Python)
+             
             enemy->strategy = (Utils_RandomFloat() < ENEMY_SIMPLE_ATTACK_CHANCE) ? STRATEGY_ATTACK : STRATEGY_PATROL;
             
-            // Инициализация начальной скорости
+             
             enemy->velocity.x = 0;
             enemy->velocity.y = ENEMY_SIMPLE_BASE_SPEED;
-            enemy->target_angle = Utils_DegToRad(90); // Вниз
+            enemy->target_angle = Utils_DegToRad(90);  
         }
         
         if (!enemy->active) continue;
         
-        // УДАЛЕНИЕ врага, если он слишком далеко позади игрока
+         
         if (enemy->position.y > state->player.position.y + ENEMY_DELETE_DISTANCE) {
             Enemies_RemoveSimple(state, i);
             i--;
             continue;
         }
         
-        // ОБНОВЛЕНИЕ AI (КАК В PYTHON enemy_simple.py)
+         
         EnemySimple_UpdateAI(enemy, &state->player, state->obstacles, state->obstacle_count);
         
-        // ПРОВЕРКА ВИДИМОСТИ игрока
+         
         uint8_t can_see_player = Enemies_CanSeePlayer(enemy, &state->player);
         
-        // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ
+         
         float base_target_angle;
         
         if (enemy->strategy == STRATEGY_ATTACK && can_see_player) {
-            // Атакуем игрока
+             
             float dx = state->player.position.x - enemy->position.x;
             float dy = state->player.position.y - enemy->position.y;
             base_target_angle = atan2f(dy, dx);
         } else {
-            // Патрулирование со случайным блужданием
+             
             enemy->wander_timer--;
             if (enemy->wander_timer <= 0) {
                 enemy->wander_timer = Utils_RandomRange(90, 180);
@@ -57,7 +56,7 @@ void Enemies_Update(GameState* state) {
             base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
         }
         
-        // 2. ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ ВПЕРЕДИ (КАК В PYTHON detect_obstacles_ahead)
+         
         float avoid_vector_x = 0;
         float avoid_vector_y = 0;
         
@@ -69,7 +68,7 @@ void Enemies_Update(GameState* state) {
             float check_x = enemy->position.x + cosf(check_angle) * check_dist;
             float check_y = enemy->position.y + sinf(check_angle) * check_dist;
             
-            // Проверка островов
+             
             for (uint8_t k = 0; k < state->obstacle_count; k++) {
                 if (!state->obstacles[k].active) continue;
                 
@@ -90,7 +89,7 @@ void Enemies_Update(GameState* state) {
                 }
             }
             
-            // Проверка берегов (Shore)
+             
             if (check_x < SHORE_WIDTH + 20) {
                 avoid_vector_x += 1.5f;
             } else if (check_x > SCREEN_WIDTH - SHORE_WIDTH - 20) {
@@ -98,7 +97,7 @@ void Enemies_Update(GameState* state) {
             }
         }
         
-        // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+         
         float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
         
         if (avoid_magnitude > 0.1f) {
@@ -108,7 +107,7 @@ void Enemies_Update(GameState* state) {
             enemy->target_angle = base_target_angle;
         }
         
-        // 4. ПЛАВНЫЙ ПОВОРОТ к целевому углу (КАК В PYTHON)
+         
         float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
         float angle_diff = enemy->target_angle - current_angle;
         angle_diff = Utils_NormalizeAngle(angle_diff);
@@ -116,34 +115,34 @@ void Enemies_Update(GameState* state) {
         float turn_amount = angle_diff * ENEMY_SIMPLE_TURN_SMOOTHNESS;
         float new_angle = current_angle + turn_amount;
         
-        // Обновляем velocity
+         
         enemy->velocity.x = cosf(new_angle) * ENEMY_SIMPLE_BASE_SPEED;
         enemy->velocity.y = sinf(new_angle) * ENEMY_SIMPLE_BASE_SPEED;
         
-        // 5. ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ для анимации
+         
         if (fabsf(enemy->velocity.x) > fabsf(enemy->velocity.y) * 0.7f) {
-            enemy->current_direction = (enemy->velocity.x > 0) ? 1 : 3; // 1=right, 3=left
+            enemy->current_direction = (enemy->velocity.x > 0) ? 1 : 3;  
         } else {
-            enemy->current_direction = (enemy->velocity.y > 0) ? 2 : 0; // 2=down, 0=up
+            enemy->current_direction = (enemy->velocity.y > 0) ? 2 : 0;  
         }
         
-        // 6. ПРИМЕНЕНИЕ ДВИЖЕНИЯ с проверкой коллизий
+         
         float prev_x = enemy->position.x;
         float prev_y = enemy->position.y;
         
         enemy->position.x += enemy->velocity.x;
         enemy->position.y += enemy->velocity.y;
         
-        // Проверка коллизий с препятствиями
+         
         if (Enemies_CheckCollision(state, enemy->position.x, enemy->position.y, enemy->radius)) {
             enemy->position.x = prev_x;
             enemy->position.y = prev_y;
-            // Случайный поворот при столкновении (КАК В PYTHON)
+             
             enemy->target_angle += Utils_DegToRad(Utils_RandomRange(90, 270));
             enemy->target_angle = Utils_NormalizeAngle(enemy->target_angle);
         }
         
-        // 7. ОГРАНИЧЕНИЕ ПО КРАЯМ (КАК В PYTHON)
+         
         if (enemy->position.x < SHORE_EDGE_MARGIN - 80) {
             enemy->position.x = SHORE_EDGE_MARGIN - 80;
             enemy->target_angle = Utils_DegToRad(Utils_RandomRange(30, 150));
@@ -152,24 +151,24 @@ void Enemies_Update(GameState* state) {
             enemy->target_angle = Utils_DegToRad(Utils_RandomRange(210, 330));
         }
         
-        // 8. ОБНОВЛЕНИЕ ТАЙМЕРОВ
+         
         if (enemy->shoot_cooldown > 0) {
             enemy->shoot_cooldown--;
         }
         
-        // 9. СТРЕЛЬБА
+         
         if (enemy->shoot_cooldown == 0 && can_see_player) {
             Enemies_ShootAtPlayer(state, enemy);
         }
     }
     
-    // ========== ОБНОВЛЕНИЕ СЛОЖНЫХ ВРАГОВ ==========
+     
     for (uint8_t i = 0; i < state->enemy_hard_count; i++) {
         EnemyHard* enemy = &state->enemies_hard[i];
         
         if (!enemy->alive) continue;
         
-        // АКТИВАЦИЯ
+         
         if (!enemy->active && enemy->position.y > state->player.position.y + ENEMY_ACTIVATION_DISTANCE * SCREEN_HEIGHT) {
             enemy->active = 1;
             enemy->strategy = (Utils_RandomFloat() < ENEMY_HARD_AGGRESSIVE_CHANCE) ? STRATEGY_AGGRESSIVE : STRATEGY_PATROL;
@@ -185,25 +184,25 @@ void Enemies_Update(GameState* state) {
         
         if (!enemy->active) continue;
         
-        // УДАЛЕНИЕ
+         
         if (enemy->position.y > state->player.position.y + ENEMY_DELETE_DISTANCE) {
             Enemies_RemoveHard(state, i);
             i--;
             continue;
         }
         
-        // ОБНОВЛЕНИЕ AI
+         
         EnemyHard_UpdateAI(enemy, &state->player, state->obstacles, state->obstacle_count);
         
-        // Проверка видимости
+         
         uint8_t can_see_player = Enemies_CanSeePlayerHard(enemy, &state->player);
         
-        // 1. ОПРЕДЕЛЕНИЕ БАЗОВОГО ЦЕЛЕВОГО НАПРАВЛЕНИЯ (КАК В PYTHON)
+         
         float base_target_angle;
         
         if (enemy->strategy == STRATEGY_AGGRESSIVE) {
             if (can_see_player) {
-                // Предсказание позиции игрока
+                 
                 float predict_x = state->player.position.x + (state->player.hull_angle / 45) * 50;
                 float predict_y = state->player.position.y - 50;
                 
@@ -223,7 +222,7 @@ void Enemies_Update(GameState* state) {
                 }
                 base_target_angle = Utils_DegToRad(90) + enemy->wander_angle;
             }
-        } else { // STRATEGY_PATROL
+        } else {  
             if (enemy->patrol_point_index >= enemy->patrol_points_count) {
                 Enemies_GeneratePatrolPoints(enemy, &state->player);
             }
@@ -254,7 +253,7 @@ void Enemies_Update(GameState* state) {
             }
         }
         
-        // 2. ПРОДВИНУТОЕ ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ (5 углов)
+         
         float avoid_vector_x = 0;
         float avoid_vector_y = 0;
         
@@ -293,7 +292,7 @@ void Enemies_Update(GameState* state) {
             }
         }
         
-        // 3. ПРИМЕНЕНИЕ ВЕКТОРА ИЗБЕГАНИЯ
+         
         float avoid_magnitude = sqrtf(avoid_vector_x*avoid_vector_x + avoid_vector_y*avoid_vector_y);
         
         if (avoid_magnitude > 0.1f) {
@@ -303,7 +302,7 @@ void Enemies_Update(GameState* state) {
             enemy->target_angle = base_target_angle;
         }
         
-        // 4. ПЛАВНОЕ ПРИМЕНЕНИЕ ПОВОРОТА
+         
         float current_angle = atan2f(enemy->velocity.y, enemy->velocity.x);
         float angle_diff = enemy->target_angle - current_angle;
         angle_diff = Utils_NormalizeAngle(angle_diff);
@@ -314,14 +313,14 @@ void Enemies_Update(GameState* state) {
         enemy->velocity.x = cosf(new_angle) * ENEMY_HARD_BASE_SPEED;
         enemy->velocity.y = sinf(new_angle) * ENEMY_HARD_BASE_SPEED;
         
-        // 5. ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ
+         
         if (fabsf(enemy->velocity.x) > fabsf(enemy->velocity.y) * 0.7f) {
             enemy->current_direction = (enemy->velocity.x > 0) ? 1 : 3;
         } else {
             enemy->current_direction = (enemy->velocity.y > 0) ? 2 : 0;
         }
         
-        // 6. ПРИМЕНЕНИЕ ДВИЖЕНИЯ
+         
         float prev_x = enemy->position.x;
         float prev_y = enemy->position.y;
         
@@ -335,7 +334,7 @@ void Enemies_Update(GameState* state) {
             enemy->target_angle = Utils_NormalizeAngle(enemy->target_angle);
         }
         
-        // 7. ОГРАНИЧЕНИЕ ПО КРАЯМ
+         
         if (enemy->position.x < SHORE_WIDTH) {
             enemy->position.x = SHORE_WIDTH;
             enemy->target_angle = Utils_DegToRad(Utils_RandomRange(30, 150));
@@ -344,7 +343,7 @@ void Enemies_Update(GameState* state) {
             enemy->target_angle = Utils_DegToRad(Utils_RandomRange(210, 330));
         }
         
-        // 8. ОБНОВЛЕНИЕ ТАЙМЕРОВ
+         
         if (enemy->armor_timer > 0) {
             enemy->armor_timer--;
         }
@@ -353,7 +352,7 @@ void Enemies_Update(GameState* state) {
             enemy->shoot_cooldown--;
         }
         
-        // 9. СТРЕЛЬБА
+         
         if (enemy->shoot_cooldown == 0 && can_see_player) {
             Enemies_ShootHardAtPlayer(state, enemy);
         }
@@ -361,13 +360,13 @@ void Enemies_Update(GameState* state) {
 }
 
 void EnemySimple_UpdateAI(EnemySimple* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
-    // Эта функция теперь пустая, т.к. вся логика перенесена в Enemies_Update
-    // Оставляем для совместимости
+     
+     
 }
 
 void EnemyHard_UpdateAI(EnemyHard* enemy, Player* player, Obstacle* obstacles, uint8_t obstacle_count) {
-    // Эта функция теперь пустая, т.к. вся логика перенесена в Enemies_Update
-    // Оставляем для совместимости
+     
+     
 }
 
 void Enemies_GeneratePatrolPoints(EnemyHard* enemy, Player* player) {
@@ -386,7 +385,7 @@ void Enemies_GeneratePatrolPoints(EnemyHard* enemy, Player* player) {
         float x = Utils_Clamp(start_x + x_offset, 300, SCREEN_WIDTH - 300);
         float y = start_y + y_offset;
         
-        // Избегаем близости к игроку
+         
         float dx = x - player->position.x;
         float dy = y - player->position.y;
         float dist = Utils_Distance(0, 0, dx, dy);
@@ -406,7 +405,7 @@ void Enemies_GeneratePatrolPoints(EnemyHard* enemy, Player* player) {
         enemy->patrol_points_count++;
     }
     
-    // Добавляем финальную точку
+     
     if (enemy->patrol_points_count < ENEMY_HARD_PATROL_POINTS_MAX) {
         float final_x = Utils_RandomRange(300, SCREEN_WIDTH - 300);
         float final_y = start_y + Utils_RandomRange(400, 800);
@@ -459,7 +458,7 @@ void Enemies_ShootHardAtPlayer(GameState* state, EnemyHard* enemy) {
     float base_angle = atan2f(state->player.position.y - enemy->position.y, 
                              state->player.position.x - enemy->position.x);
     
-    // Создание трех снарядов (веер)
+     
     for (int i = -1; i <= 1; i++) {
         if (state->projectile_count >= MAX_PROJECTILES) break;
         

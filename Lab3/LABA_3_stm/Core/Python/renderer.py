@@ -1,4 +1,4 @@
-# renderer.py - Отрисовка всех элементов игры
+ 
 
 import pygame
 import math
@@ -15,7 +15,7 @@ class GameRenderer:
         self.big_font = pygame.font.Font(None, 48)
         self.wave_offset = 0
         
-        # Загрузка спрайтов
+         
         self._load_sprites()
     
     def _load_sprites(self):
@@ -108,19 +108,19 @@ class GameRenderer:
             if y_screen < -100 or y_screen > SCREEN_HEIGHT + 100:
                 continue
             
-            # Выбираем базовый спрайт
+             
             base_sprite = self.enemy_simple_sprite if enemy['type'] == 0 else self.enemy_hard_sprite
             
-            # Поворачиваем спрайт в зависимости от направления
+             
             direction = enemy.get('direction', 2)
             
-            if direction == 0:  # up
+            if direction == 0:   
                 sprite = pygame.transform.rotate(base_sprite, 0)
-            elif direction == 1:  # right
+            elif direction == 1:   
                 sprite = pygame.transform.rotate(base_sprite, -90)
-            elif direction == 2:  # down (базовое)
+            elif direction == 2:   
                 sprite = base_sprite
-            elif direction == 3:  # left
+            elif direction == 3:   
                 sprite = pygame.transform.rotate(base_sprite, 90)
             else:
                 sprite = base_sprite
@@ -148,7 +148,7 @@ class GameRenderer:
     
     def draw_ui(self, game_state, islands_count):
         """Рисуем UI"""
-        # Здоровье
+         
         health_text = self.font.render(
             f"HP: {max(0, game_state.player_health)}/{PLAYER_MAX_HEALTH}", 
             True, WHITE
@@ -164,30 +164,30 @@ class GameRenderer:
         pygame.draw.rect(self.screen, WHITE, 
                         (UI_PADDING, 60, UI_HEALTH_BAR_WIDTH, UI_HEALTH_BAR_HEIGHT), 3)
         
-        # Счёт
+         
         score_text = self.font.render(f"Счёт: {game_state.player_score}", True, GOLD)
         self.screen.blit(score_text, (SCREEN_WIDTH - 250, UI_PADDING))
         
-        # Пройденные мили
+         
         miles = int(abs(game_state.player_y) / 10)
         miles_text = self.font.render(f"Мили: {miles}", True, WHITE)
         self.screen.blit(miles_text, (SCREEN_WIDTH - 250, 60))
         
-        # Угол поворота
+         
         angle_text = self.big_font.render(f"Угол: {int(game_state.player_angle)}°", True, CYAN)
         self.screen.blit(angle_text, (SCREEN_WIDTH // 2 - 100, UI_PADDING))
         
-        # Направление выстрела
+         
         if abs(game_state.player_angle) > 5:
             direction = "↖ ЗАЛП ВЛЕВО-ВВЕРХ" if game_state.player_angle > 5 else "ЗАЛП ВПРАВО-ВВЕРХ ↗"
             dir_color = RED if game_state.player_shoot_cooldown == 0 else (100, 100, 100)
             dir_text = self.font.render(direction, True, dir_color)
             self.screen.blit(dir_text, (SCREEN_WIDTH // 2 - 200, 75))
         
-        # Управление
+         
         self._draw_controls()
         
-        # Статистика
+         
         self._draw_stats(game_state, islands_count)
     
     def _draw_controls(self):
@@ -220,7 +220,7 @@ class GameRenderer:
             True, (255, 200, 100))
         self.screen.blit(stats_text, (UI_PADDING, SCREEN_HEIGHT - 40))
         
-        # Информация о водоворотах
+         
         active_whirlpools = sum(1 for w in game_state.whirlpools if not w['used'])
         if whirlpool_count > 0:
             whirlpool_info = self.small_font.render(
@@ -228,7 +228,7 @@ class GameRenderer:
                 True, CYAN)
             self.screen.blit(whirlpool_info, (UI_PADDING, SCREEN_HEIGHT - 70))
         
-        # Информация о врагах
+         
         simple_enemies = sum(1 for e in game_state.enemies if e['type'] == 0)
         hard_enemies = sum(1 for e in game_state.enemies if e['type'] == 1)
         if enemy_count > 0:
@@ -276,25 +276,25 @@ class GameRenderer:
         if not benchmark_stats:
             return
         
-        # Чёрный полупрозрачный фон
+         
         bg_rect = pygame.Rect(x, y, 250, 80)
         bg_surf = pygame.Surface((250, 80))
         bg_surf.set_alpha(180)
         bg_surf.fill((0, 0, 0))
         screen.blit(bg_surf, (x, y))
         
-        # Рамка
+         
         pygame.draw.rect(screen, (100, 255, 100), bg_rect, 2)
         
-        # Заголовок
+         
         title = self.small_font.render("STM32 Performance", True, (100, 255, 100))
         screen.blit(title, (x + 10, y + 5))
         
-        # Статистика
+         
         stats_text = self.small_font.render(benchmark_stats, True, (255, 255, 255))
         screen.blit(stats_text, (x + 10, y + 30))
         
-        # Предупреждение о low FPS
+         
         if "FPS:" in benchmark_stats:
             try:
                 fps_str = benchmark_stats.split("FPS:")[1].split()[0]

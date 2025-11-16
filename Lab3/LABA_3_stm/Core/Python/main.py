@@ -1,4 +1,4 @@
-# main.py - Основной файл игры "Бескрайнее море"
+ 
 
 import pygame
 import random
@@ -19,27 +19,27 @@ class Game:
         pygame.display.set_caption("Бескрайнее море — STM32 Edition")
         self.clock = pygame.time.Clock()
         
-        # UART протокол
+         
         self.uart = UARTProtocol(UART_PORT, UART_BAUDRATE, debug=True)
         
-        # Рендерер
+         
         self.renderer = GameRenderer(self.screen)
         
-        # Визуальные объекты (генерируются локально)
+         
         self.islands = []
         self.left_shores = []
         self.right_shores = []
         
-        # Состояние из STM32
+         
         self.game_state = None
         
-        # Мир
+         
         self.world_top = -SCREEN_HEIGHT * 2
         
-        # Инициализация игры на STM32
+         
         self.uart.send_init_game()
         
-        # Генерация начального мира
+         
         for _ in range(WORLD_INITIAL_SEGMENTS):
             self._generate_world_segment()
     
@@ -62,18 +62,18 @@ class Game:
         
         print(f"Генерация сегмента: {segment_start} -> {segment_end}")
         
-        # Берега - создаём локально и отправляем на STM32
+         
         left_shore = Shore('left', segment_start, segment_end)
         right_shore = Shore('right', segment_start, segment_end)
         
         self.left_shores.append(left_shore)
         self.right_shores.append(right_shore)
         
-        # Отправка берегов на STM32
+         
         self.uart.send_add_shore('left', segment_start, segment_end)
         self.uart.send_add_shore('right', segment_start, segment_end)
         
-        # Генерация островов
+         
         current_y = segment_start
         while current_y < segment_end:
             if random.random() < WORLD_ISLAND_SPAWN_CHANCE:
@@ -84,7 +84,7 @@ class Game:
                     island = Island(x, current_y, seed)
                     self.islands.append(island)
                     
-                    # Отправка острова на STM32
+                     
                     self.uart.send_add_obstacle(0, x, current_y, island.radius)
             
             current_y += random.randint(60, 120)
@@ -109,7 +109,7 @@ class Game:
     
     def update(self):
         """Обновление игры"""
-        # Получение состояния от STM32
+         
         new_state = self.uart.receive_game_state()
         if new_state:
             self.game_state = new_state
@@ -117,16 +117,16 @@ class Game:
         if not self.game_state:
             return
         
-        # Проверка окончания игры
+         
         if self.game_state.player_health <= 0:
             self._game_over()
             return
         
-        # Генерация нового мира
+         
         if self.game_state.player_y < self.world_top + WORLD_GENERATION_AHEAD:
             self._generate_world_segment()
         
-        # Очистка старых островов и берегов
+         
         self._cleanup_old_objects()
     
     def _game_over(self):
@@ -134,7 +134,7 @@ class Game:
         self.renderer.draw_game_over(self.game_state)
         pygame.display.flip()
         
-        # Ожидание нажатия R
+         
         waiting = True
         while waiting:
             for event in pygame.event.get():
@@ -154,20 +154,20 @@ class Game:
     
     def _restart_game(self):
         """Перезапуск игры"""
-        # Очистка текущего состояния
+         
         self.islands = []
         self.left_shores = []
         self.right_shores = []
         self.world_top = -SCREEN_HEIGHT * 2
         
-        # Перезапуск игры на STM32
+         
         self.uart.send_init_game()
         
-        # Генерация начального мира
+         
         for _ in range(WORLD_INITIAL_SEGMENTS):
             self._generate_world_segment()
         
-        # Сброс состояния
+         
         self.game_state = None
     
     def draw(self):
@@ -177,34 +177,34 @@ class Game:
             pygame.display.flip()
             return
         
-        # Море
+         
         self.screen.fill(WATER_BLUE)
         
-        # Волны
+         
         self.renderer.draw_waves()
         
         camera_y = self.game_state.camera_y
         
-        # Берега (локальные)
+         
         for shore in self.left_shores:
             shore.draw(self.screen, camera_y)
         for shore in self.right_shores:
             shore.draw(self.screen, camera_y)
         
-        # Острова (локальные)
+         
         for island in self.islands:
             island.draw(self.screen, camera_y)
         
-        # Водовороты (из STM32)
+         
         self.renderer.draw_whirlpools(self.game_state.whirlpools, camera_y)
         
-        # Враги (из STM32)
+         
         self.renderer.draw_enemies(self.game_state.enemies, camera_y)
         
-        # Снаряды (из STM32)
+         
         self.renderer.draw_projectiles(self.game_state.projectiles, camera_y)
         
-        # Игрок
+         
         self.renderer.draw_player(
             self.game_state.player_x,
             self.game_state.player_y,
@@ -212,7 +212,7 @@ class Game:
             camera_y
         )
         
-        # UI
+         
         self.renderer.draw_ui(self.game_state, len(self.islands))
         
         benchmark_stats = self.uart.get_benchmark_stats()
@@ -239,31 +239,31 @@ class Game:
         running = True
         
         while running:
-            # Обработка debug-пакетов (если нужно)
-            # debug_info = self.uart.receive_debug_packet()
-            # if debug_info:
-            #     self.uart.print_debug_packet(debug_info)
+             
+             
+             
+             
             
-            # Обработка событий
+             
             running = self.handle_events()
             
-            # Обновление игры
+             
             self.update()
             
-            # Отрисовка
+             
             self.draw()
             
-            # Ограничение FPS
+             
             self.clock.tick(FPS)
         
-        # Завершение работы
+         
         pygame.quit()
         if self.uart.ser:
             self.uart.ser.close()
         sys.exit()
 
 
-# ============ ЗАПУСК ИГРЫ ============
+ 
 
 if __name__ == "__main__":
     try:

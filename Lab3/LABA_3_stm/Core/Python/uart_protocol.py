@@ -1,4 +1,4 @@
-# uart_protocol.py - UART протокол с поддержкой бенчмарка
+ 
 
 import serial
 import struct
@@ -11,24 +11,24 @@ from config import *
 import logging
 import struct
 
-# Настройка логгеров
+ 
 logger = logging.getLogger("game_comm")
 logger.setLevel(logging.DEBUG)
 
-# Форматтер
+ 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-# INFO логгер (успешные пакеты)
+ 
 info_handler = logging.FileHandler('game_info.log')
 info_handler.setLevel(logging.INFO)
 info_handler.setFormatter(formatter)
 
-# ERROR логгер (полный разбор ошибок)
+ 
 error_handler = logging.FileHandler('game_errors.log')
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(formatter)
 
-# Консольный логгер для критических ошибок
+ 
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.WARNING)
 console_handler.setFormatter(formatter)
@@ -66,7 +66,7 @@ class UARTProtocol:
         self.last_packet_time = 0
         self.crc_error_count = 0
         
-        # НОВОЕ: Статистика бенчмарка
+         
         self.last_benchmark_stats = None
         
         try:
@@ -155,7 +155,7 @@ class UARTProtocol:
                                 f"(side={side}, start_y={start_y:.1f}, end_y={end_y:.1f})")
         except Exception as e:
             self.error_packets += 1
-            print(f"✗ Ошибка отправки берега: {e}")
+            print(f"Ошибка отправки берега: {e}")
     
     def send_init_game(self):
         """Отправка команды инициализации игры"""
@@ -173,10 +173,10 @@ class UARTProtocol:
             if self.debug:
                 self._log_packet("out", PKT_INIT_GAME, "(initialization)")
             else:
-                print("✓ Отправлен INIT_GAME")
+                print("Отправлен INIT_GAME")
         except Exception as e:
             self.error_packets += 1
-            print(f"✗ Ошибка отправки init: {e}")
+            print(f"Ошибка отправки init: {e}")
     
     def receive_debug_packet(self) -> Optional[dict]:
         """Получение debug-пакета (включая бенчмарк)"""
@@ -217,9 +217,9 @@ class UARTProtocol:
                 
                 packet_type = packet_data[offset]
                 
-                # Проверка: это бенчмарк-пакет?
+                 
                 if packet_type == 0xFF:
-                    # Парсим бенчмарк-сообщение
+                     
                     message_bytes = packet_data[offset + 6:offset + 38]
                     try:
                         message = message_bytes.decode('utf-8', errors='ignore').rstrip('\x00')
@@ -229,7 +229,7 @@ class UARTProtocol:
                         pass
                     continue
                 
-                # Обычный debug-пакет
+                 
                 packet_size = packet_data[offset + 1]
                 parse_state = packet_data[offset + 2]
                 crc_recv = packet_data[offset + 3]
@@ -267,7 +267,7 @@ class UARTProtocol:
                 self.packet_buffer += self.ser.read(bytes_to_read)
                 
                 if len(self.packet_buffer) > 4096:
-                    print(f"⚠️ Буфер переполнен! Размер: {len(self.packet_buffer)} байт")
+                    print(f"Буфер переполнен! Размер: {len(self.packet_buffer)} байт")
                     self.packet_buffer = self.packet_buffer[-2048:]
                     self.error_packets += 1
             
@@ -279,19 +279,19 @@ class UARTProtocol:
                 
                 if start_pos == -1:
                     if self.debug and len(self.packet_buffer) > 0:
-                        print(f"⚠️ START_BYTE не найден. Буфер размер: {len(self.packet_buffer)}")
+                        print(f"START_BYTE не найден. Буфер размер: {len(self.packet_buffer)}")
                         print(f"   Первые 20 байт: {self.packet_buffer[:20].hex()}")
                     
                     if self.crc_error_count > 5:
                         self.packet_buffer = b''
                         self.crc_error_count = 0
                         if self.debug:
-                            print("⚠️ Много ошибок CRC, буфер полностью сброшен")
+                            print("Много ошибок CRC, буфер полностью сброшен")
                     return None
                 
-                # Пропускаем мусор до START_BYTE
+                 
                 if start_pos > 0 and self.debug:
-                    print(f"⚠️ Пропущено {start_pos} байт мусора до START_BYTE")
+                    print(f"Пропущено {start_pos} байт мусора до START_BYTE")
                     print(f"   Мусор: {self.packet_buffer[:start_pos].hex()}")
                 
                 self.packet_buffer = self.packet_buffer[start_pos:]
@@ -303,7 +303,7 @@ class UARTProtocol:
                 
                 if end_pos == -1:
                     if self.debug and len(self.packet_buffer) > 100:
-                        print(f"⚠️ END_BYTE не найден. Буфер: {len(self.packet_buffer)} байт")
+                        print(f"END_BYTE не найден. Буфер: {len(self.packet_buffer)} байт")
                         print(f"   Начало пакета: {self.packet_buffer[:50].hex()}")
                     return None
                 
@@ -312,16 +312,16 @@ class UARTProtocol:
                 
                 if len(packet_data) < 10:
                     if self.debug:
-                        print(f"⚠️ Пакет слишком маленький: {len(packet_data)} байт")
+                        print(f"Пакет слишком маленький: {len(packet_data)} байт")
                         print(f"   Данные: {packet_data.hex()}")
                     continue
                 
-                # === ДЕТАЛЬНЫЙ АНАЛИЗ ПАКЕТА ===
+                 
                 print(f"\n{'='*80}")
                 print(f"[PACKET ANALYSIS] Размер: {len(packet_data)} байт (CRC может быть неверным!)")
                 print(f"{'='*80}")
                 
-                # Показываем структуру пакета
+                 
                 print(f"START_BYTE: 0x{packet_data[0]:02X} (ожидается 0x{START_BYTE:02X})")
                 print(f"PACKET_TYPE: 0x{packet_data[1]:02X} (ожидается 0x{PKT_GAME_STATE:02X})")
                 print(f"END_BYTE: 0x{packet_data[-1]:02X} (ожидается 0x{END_BYTE:02X})")
@@ -331,48 +331,48 @@ class UARTProtocol:
                 
                 print(f"CRC: received=0x{crc_received:02X}, calculated=0x{crc_calculated:02X}", end="")
                 if crc_received == crc_calculated:
-                    print(" ✓ OK")
+                    print("OK")
                 else:
-                    print(" ✗ MISMATCH (ПРОДОЛЖАЕМ ПАРСИНГ ДЛЯ ОТЛАДКИ!)")
+                    print("MISMATCH (ПРОДОЛЖАЕМ ПАРСИНГ ДЛЯ ОТЛАДКИ!)")
                 
-                # Hex dump первых 100 байт
+                 
                 print(f"\nHex dump (первые 100 байт):")
                 for i in range(0, min(100, len(packet_data)), 16):
                     hex_str = ' '.join(f'{b:02X}' for b in packet_data[i:i+16])
                     ascii_str = ''.join(chr(b) if 32 <= b < 127 else '.' for b in packet_data[i:i+16])
                     print(f"  {i:04X}: {hex_str:<48} | {ascii_str}")
                 
-                # === КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: УБРАН CONTINUE ПОСЛЕ ОШИБКИ CRC ===
+                 
                 if crc_received != crc_calculated:
                     self.crc_error_count += 1
                     self.error_packets += 1
                     
-                    print(f"\n❌ CRC ОШИБКА #{self.crc_error_count} (НО ПРОДОЛЖАЕМ ПАРСИНГ!)")
+                    print(f"\nCRC ОШИБКА #{self.crc_error_count} (НО ПРОДОЛЖАЕМ ПАРСИНГ!)")
                     print(f"   Размер данных для CRC: {len(packet_data[1:-2])} байт")
                     print(f"   Полный пакет: {packet_data.hex()}")
                     
                     if self.crc_error_count > 10:
                         self.packet_buffer = b''
                         self.crc_error_count = 0
-                        print("⚠️ Критическое количество ошибок CRC, полный сброс буфера")
+                        print("Критическое количество ошибок CRC, полный сброс буфера")
                     
-                    # УБРАНО: continue  <-- ЭТО БЫЛО ПРЕПЯТСТВИЕМ ДЛЯ ПАРСИНГА
+                     
                     print(f"{'='*80}\n")
                 else:
                     self.crc_error_count = max(0, self.crc_error_count - 1)
                 
-                # === ПРОДОЛЖАЕМ ПАРСИНГ ВСЕГДА (ДАЖЕ ПРИ ОШИБКЕ CRC) ===
+                 
                 if packet_data[1] != PKT_GAME_STATE:
-                    print(f"⚠️ Неожиданный тип пакета: 0x{packet_data[1]:02X} (НО ПРОБУЕМ ПАРСИНГ)")
+                    print(f"Неожиданный тип пакета: 0x{packet_data[1]:02X} (НО ПРОБУЕМ ПАРСИНГ)")
                     print(f"{'='*80}\n")
                 
-                # === ПАРСИНГ ДАННЫХ С ДЕТАЛЬНЫМ ВЫВОДОМ (ВСЕГДА!) ===
+                 
                 offset = 2
                 
                 try:
                     print(f"\n[ПАРСИНГ ДАННЫХ] (Даже при ошибке CRC)")
                     
-                    # Player data
+                     
                     player_x, player_y, player_angle, player_health, player_score, player_shoot_cooldown = struct.unpack(
                         '<fffhHH', packet_data[offset:offset+18]
                     )
@@ -380,7 +380,7 @@ class UARTProtocol:
                     print(f"        health={player_health}/{PLAYER_MAX_HEALTH}, score={player_score}, cooldown={player_shoot_cooldown}")
                     offset += 18
                     
-                    # Enemies
+                     
                     enemy_count = packet_data[offset]
                     print(f"Enemies: count={enemy_count} (max={MAX_ENEMIES_IN_PACKET})")
                     offset += 1
@@ -400,7 +400,7 @@ class UARTProtocol:
                         })
                         offset += 11
                     
-                    # Projectiles
+                     
                     proj_count = packet_data[offset]
                     print(f"Projectiles: count={proj_count} (max={MAX_PROJECTILES_IN_PACKET})")
                     offset += 1
@@ -413,7 +413,7 @@ class UARTProtocol:
                         projectiles.append({'x': px, 'y': py, 'is_player_shot': bool(is_player)})
                         offset += 9
                     
-                    # Whirlpools
+                     
                     whirlpool_count = packet_data[offset]
                     print(f"Whirlpools: count={whirlpool_count} (max={MAX_WHIRLPOOLS_IN_PACKET})")
                     offset += 1
@@ -426,26 +426,26 @@ class UARTProtocol:
                         whirlpools.append({'x': wx, 'y': wy, 'used': bool(used)})
                         offset += 9
                     
-                    # Camera & frame
+                     
                     camera_y, frame_counter = struct.unpack('<fI', packet_data[offset:offset+8])
                     print(f"Camera Y: {camera_y:.1f}")
                     print(f"Frame: {frame_counter}")
                     offset += 8
                     
-                    # Проверка размера
-                    expected_size = offset + 2  # +2 для CRC и END_BYTE
+                     
+                    expected_size = offset + 2   
                     actual_size = len(packet_data)
                     print(f"\nPacket size check: expected={expected_size}, actual={actual_size}", end="")
                     if expected_size == actual_size:
-                        print(" ✓")
+                        print(" GG")
                     else:
-                        print(f" ✗ MISMATCH (diff={actual_size - expected_size})")
+                        print(f"MISMATCH (diff={actual_size - expected_size})")
                     
                     self.received_packets += 1
                     packets_processed += 1
                     
                     print(f"{'='*80}")
-                    print(f"✅ ПАКЕТ ОБРАБОТАН (даже с ошибкой CRC) #{self.received_packets}")
+                    print(f"ПАКЕТ ОБРАБОТАН (даже с ошибкой CRC) #{self.received_packets}")
                     print(f"{'='*80}\n")
                     
                     return GameStateFromSTM32(
@@ -455,7 +455,7 @@ class UARTProtocol:
                 
                 except struct.error as e:
                     self.error_packets += 1
-                    print(f"\n❌ STRUCT UNPACK ERROR: {e}")
+                    print(f"\nSTRUCT UNPACK ERROR: {e}")
                     print(f"   Offset: {offset}, осталось байт: {len(packet_data) - offset}")
                     print(f"   Данные на offset: {packet_data[offset:offset+20].hex()}")
                     print(f"{'='*80}\n")
@@ -463,7 +463,7 @@ class UARTProtocol:
                 
                 except Exception as e:
                     self.error_packets += 1
-                    print(f"\n❌ PARSING ERROR: {e}")
+                    print(f"\nPARSING ERROR: {e}")
                     import traceback
                     traceback.print_exc()
                     print(f"{'='*80}\n")
@@ -475,7 +475,7 @@ class UARTProtocol:
             self.error_packets += 1
             self.packet_buffer = b''
             self.crc_error_count = 0
-            print(f"\n❌ КРИТИЧЕСКАЯ ОШИБКА ПРИЁМА: {e}")
+            print(f"\nРИТИЧЕСКАЯ ОШИБКА ПРИЁМА: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -496,7 +496,7 @@ class UARTProtocol:
         }
         
         packet_name = packet_names.get(debug_info['packet_type'], f"0x{debug_info['packet_type']:02X}")
-        status = "✓ SUCCESS" if debug_info['success'] else "✗ FAILED"
+        status = "SUCCESS" if debug_info['success'] else "✗ FAILED"
         
         print(f"\n{'='*60}")
         print(f"[DEBUG PACKET] {status}")

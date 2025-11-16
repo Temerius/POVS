@@ -114,9 +114,9 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 /* Display Functions */
 
 static void Buzzer_FireShot(void) {
-    HAL_GPIO_WritePin(USER_BUZZER_GPIO_Port, USER_BUZZER_Pin, GPIO_PIN_SET);
-    HAL_Delay(50); 
     HAL_GPIO_WritePin(USER_BUZZER_GPIO_Port, USER_BUZZER_Pin, GPIO_PIN_RESET);
+    HAL_Delay(50); 
+    HAL_GPIO_WritePin(USER_BUZZER_GPIO_Port, USER_BUZZER_Pin, GPIO_PIN_SET);
 }
 
 static void shift_out_byte(uint8_t b)
@@ -223,36 +223,34 @@ static void MX_DMA_Init(void)
 static void MX_GPIO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
-
-
     GPIO_InitStruct.Pin = CANON_LEFT_Pin|CANON_RIGHT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
     GPIO_InitStruct.Pin = CANON_FIRE_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT; 
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(CANON_FIRE_GPIO_Port, &GPIO_InitStruct);
-
-
     HAL_GPIO_WritePin(GPIOA, CLK_DISP_Pin|DATA_DISP_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, LATCH_DISP_Pin, GPIO_PIN_RESET);
-
+    HAL_GPIO_WritePin(GPIOB, USER_BUZZER_Pin, GPIO_PIN_SET);
     GPIO_InitStruct.Pin = CLK_DISP_Pin|DATA_DISP_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
     GPIO_InitStruct.Pin = LATCH_DISP_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(LATCH_DISP_GPIO_Port, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = USER_BUZZER_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(USER_BUZZER_GPIO_Port, &GPIO_InitStruct);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {

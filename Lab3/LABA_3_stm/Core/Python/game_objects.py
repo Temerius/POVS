@@ -1,4 +1,4 @@
-# game_objects.py - Визуальные объекты игры
+ 
 
 import pygame
 import math

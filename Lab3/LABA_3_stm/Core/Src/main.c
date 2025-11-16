@@ -43,29 +43,27 @@ int main(void)
         if (current_tick - last_tick >= FRAME_TIME_MS) {
             last_tick = current_tick;
             
-            // 1. Process incoming packets from PC
+   =
             Protocol_ProcessIncoming(&game);
             
-            // 2. Update button states
+
             Input_Update(&input);
             
-            // 3. Handle shooting
+
             if (Input_JustPressed(&input, BTN_SHOOT)) {
                 Player_Shoot(&game);
             }
-            
-            // 4. Update game state if running
+
             if (game.game_running) {
                 GameState_Update(&game, &input);
                 
-                // 5. ГЕНЕРАЦИЯ НОВОГО МИРА
-                // Проверяем, нужно ли генерировать новый сегмент
+
                 if (game.player.position.y < game.world_top + WORLD_GENERATION_AHEAD) {
                     WorldGen_GenerateSegment(&game);
                 }
             }
             
-            // 6. Send game state to PC (с ограничением частоты)
+
             if (game.frame_counter % GAME_STATE_SEND_INTERVAL == 0) {
                 Protocol_SendGameState(&game);
             }
