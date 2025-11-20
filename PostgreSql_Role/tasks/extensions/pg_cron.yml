@@ -1,0 +1,35 @@
+# file: postgresql/tasks/extensions/pg_cron.yml
+
+- name: PostgreSQL | Extensions | Make sure the postgres pg_cron extensions are installed | Debian
+  apt:
+    name: "pg_cron_{{ postgresql_version }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time | default (3600) }}"
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart postgresql
+
+- name: PostgreSQL | Extensions | Make sure the postgres pg_cron extensions are installed | RedHat
+  yum:
+    name: "pg_cron_{{ postgresql_version_terse }}"
+    state: present
+  when: ansible_pkg_mgr == "yum" and ansible_distribution == "RedHat"
+  notify:
+    - restart postgresql
+
+- name: PostgreSQL | Extensions | Make sure the postgres pg_cron extensions are installed | Fedora
+  dnf:
+    name: "pg_cron_{{postgresql_version_terse}}"
+    state: present
+  when: ansible_pkg_mgr == "dnf" and ansible_distribution == "Fedora"
+  notify:
+    - restart postgresql
+
+- name: PostgreSQL | Extensions | Make sure the postgres pg_cron extensions are installed | Rocky
+  dnf:
+    name: "pg_cron_{{ postgresql_version_terse }}"
+    state: present
+  when: ansible_pkg_mgr == "dnf" and ansible_distribution == "Rocky"
+  notify:
+    - restart postgresql

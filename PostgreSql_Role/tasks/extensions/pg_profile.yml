@@ -1,0 +1,52 @@
+- name: PostgreSQL | Extensions | Make sure the postgres pg_repack extensions are installed
+  block:
+    - name: remove extension files
+      shell: rm -f "{{ postgresql_lib_directory }}/pg_profile*"
+
+    - name: copy extension files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ postgresql_extension_directory }}"
+        owner: root
+        mode: 0644
+      with_fileglob:
+        - "/app/files/pg_profile/extension/*"
+
+    - debug:
+        msg:
+          - "minute: {{ pg_profile_scheduler.split(' ')[0] }}"
+          - "hour: {{ pg_profile_scheduler.split(' ')[1] }}"
+          - "day: {{ pg_profile_scheduler.split(' ')[2] }}"
+          - "month: {{ pg_profile_scheduler.split(' ')[3] }}"
+          - "weekday: {{ pg_profile_scheduler.split(' ')[4] }}"
+
+    - debug:
+        msg: "pg_profile_scheduler repr: {{ pg_profile_scheduler | to_nice_yaml }}"
+
+    - name: Setup crontab for pg_profile
+      become: yes
+      become_user: postgres
+      ansible.builtin.cron:
+        name: "pg_profile job ({{ postgresql_cluster_name }})"
+        user: postgres
+        job: >
+          /bin/bash -c '
+          echo "=== Starting pg_profile at $(date) ===" >> /var/log/postgresql/pg_profile.log;
+          /usr/bin/psql -U postgres -d {{ pg_profile_database }} -c "SELECT {{ pg_profile_schema }}.take_sample();" >> /var/log/postgresql/pg_profile.log 2>&1;
+          echo "=== Completed at $(date) ===" >> /var/log/postgresql/pg_profile.log
+          '
+        minute: "{{ pg_profile_scheduler.split()[0] | default('*') }}"
+        hour: "{{ pg_profile_scheduler.split()[1] | default('*') }}"
+        day: "{{ pg_profile_scheduler.split()[2] | default('*') }}"
+        month: "{{ pg_profile_scheduler.split()[3] | default('*') }}"
+        weekday: "{{ pg_profile_scheduler.split()[4] | default('*') }}"
+        state: "{{ pg_profile_set_cron | default('absent') }}"
+
+    - name: Ensure PostgreSQL log directory exists
+      become: yes
+      ansible.builtin.file:
+        path: /var/log/postgresql
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0755'

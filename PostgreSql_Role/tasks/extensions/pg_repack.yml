@@ -1,0 +1,35 @@
+# file: postgresql/tasks/extensions/pf_repack.yml
+- name: PostgreSQL | Extensions | Make sure the postgres pg_repack extensions are installed
+  block:
+    - name: remove pg_repack lib file
+      ansible.builtin.file:
+        path: "{{ postgresql_lib_directory }}/pg_repack.so"
+        state: absent
+
+    - name: find pg_repack extension files to remove
+      ansible.builtin.find:
+        paths: "{{ postgresql_extension_directory }}"
+        patterns: "pg_repack*"
+      register: pg_repack_extension_files
+
+    - name: remove pg_repack extension files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ pg_repack_extension_files.files }}"
+      when: pg_repack_extension_files.matched > 0
+
+    - name: copy pg_repack lib file
+      ansible.builtin.copy:
+        src: /app/files/pg_repack/pg_repack.so
+        dest: "{{ postgresql_lib_directory }}/pg_repack.so"
+        owner: root
+        mode: '0755'
+
+    - name: copy pg_repack extension files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ postgresql_extension_directory }}/"
+        owner: root
+        mode: '0644'
+      loop: "{{ lookup('ansible.builtin.fileglob', '/app/files/pg_repack/extension/*', wantlist=True) }}"

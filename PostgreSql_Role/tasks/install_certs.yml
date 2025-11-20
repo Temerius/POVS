@@ -1,0 +1,16 @@
+# file: postgresql/tasks/install_certs.yml
+- name: check local dir
+  local_action: stat path="{{ postgresql_ssl_src }}"
+  register: dir
+
+- name: Show postgresql_ssl_src value
+  debug:
+    var: postgresql_ssl_src
+
+- name: PostgreSQL | copy certs
+  ansible.builtin.copy:
+    src: "{{ postgresql_ssl_src }}"
+    dest: "{{ postgresql_data_directory }}"
+    owner: postgres
+    mode: 0600
+  when: dir.stat.exists

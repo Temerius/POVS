@@ -1,0 +1,9 @@
+[global]
+repo1-path={{ pgbackrest_repo_path }}
+repo1-retention-full={{ pgbackrest_retention_full_days }}
+start-fast=y
+log-level-console=info
+log-level-file=debug
+
+[{{ pgbackrest_stanza }}]
+pg1-path={{ pgbackrest_pg_data_path }}

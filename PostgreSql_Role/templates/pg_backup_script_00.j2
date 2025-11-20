@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+# Backup Details
+backup_dir={{ backup_dir }}
+pg_bin={{ pg_bin }}
+retention_duration={{ retention_days }}
+
+printf "\n\nBackup Status: %(%d_%m_%y_%H_%M_%S)T" >> $backup_dir/Status.log
+printf -- "-----------------------" >> $backup_dir/Status.log
+printf "\nStart Time: $(date)\n" >> $backup_dir/Status.log
+
+# Create backup
+$pg_bin/pg_basebackup -U postgres -w -D $backup_dir/Backup_Postgre_$(date +"%Y-%m-%d_%H-%M-%S") \
+  -l "`date`" -F tar --compress=zstd:1 --checkpoint=spread --wal-method=stream --label="Full Backup $(date)" -v &>> $backup_dir/Status.log
+
+printf "\nEnd Time: $(date)" >> $backup_dir/Status.log
+
+# Cleanup old backups
+find $backup_dir/Backup_Postgre_* -type d -mtime +$retention_duration -exec rm -rvf {} + &>> $backup_dir/Status.log

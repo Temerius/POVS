@@ -1,0 +1,4 @@
+---
+- hosts: SYS_OPTIBPTU_TEST
+  roles:
+    - role: '/app/'

@@ -1,0 +1,4 @@
+---
+- hosts: COMP_ELIS_DATAPREPARE_ELTDB_DEV
+  roles:
+    - role: '/app/'

@@ -1,0 +1,13 @@
+# file: postgresql/tasks/install_repo.yml
+- block:
+    - name: empty directory
+      shell: rm -f /etc/yum.repos.d/*.repo
+    - name: PostgreSQL | copy repo
+      ansible.builtin.copy:
+        src: /app/files/repo/
+        dest: /etc/yum.repos.d/
+        owner: root
+        mode: 0644
+  when: ansible_os_family == "RedHat"
+  become: yes
+  name: PostgreSQL | install repo | RedHat

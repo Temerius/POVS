@@ -1,0 +1,73 @@
+# file: postgresql/tasks/extensions/timescaledb.yml
+
+- name: mkdir /tmp/timescaledb_ext
+  ansible.builtin.file: 
+    path: /tmp/timescaledb_ext 
+    state: directory
+
+- name: copy timescaledb_ext to /tmp/timescaledb_ext
+  copy:
+    src: "{{ item }}"
+    dest: /tmp/timescaledb_ext
+  with_fileglob:
+    - "/app/files/timescaledb/*.rpm"
+  when: not ansible_check_mode
+  register: rpms_copied
+
+- name: Debug rpms_copied
+  debug:
+    var: rpms_copied
+
+- name: local timescaledb_ext not found
+  fail:
+    msg: "timescaledb RPMs not found in files"
+  when: (rpms_copied.results | default([])) | length == 0
+
+- set_fact:
+    rpm_list: >-
+      {{
+        rpms_copied.results
+        | map(attribute='item')
+        | map('basename')
+        | map('regex_replace', '^', '/tmp/timescaledb_ext/')
+        | list
+      }}
+
+
+- name: Debug rpm_list
+  debug:
+    var: rpm_list
+
+- name: PostgreSQL | Extensions | Make sure the postgres timescaledb extensions are installed | Rocky
+  yum:
+    name: "{{rpm_list}}"
+    disable_gpg_check: True
+  when: ansible_pkg_mgr == "dnf" and ansible_distribution == "Rocky" and (not ansible_check_mode)
+  notify:
+    - restart postgresql
+    
+- name: PostgreSQL | Extensions | Make sure the postgres timescaledb extensions are installed | Debian
+  apt:
+    name: "timescaledb-2-postgresql-{{ postgresql_version }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time | default (3600) }}"
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart postgresql
+
+- name: PostgreSQL | Extensions | Make sure the postgres timescaledb extensions are installed | RedHat
+  yum:
+    name: "timescaledb-2-postgresql-{{ postgresql_version_terse }}"
+    state: present
+  when: ansible_pkg_mgr == "yum" and ansible_distribution == "RedHat"
+  notify:
+    - restart postgresql
+
+- name: PostgreSQL | Extensions | Make sure the postgres timescaledb extensions are installed | Fedora
+  dnf:
+    name: "timescaledb-2-postgresql-{{postgresql_version_terse}}"
+    state: present
+  when: ansible_pkg_mgr == "dnf" and ansible_distribution == "Fedora"
+  notify:
+    - restart postgresql

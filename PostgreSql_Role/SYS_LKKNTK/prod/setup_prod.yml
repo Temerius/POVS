@@ -1,0 +1,4 @@
+---
+- hosts: SYS_LKKNTK_PROD
+  roles:
+    - role: '/app/'

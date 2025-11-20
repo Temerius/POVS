@@ -1,0 +1,55 @@
+---
+- name: Check if the backup repository directory exists
+  stat:
+    path: "{{ pgbackrest_repo_path }}"
+  register: pgbackrest_repo_path_stat
+
+- name: Fail if the backup repository directory does not exist
+  fail:
+    msg: "Backup repository directory '{{ pgbackrest_repo_path }}' not found, please create it manually"
+  when: not pgbackrest_repo_path_stat.stat.exists
+
+- name: Install pgbackrest package (if available in the repository)
+  package:
+    name: pgbackrest
+    state: present
+
+- name: Create pgbackrest configuration directory if it does not exist
+  file:
+    path: /etc/pgbackrest
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy pgbackrest configuration file
+  template:
+    src: pgbackrest.conf.j2
+    dest: /etc/pgbackrest/pgbackrest.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Check if pgbackrest stanza exists
+  become_user: "{{ pgbackrest_user }}"
+  shell: pgbackrest --stanza={{ pgbackrest_stanza }} check
+  register: stanza_check
+  failed_when: "'ERROR' in stanza_check.stderr or stanza_check.rc != 0"
+  changed_when: false
+  ignore_errors: yes
+
+- name: Create pgbackrest stanza if it does not exist
+  become_user: "{{ pgbackrest_user }}"
+  shell: pgbackrest --stanza={{ pgbackrest_stanza }} stanza-create
+  when: stanza_check.failed
+
+- name: Create pgbackrest backup cron job
+  cron:
+    name: "pgBackRest backup stanza {{ pgbackrest_stanza }}"
+    user: "{{ pgbackrest_user }}"
+    minute: "{{ (pgbackrest_scheduler.split())[1] }}"
+    hour: "{{ (pgbackrest_scheduler.split())[0] }}"
+    day: "{{ (pgbackrest_scheduler.split())[2] }}"
+    month: "{{ (pgbackrest_scheduler.split())[3] }}"
+    weekday: "{{ (pgbackrest_scheduler.split())[4] }}"
+    job: "pgbackrest --stanza={{ pgbackrest_stanza }} backup"

@@ -1,0 +1,21 @@
+# file: postgresql/tasks/extensions/clickhouse_fdw.yml
+- name: PostgreSQL | Extensions | Make sure the postgres clickhouse_fdw extensions are installed
+  block:
+    - name: remove lib
+      shell: rm -f "{{ postgresql_lib_directory }}/clickhouse_fdw.so"
+    - name: remove extension files
+      shell: rm -f "{{ postgresql_lib_directory }}/clickhouse_fdw*"
+    - name: copy lib
+      ansible.builtin.copy:
+        src: /app/files/clickhouse_fdw/clickhouse_fdw.so
+        dest: "{{ postgresql_lib_directory }}"
+        owner: root
+        mode: 0755
+    - name: copy extension files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ postgresql_extension_directory }}"
+        owner: root
+        mode: 0644
+      with_fileglob:
+        - "/app/files/clickhouse_fdw/extension/*"

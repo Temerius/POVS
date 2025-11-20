@@ -1,0 +1,6 @@
+---
+- hosts: SYS_OPTIOKPTU_PROD
+  vars:
+    postgresql_ssl_src: "/cfg/test/ssl/"
+  roles:
+    - role: '/app/'

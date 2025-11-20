@@ -1,0 +1,21 @@
+# file: postgresql/tasks/extensions/pg_uuidv7.yml
+- name: PostgreSQL | Extensions | Make sure the postgres pg_uuidv7 extensions are installed
+  block:
+    - name: remove lib
+      shell: rm -f "{{ postgresql_lib_directory }}/pg_uuidv7.so"
+    - name: remove extension files
+      shell: rm -f "{{ postgresql_lib_directory }}/pg_uuidv7*"
+    - name: copy lib
+      ansible.builtin.copy:
+        src: /app/files/pg_uuidv7/pg_uuidv7.so
+        dest: "{{ postgresql_lib_directory }}"
+        owner: root
+        mode: 0755
+    - name: copy extension files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ postgresql_extension_directory }}"
+        owner: root
+        mode: 0644
+      with_fileglob:
+        - "/app/files/pg_uuidv7/extension/*"

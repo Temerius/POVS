@@ -1,0 +1,4 @@
+---
+- hosts: SYS_DispCP
+  roles:
+    - role: '/app/'

@@ -1,0 +1,4 @@
+---
+- hosts: SYS_OPTIBPTU_DEV
+  roles:
+    - role: '/app/'

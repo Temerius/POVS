@@ -1,0 +1,4 @@
+---
+- hosts: SYS_LKKNTK_TEST
+  roles:
+    - role: '/app/'

@@ -1,0 +1,4 @@
+---
+- hosts: SYS_SSO_NTK_DEV
+  roles:
+    - role: '/app/'

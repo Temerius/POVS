@@ -1,0 +1,21 @@
+---
+- name: Install backup script
+  ansible.builtin.template:
+    src: pg_backup_script_00.j2
+    dest: "/usr/local/bin/pg_backup.sh"
+    mode: '0755'
+  vars:
+    backup_dir: "{{ pg_backup_path }}"
+    retention_days: "{{ pg_backup_retention_full_days }}"
+    pg_bin: "{{ postgresql_bin_directory }}"
+
+- name: Add cron job for PostgreSQL backups
+  ansible.builtin.cron:
+    name: "PostgreSQL backup ({{ postgresql_cluster_name }})"
+    user: "postgres"
+    job: "/usr/local/bin/pg_backup.sh"
+    minute: "{{ pg_backup_scheduler.split()[0] }}"
+    hour: "{{ pg_backup_scheduler.split()[1] }}"
+    day: "{{ pg_backup_scheduler.split()[2] }}"
+    month: "{{ pg_backup_scheduler.split()[3] }}"
+    weekday: "{{ pg_backup_scheduler.split()[4] }}"

@@ -1,0 +1,26 @@
+# file: postgresql/tasks/extensions.yml
+
+- import_tasks: extensions/contrib.yml
+  when: postgresql_ext_install_contrib
+- import_tasks: extensions/dev_headers.yml
+  when: postgresql_ext_install_dev_headers
+- import_tasks: extensions/postgis.yml
+  when: postgresql_ext_install_postgis
+- import_tasks: extensions/extra_packages.yml
+  when: postgresql_ext_install_extra_packages
+- import_tasks: extensions/pg_cron.yml
+  when: postgresql_ext_install_pg_cron
+- import_tasks: extensions/timescaledb.yml
+  when: postgresql_ext_install_timescaledb
+- import_tasks: extensions/tds_fdw.yml
+  when: postgresql_ext_install_tds_fdw is defined and postgresql_ext_install_tds_fdw
+- import_tasks: extensions/clickhouse_fdw.yml
+  when: postgresql_ext_install_clickhouse_fdw is defined and postgresql_ext_install_clickhouse_fdw
+- import_tasks: extensions/pg_stat_kcache.yml
+  when: postgresql_ext_install_pg_stat_kcache is defined and postgresql_ext_install_pg_stat_kcache
+- import_tasks: extensions/pg_uuidv7.yml
+  when: postgresql_ext_install_pg_uuidv7 is defined and postgresql_ext_install_pg_uuidv7
+- import_tasks: extensions/pg_repack.yml
+  when: postgresql_ext_install_pg_repack is defined and postgresql_ext_install_pg_repack
+- import_tasks: extensions/pg_profile.yml
+  when: postgresql_ext_install_pg_profile is defined and postgresql_ext_install_pg_profile

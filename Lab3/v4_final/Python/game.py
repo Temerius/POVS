@@ -15,7 +15,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Бескрайнее море — боевой корабль")
+        pygame.display.set_caption("Мейфлауэр")
         self.clock = pygame.time.Clock()
         
         self.uart = UARTProtocol(debug=True)  

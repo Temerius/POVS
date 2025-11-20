@@ -1,0 +1,12 @@
+{% for freetds_server in freetds_servers %}
+{% if freetds_server.servername is defined %}
+[{{ freetds_server.servername }}]
+{% endif %}
+host = {{ freetds_server.host }}
+port = {{ freetds_server.port }}
+tds version = {{ freetds_server.tds_version }}
+{% if freetds_server.instance is defined %}
+instance = {{ freetds_server.instance }}
+
+{% endif %}
+{% endfor %}

@@ -1,0 +1,4 @@
+---
+- hosts: SYS_KNOWLEDGESPACE_EC_DEV
+  roles:
+    - role: '/app/'

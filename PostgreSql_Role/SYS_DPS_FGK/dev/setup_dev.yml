@@ -1,0 +1,4 @@
+---
+- hosts: SYS_DPS_FGK_DEV
+  roles:
+    - role: '/app/'

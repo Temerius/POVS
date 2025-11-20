@@ -1,0 +1,4 @@
+---
+- hosts: SYS_MC_NOTES_NTK_DEV
+  roles:
+    - role: '/app/'
