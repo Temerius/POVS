@@ -29,7 +29,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "main" # postgres default is ''
+postgresql_cluster_name: "data" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -86,6 +86,8 @@ postgresql_users:
   state: "present"
 - name: dbowner
   state: "present"
+- name: replicator_finebi
+  state: "present"
 
 # List of schemas to be created (optional)
 postgresql_database_schemas: []
@@ -98,6 +100,8 @@ postgresql_user_privileges:
   role_attr_flags: "CREATEDB,CREATEROLE" # role attribute flags
 - name: dbowner                   # user name
   role_attr_flags: "NOLOGIN" # role attribute flags
+- name: replicator_finebi
+  role_attr_flags: "REPLICATION"
 
 postgresql_privs: []
 
@@ -119,6 +123,17 @@ postgresql_pg_hba_md5_hosts: []
 postgresql_pg_hba_passwd_hosts: []
 postgresql_pg_hba_trust_hosts: []
 postgresql_pg_hba_custom:
+  - type: host
+    database: replication
+    user: replicator_finebi
+    address: 10.50.243.25/32
+    method: md5
+  - type: host
+    database: all
+    user: "@/etc/postgresql/16/data/ldap_users.d/ntk_users.txt"
+    address: 0.0.0.0/0
+    method: ldap
+    options: 'ldapserver="MSK-NTKDC003.ntk-corp.ru" ldapport=636 ldapscheme=ldaps ldapsuffix="@ntk-corp.ru"'
   - type: host
     user: all
     database: all
@@ -163,7 +178,7 @@ postgresql_listen_addresses:
   - "*"
 postgresql_port: 5432
 
-postgresql_max_connections: 100
+postgresql_max_connections: 200
 postgresql_reserved_connections: 0 # (>= 16)
 postgresql_superuser_reserved_connections: 3
 
@@ -225,17 +240,17 @@ postgresql_ssl_crl_dir: ""                                         # (>= 14)
 #------------------------------------------------------------------------------
 
 # - Memory -
-postgresql_shared_buffers:       24GB # min 128kB
+postgresql_shared_buffers:       91GB # min 128kB
 postgresql_huge_pages:           "try"   # on, off, or try
 postgresql_huge_page_size:     0   # (>= 14)
-postgresql_temp_buffers:         64MB   # min 800kB
+postgresql_temp_buffers:         256MB   # min 800kB
 postgresql_max_prepared_transactions: 0 # zero disables the feature
 
 # Caution: it is not advisable to set max_prepared_transactions nonzero unless
 # you actively intend to use prepared transactions.
-postgresql_work_mem:                   64MB      # min 64kB
+postgresql_work_mem:                   128MB      # min 64kB
 postgresql_hash_mem_multiplier:        3.0
-postgresql_maintenance_work_mem:       256MB     # min 1MB
+postgresql_maintenance_work_mem:       2GB     # min 1MB
 postgresql_replacement_sort_tuples:    150000   # (>= 9.6) limits use of replacement selection sort
 postgresql_autovacuum_work_mem:        -1       # min 1MB, or -1 to use maintenance_work_mem
 postgresql_logical_decoding_work_mem:  64MB     # (>= 13)
@@ -281,12 +296,12 @@ postgresql_bgwriter_flush_after:    512kB  # measured in pages, 0 disables
 # - Asynchronous Behavior -
 
 postgresql_backend_flush_after:              0   # (>= 9.6) 0 disables, default is 0
-postgresql_effective_io_concurrency:         1   # 1-1000; 0 disables prefetching
+postgresql_effective_io_concurrency:         200   # 1-1000; 0 disables prefetching
 postgresql_maintenance_io_concurrency:       10  # (>= 13)
-postgresql_max_worker_processes:             10   # (change requires restart)
-postgresql_max_parallel_workers_per_gather:  2   # (>= 9.6) taken from max_worker_processes
+postgresql_max_worker_processes:             16   # (change requires restart)
+postgresql_max_parallel_workers_per_gather:  4   # (>= 9.6) taken from max_worker_processes
 postgresql_max_parallel_maintenance_workers: 2   # (>= 11) taken from max_parallel_workers
-postgresql_max_parallel_workers:             8   # (>= 10)
+postgresql_max_parallel_workers:             16   # (>= 10)
 postgresql_parallel_leader_participation:    on  # (>= 11)
 postgresql_old_snapshot_threshold:           -1  # (>= 9.6) 1min-60d; -1 disables; 0 is immediate
                                                  # (change requires restart)
@@ -302,7 +317,7 @@ postgresql_fsync:     on          # flush data to disk for crash safety
                                           # (turning this off can cause
                                           # unrecoverable data corruption)
 
-postgresql_synchronous_commit: "on"
+postgresql_synchronous_commit: "off"
 postgresql_wal_sync_method: "fsync"
 postgresql_full_page_writes: on
 postgresql_wal_log_hints: off       # also do full page writes of non-critical updates
@@ -318,7 +333,7 @@ postgresql_commit_delay:           20000      # range 0-100000, in microseconds
 postgresql_commit_siblings:        5      # range 1-1000
 
 # - Checkpoints -
-postgresql_max_wal_size:                 1GB   # (>= 9.5)
+postgresql_max_wal_size:                 10000MB   # (>= 9.5)
 postgresql_min_wal_size:                 80MB  # (>= 9.5)
 postgresql_checkpoint_flush_after:       0     # (>= 9.6) 0 disables,
                                                # default is 256kB on linux, 0 otherwise
@@ -331,13 +346,13 @@ postgresql_recovery_prefetch: try              # (>= 15)
 postgresql_wal_decode_buffer_size: 512kB       # (>= 15)
 
 # - Archiving -
-postgresql_archive_mode: "off"
+postgresql_archive_mode: "on"
 postgresql_archive_library: ""                 # (>= 15)
 # Command to use to archive a logfile segment.
 # Placeholders: %p = path of file to archive
 #               %f = file name only
 # e.g. 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
-postgresql_archive_command: ""
+postgresql_archive_command: "pgbackrest --stanza=msk-pg08 archive-push %p"
 # force a logfile segment switch after this
 postgresql_archive_timeout: 0
 
@@ -369,7 +384,7 @@ postgresql_max_replication_slots: 10 # max number of replication slots
 postgresql_wal_sender_delay: 1s     # walsender cycle time, 1-10000 milliseconds (<= 9.1)
 postgresql_wal_keep_segments:        0   # in logfile segments, 16MB each; 0 disables
 postgresql_wal_keep_size:            0   # (>= 13)
-postgresql_max_slot_wal_keep_size:   -1  # (>= 13)
+postgresql_max_slot_wal_keep_size:   50000  # (>= 13)
 postgresql_replication_timeout: 60s # in milliseconds; 0 disables (<= 9.2)
 postgresql_wal_sender_timeout: 60s  # in milliseconds; 0 disables (>= 9.3)
 postgresql_track_commit_timestamp: off # (>= 9.5)
@@ -394,12 +409,12 @@ postgresql_hot_standby: on
 # max delay before canceling queries when reading WAL from archive
 postgresql_max_standby_archive_delay: 30s # -1 allows indefinite delay
 # max delay before canceling queries when reading streaming WAL;
-postgresql_max_standby_streaming_delay: 30s # -1 allows indefinite delay
+postgresql_max_standby_streaming_delay: 60s # -1 allows indefinite delay
 postgresql_wal_receiver_create_temp_slot: off  # (>= 13)
 # send replies at least this often
 postgresql_wal_receiver_status_interval: 10s # 0 disables
 # send info from standby to prevent query conflicts
-postgresql_hot_standby_feedback: off
+postgresql_hot_standby_feedback: on
 #time that receiver waits for communication from master in milliseconds
 postgresql_wal_receiver_timeout: 60s
 # time to wait before retrying to retrieve WAL after a failed attempt
@@ -450,7 +465,7 @@ postgresql_parallel_setup_cost:        1000.0  # same scale as above (>= 9.6)
 postgresql_min_parallel_relation_size: 8MB     # (= 9.6) replaced by below two parameters in 10
 postgresql_min_parallel_table_scan_size: 8MB   # (>= 10)
 postgresql_min_parallel_index_scan_size: 512kB # (>= 10)
-postgresql_effective_cache_size:         16GB
+postgresql_effective_cache_size:         244GB
 
 postgresql_jit_above_cost:             100000  # (>= 11) perform JIT compilation if available
                                                # and query more expensive than this;
@@ -645,7 +660,7 @@ postgresql_autovacuum: on
 # -1 disables, 0 logs all actions and their durations, > 0 logs only
 # actions running at least this number of milliseconds.
 # max number of autovacuum subprocesses
-postgresql_autovacuum_max_workers: 3
+postgresql_autovacuum_max_workers: 10
 # time between autovacuum runs
 postgresql_autovacuum_naptime: 1min
 # min number of row updates before vacuum
