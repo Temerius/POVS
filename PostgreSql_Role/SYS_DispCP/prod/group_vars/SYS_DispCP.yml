@@ -21,7 +21,7 @@ postgresql_env:
   LC_LCTYPE: "{{ postgresql_locale }}"
 
 postgresql_admin_user: "postgres"
-postgresql_default_auth_method: "peer"
+postgresql_default_auth_method: "trust"
 postgresql_default_auth_method_hosts: "{{ 'scram-sha-256' if postgresql_version is version_compare('14', '>=') else 'md5' }}" # (>=14.0 scram-sha-256 is default value)
 
 # The user/group that will run postgresql process or service
@@ -29,7 +29,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "main" # postgres default is ''
+postgresql_cluster_name: "data" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -122,21 +122,28 @@ postgresql_members:
 
 # pg_hba.conf
 postgresql_pg_hba_default:
-  - { type: local, database: all, user: all, address: "",             method: "{{ postgresql_default_auth_method }}", comment: '"local" is for Unix domain socket connections only' }
-  - { type: host,  database: all, user: all, address: "127.0.0.1/32", method: "trust", comment: "IPv4 local connections:" }
-  - { type: host,  database: all, user: all, address: "::1/128",      method: "trust", comment: "IPv6 local connections:" }
-  - { type: local, database: all, user: "{{ postgresql_admin_user }}", address: "", method: "peer map=root_as_{{ postgresql_admin_user }}", comment: "Local root Unix user, passwordless access" }
-
+  - { type: local, database: all, user: all, address: "", method: "trust", comment: "" }
+  - { type: host, database: all, user: all, address: "127.0.0.1/32", method: "trust", comment: "IPv4 local connections:" }
+  - { type: host, database: all, user: all, address: "::1/128", method: "trust", comment: "IPv6 local connections:" }
+  - { type: local, database: replication, user: all, address: "", method: "trust", comment: "Allow replication connections from localhost" }
+  - { type: host, database: replication, user: all, address: "127.0.0.1/32", method: "trust", comment: "" }
+  - { type: host, database: replication, user: all, address: "::1/128", method: "trust", comment: "" }
 postgresql_pg_hba_md5_hosts: []
 postgresql_pg_hba_passwd_hosts: []
 postgresql_pg_hba_trust_hosts: []
 postgresql_pg_hba_custom:
   - type: host
-    user: all
     database: all
-    comment: allow all connections
-    address: 0.0.0.0/0
-    method: "{{ postgresql_default_auth_method_hosts }}"
+    user: all
+    address: "10.72.31.0/24"
+    method: "trust"
+    comment: "Trusted network"
+  - type: host
+    database: all
+    user: all
+    address: "0.0.0.0/0"
+    method: "md5"
+    comment: "All other connections"
 
 # pg_ident.conf
 postgresql_pg_ident:
@@ -237,7 +244,7 @@ postgresql_ssl_crl_dir: ""                                         # (>= 14)
 #------------------------------------------------------------------------------
 
 # - Memory -
-postgresql_shared_buffers:       10GB # min 128kB
+postgresql_shared_buffers:       19GB # min 128kB
 postgresql_huge_pages:           "try"   # on, off, or try
 postgresql_huge_page_size:     0   # (>= 14)
 postgresql_temp_buffers:         64MB   # min 800kB
@@ -245,8 +252,8 @@ postgresql_max_prepared_transactions: 0 # zero disables the feature
 
 # Caution: it is not advisable to set max_prepared_transactions nonzero unless
 # you actively intend to use prepared transactions.
-postgresql_work_mem:                   64MB      # min 64kB
-postgresql_hash_mem_multiplier:        "{{ 3.0 if postgresql_version is version_compare('15', '>=') else 1.0 }}" # (>= 13)
+postgresql_work_mem:                   50MB      # min 64kB
+postgresql_hash_mem_multiplier:        2.0 # (>= 13)
 postgresql_maintenance_work_mem:       256MB     # min 1MB
 postgresql_replacement_sort_tuples:    150000   # (>= 9.6) limits use of replacement selection sort
 postgresql_autovacuum_work_mem:        -1       # min 1MB, or -1 to use maintenance_work_mem
@@ -321,7 +328,7 @@ postgresql_wal_log_hints: off       # also do full page writes of non-critical u
 postgresql_wal_compression: off     # (>= 9.5)
 postgresql_wal_init_zero: on                      # zero-fill new WAL files
 postgresql_wal_recycle: on                        # recycle WAL files
-postgresql_wal_buffers:            8192# min 32kB, -1 sets based on shared_buffers
+postgresql_wal_buffers:            -1
 postgresql_wal_writer_delay:       200ms  # 1-10000 milliseconds
 postgresql_wal_writer_flush_after: 1MB    # (>= 9.6) 0 disables
 postgresql_wal_skip_threshold:     2MB    # (>= 13)
@@ -343,13 +350,13 @@ postgresql_recovery_prefetch: try              # (>= 15)
 postgresql_wal_decode_buffer_size: 512kB       # (>= 15)
 
 # - Archiving -
-postgresql_archive_mode: "off"
+postgresql_archive_mode: "on"
 postgresql_archive_library: ""                 # (>= 15)
 # Command to use to archive a logfile segment.
 # Placeholders: %p = path of file to archive
 #               %f = file name only
 # e.g. 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
-postgresql_archive_command: ""
+postgresql_archive_command: "pgbackrest --stanza=msk-pg15 archive-push %p"
 # force a logfile segment switch after this
 postgresql_archive_timeout: 0
 
@@ -503,23 +510,23 @@ postgresql_log_destination:            "stderr"
 
 # Enable capturing of stderr and csvlog into log files.
 # Required to be on for csvlogs.
-postgresql_logging_collector:          off
+postgresql_logging_collector:          on
 
 # These are only used if logging_collector is on:
 # Directory where log files are written, can be absolute or relative to PGDATA
 postgresql_log_directory:              "log"
 # Log file name pattern, can include strftime() escapes
-postgresql_log_filename:               "postgresql-%Y-%m-%d_%H%M%S.log"
+postgresql_log_filename:               "postgresql-%H%M.log"
 postgresql_log_file_mode:              "0600" # begin with 0 to use octal notation
 # If on, an existing log file with the same name as the new log file will be
 # truncated rather than appended to. But such truncation only occurs on
 # time-driven rotation, not on restarts or size-driven rotation. Default is
 # off, meaning append to existing files in all cases.
-postgresql_log_truncate_on_rotation:   off
+postgresql_log_truncate_on_rotation:   on
 # Automatic rotation of logfiles will happen after that time.
-postgresql_log_rotation_age:           1d
+postgresql_log_rotation_age:           "60min"
 # Automatic rotation of logfiles will happen after that much log output.
-postgresql_log_rotation_size:          10MB
+postgresql_log_rotation_size:          "1GB"
 
 # These are relevant when logging to syslog:
 postgresql_syslog_facility:            "LOCAL0"
@@ -564,7 +571,7 @@ postgresql_log_min_error_statement: "error"
 
 # -1 is disabled, 0 logs all statements and their durations, > 0 logs only
 # statements running at least this number of milliseconds
-postgresql_log_min_duration_statement: -1
+postgresql_log_min_duration_statement: 1
 postgresql_log_min_duration_sample:    -1       # (>= 13)
 postgresql_log_statement_sample_rate:   1.0     # (>= 13)
 postgresql_log_transaction_sample_rate: 0.0     # (>= 12)
@@ -607,7 +614,7 @@ postgresql_log_hostname:          off
 #        processes
 #   %% = '%'
 # e.g. '<%u%%%d> '
-postgresql_log_line_prefix: "%m [%p] "
+postgresql_log_line_prefix: "(pid=%p app=%a user=%u db=%d remote=%r ) "
 
 # log lock waits >= deadlock_timeout
 postgresql_log_lock_waits: off
@@ -618,7 +625,7 @@ postgresql_log_statement:  "none"  # none, ddl, mod, all
 postgresql_log_replication_commands: off
 # log temporary files equal or larger
 postgresql_log_temp_files: -1
-postgresql_log_timezone:   "UTC"
+postgresql_log_timezone:   "Europe/Moscow"
 
 #------------------------------------------------------------------------------
 # PROCESS TITLE
@@ -635,7 +642,7 @@ postgresql_update_process_title:      on   # (>= 9.2)
 postgresql_track_activities:          on
 postgresql_track_activity_query_size: 1024
 postgresql_track_counts:              on
-postgresql_track_io_timing:           off   # (>= 9.2)
+postgresql_track_io_timing:           on   # (>= 9.2)
 postgresql_track_wal_io_timing:       off   # (>= 14)
 postgresql_track_functions:           "none" # none, pl, all
 postgresql_stats_fetch_consistency:   cache  # (>= 15) cache, none, snapshot
@@ -737,7 +744,7 @@ postgresql_datestyle:
   - "iso"
   - "mdy"
 postgresql_intervalstyle:      "postgres"
-postgresql_timezone:           "UTC" # postgres default is GMT
+postgresql_timezone:           "Europe/Moscow" # postgres default is GMT
 
 # Select the set of available time zone abbreviations. Currently, there are:
 #   Default

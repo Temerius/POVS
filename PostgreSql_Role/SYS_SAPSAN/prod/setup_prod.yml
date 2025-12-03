@@ -1,0 +1,4 @@
+---
+- hosts: SYS_SAPSAN
+  roles:
+    - role: '/app/'

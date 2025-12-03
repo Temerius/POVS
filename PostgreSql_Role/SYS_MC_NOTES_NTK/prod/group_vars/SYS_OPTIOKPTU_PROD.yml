@@ -29,7 +29,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "main" # postgres default is ''
+postgresql_cluster_name: "data" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -156,7 +156,7 @@ postgresql_hba_file: "{{ postgresql_conf_directory }}/pg_hba.conf"
 # Ident configuration file
 postgresql_ident_file: "{{ postgresql_conf_directory }}/pg_ident.conf"
 # Use data in another directory
-postgresql_varlib_directory_name: "postgresql"
+postgresql_varlib_directory_name: "pgsql"
 postgresql_data_directory: "/var/lib/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
 postgresql_wal_directory: ""
 postgresql_pid_directory: "/var/run/postgresql"
@@ -235,7 +235,7 @@ postgresql_ssl_crl_dir: ""                                         # (>= 14)
 #------------------------------------------------------------------------------
 
 # - Memory -
-postgresql_shared_buffers:       42GB # min 128kB
+postgresql_shared_buffers:       10GB # min 128kB
 postgresql_huge_pages:           "try"   # on, off, or try
 postgresql_huge_page_size:     0   # (>= 14)
 postgresql_temp_buffers:         64MB   # min 800kB
@@ -341,13 +341,13 @@ postgresql_recovery_prefetch: try              # (>= 15)
 postgresql_wal_decode_buffer_size: 512kB       # (>= 15)
 
 # - Archiving -
-postgresql_archive_mode: "off"
+postgresql_archive_mode: "on"
 postgresql_archive_library: ""                 # (>= 15)
 # Command to use to archive a logfile segment.
 # Placeholders: %p = path of file to archive
 #               %f = file name only
 # e.g. 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
-postgresql_archive_command: ""
+postgresql_archive_command: "pgbackrest --stanza=msk-pg03 archive-push %p"
 # force a logfile segment switch after this
 postgresql_archive_timeout: 0
 
@@ -364,7 +364,7 @@ postgresql_recovery_target_name: ""                # (>= 12)
 postgresql_recovery_target_time: ""                # (>= 12)
 postgresql_recovery_target_xid: ""                 # (>= 12)
 postgresql_recovery_target_lsn: ""                 # (>= 12)
-postgresql_recovery_target_inclusive: ""           # (>= 12)
+postgresql_recovery_target_inclusive: off          # (>= 12)
 postgresql_recovery_target_timeline: "latest"      # (>= 12)
 postgresql_recovery_target_action: "pause"         # (>= 12)
 
@@ -460,7 +460,7 @@ postgresql_parallel_setup_cost:        1000.0  # same scale as above (>= 9.6)
 postgresql_min_parallel_relation_size: 8MB     # (= 9.6) replaced by below two parameters in 10
 postgresql_min_parallel_table_scan_size: 8MB   # (>= 10)
 postgresql_min_parallel_index_scan_size: 512kB # (>= 10)
-postgresql_effective_cache_size:         64GB
+postgresql_effective_cache_size:         16GB
 
 postgresql_jit_above_cost:             100000  # (>= 11) perform JIT compilation if available
                                                # and query more expensive than this;

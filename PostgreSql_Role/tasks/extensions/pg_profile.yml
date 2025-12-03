@@ -12,6 +12,50 @@
       with_fileglob:
         - "/app/files/pg_profile/extension/*"
 
+    - name: Ensure pg_profile database exists
+      postgresql_db:
+        name: "{{ pg_profile_database }}"
+        owner: "{{ postgresql_admin_user }}"
+        encoding: "{{ postgresql_encoding }}"
+        lc_collate: "{{ postgresql_locale }}"
+        lc_ctype: "{{ postgresql_ctype }}"
+        port: "{{ postgresql_port }}"
+        template: "template0"
+        state: present
+        login_user: "{{ postgresql_admin_user }}"
+      become: yes
+      become_user: "{{ postgresql_admin_user }}"
+      when: pg_profile_database is defined
+
+    - name: Ensure pg_profile schema exists
+      postgresql_schema:
+        database: "{{ pg_profile_database }}"
+        schema: "{{ pg_profile_schema }}"
+        owner: "{{ postgresql_admin_user }}"
+        login_user: "{{ postgresql_admin_user }}"
+        port: "{{ postgresql_port }}"
+        state: present
+      become: yes
+      become_user: "{{ postgresql_admin_user }}"
+      when: 
+        - pg_profile_database is defined
+        - pg_profile_schema is defined
+        
+    - name: Install pg_profile extension
+      postgresql_ext:
+        db: "{{ pg_profile_database }}"
+        schema: "{{ pg_profile_schema }}"
+        login_user: "{{ postgresql_admin_user }}"
+        port: "{{ postgresql_port }}"
+        name: pg_profile
+        state: present
+      become: yes
+      become_user: "{{ postgresql_admin_user }}"
+      ignore_errors: "{{ ansible_check_mode }}"
+      when: 
+        - pg_profile_database is defined
+        - pg_profile_schema is defined
+
     - debug:
         msg:
           - "minute: {{ pg_profile_scheduler.split(' ')[0] }}"
@@ -24,15 +68,13 @@
         msg: "pg_profile_scheduler repr: {{ pg_profile_scheduler | to_nice_yaml }}"
 
     - name: Setup crontab for pg_profile
-      become: yes
-      become_user: postgres
       ansible.builtin.cron:
         name: "pg_profile job ({{ postgresql_cluster_name }})"
         user: postgres
         job: >
           /bin/bash -c '
           echo "=== Starting pg_profile at $(date) ===" >> /var/log/postgresql/pg_profile.log;
-          /usr/bin/psql -U postgres -d {{ pg_profile_database }} -c "SELECT {{ pg_profile_schema }}.take_sample();" >> /var/log/postgresql/pg_profile.log 2>&1;
+          {{ postgresql_bin_directory }}/psql -U postgres -d {{ pg_profile_database }} -c "SELECT {{ pg_profile_schema }}.take_sample();" >> /var/log/postgresql/pg_profile.log 2>&1;
           echo "=== Completed at $(date) ===" >> /var/log/postgresql/pg_profile.log
           '
         minute: "{{ pg_profile_scheduler.split()[0] | default('*') }}"
@@ -40,7 +82,9 @@
         day: "{{ pg_profile_scheduler.split()[2] | default('*') }}"
         month: "{{ pg_profile_scheduler.split()[3] | default('*') }}"
         weekday: "{{ pg_profile_scheduler.split()[4] | default('*') }}"
-        state: "{{ pg_profile_set_cron | default('absent') }}"
+        state: present
+      become: yes
+      when: pg_profile_scheduler is defined
 
     - name: Ensure PostgreSQL log directory exists
       become: yes

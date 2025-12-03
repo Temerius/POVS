@@ -29,7 +29,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "data" # postgres default is ''
+postgresql_cluster_name: "main" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -39,6 +39,15 @@ postgresql_ext_install_contrib: yes
 postgresql_ext_install_dev_headers: no
 postgresql_ext_install_postgis: no
 postgresql_ext_install_extra_packages: yes
+postgresql_ext_install_pg_cron: no
+postgresql_ext_install_timescaledb: no
+postgresql_ext_install_tds_fdw: no
+postgresql_ext_install_clickhouse_fdw: no
+postgresql_ext_install_pg_repack: yes
+postgresql_ext_install_pg_stat_kcache: yes
+postgresql_ext_install_pg_profile: yes
+postgresql_ext_install_auto_explain: yes
+postgresql_ext_install_pg_stat_statements: yes
 
 # PostGIS
 postgresql_postgis_release_compatibility:
@@ -68,14 +77,10 @@ postgresql_databases: []
 postgresql_database_extensions: []
 
 # List of users to be created (optional)
-postgresql_users: 
+postgresql_users:
 - name: valiulinrg
-  no_password_changes: true
-  encrypted: yes
   state: "present"
-- name: cicd
-  pass: SEfe354ewe@
-  encrypted: yes
+- name: cicd_user
   state: "present"
 - name: dbowner
   state: "present"
@@ -89,39 +94,27 @@ postgresql_user_privileges:
   role_attr_flags: "SUPERUSER" # role attribute flags
 - name: dbowner                   # user name
   role_attr_flags: "NOLOGIN" # role attribute flags
-- name: cicd                   # user name
-  role_attr_flags: "CREATEDB,CREATEROLE" # role attribute flags
 
 postgresql_privs: []
 
 postgresql_members: 
-  # create role developer_role with in role cicd_user
 - group: dbowner
   state: present
   database: postgres
-  target_roles: ["cicd"]
+  target_roles: ["cicd_user"]
 
 # pg_hba.conf
 postgresql_pg_hba_default:
-  - { type: local, database: all, user: all, address: "",             method: "trust", comment: '"local" is for Unix domain socket connections only' }
-  - { type: host,  database: all, user: all, address: "127.0.0.1/32", method: "trust", comment: "IPv4 local connections:" }
-  - { type: host,  database: all, user: all, address: "::1/128",      method: "trust", comment: "IPv6 local connections:" }
-  - { type: local, database: replication, user: all, address: "",             method: "trust", comment: "Allow replication connections from localhost, by a user with the replication privilege." }
-  - { type: host,  database: replication, user: all, address: "127.0.0.1/32", method: "trust" }
-  - { type: host,  database: replication, user: all, address: "::1/128",      method: "trust" }
+  - { type: local, database: all, user: all, address: "",             method: "{{ postgresql_default_auth_method }}", comment: '"local" is for Unix domain socket connections only' }
+  - { type: host,  database: all, user: cicd_user, address: "127.0.0.1/32", method: "trust", comment: "IPv4 local connections:" }
+  - { type: host,  database: all, user: cicd_user, address: "::1/128",      method: "trust", comment: "IPv6 local connections:" }
+  - { type: local, database: all, user: "{{ postgresql_admin_user }}", address: "", method: "peer map=root_as_{{ postgresql_admin_user }}", comment: "Local root Unix user, passwordless access" }
 
 postgresql_pg_hba_md5_hosts: []
 postgresql_pg_hba_passwd_hosts: []
 postgresql_pg_hba_trust_hosts: []
-
 postgresql_pg_hba_custom:
-  - type: hostssl
-    user: all
-    database: all
-    comment: allow all connections
-    address: 10.72.31.192/32
-    method: "trust"
-  - type: hostssl
+  - type: host
     user: all
     database: all
     comment: allow all connections
@@ -202,7 +195,7 @@ postgresql_gss_accept_delegation: off # (>= 16)
 
 # - SSL -
 
-postgresql_ssl: on
+postgresql_ssl: off
 postgresql_ssl_ciphers:
   - "HIGH"
   - "MEDIUM"
@@ -216,9 +209,9 @@ postgresql_ssl_dh_params_file: ""                                   # (>= 10)
 postgresql_ssl_passphrase_command: ""                               # (>= 11)
 postgresql_ssl_passphrase_command_supports_reload: off              # (>= 11)
 postgresql_ssl_renegotiation_limit: 512MB                           # amount of data between renegotiations
-postgresql_ssl_cert_file: "dev_optimizers.crt"    # (>= 9.2)
-postgresql_ssl_key_file: "dev_optimizers.key"   # (>= 9.2)
-postgresql_ssl_ca_file: "dev_optimizers.crt"                                          # (>= 9.2)
+postgresql_ssl_cert_file: "/etc/ssl/certs/ssl-cert-snakeoil.pem"    # (>= 9.2)
+postgresql_ssl_key_file: "/etc/ssl/private/ssl-cert-snakeoil.key"   # (>= 9.2)
+postgresql_ssl_ca_file: ""                                          # (>= 9.2)
 postgresql_ssl_crl_file: ""                                         # (>= 9.2)
 postgresql_ssl_crl_dir: ""                                         # (>= 14)
 
@@ -227,17 +220,17 @@ postgresql_ssl_crl_dir: ""                                         # (>= 14)
 #------------------------------------------------------------------------------
 
 # - Memory -
-postgresql_shared_buffers:       42GB # min 128kB
+postgresql_shared_buffers:       8GB # min 128kB
 postgresql_huge_pages:           "try"   # on, off, or try
 postgresql_huge_page_size:     0   # (>= 14)
-postgresql_temp_buffers:         64MB   # min 800kB
+postgresql_temp_buffers:         32MB   # min 800kB
 postgresql_max_prepared_transactions: 0 # zero disables the feature
 
 # Caution: it is not advisable to set max_prepared_transactions nonzero unless
 # you actively intend to use prepared transactions.
-postgresql_work_mem:                   82MB      # min 64kB
-postgresql_hash_mem_multiplier:        "{{ 3.0 if postgresql_version is version_compare('15', '>=') else 1.0 }}" # (>= 13)
-postgresql_maintenance_work_mem:       512MB     # min 1MB
+postgresql_work_mem:                   16MB      # min 64kB
+postgresql_hash_mem_multiplier:        2.0 # (>= 13)
+postgresql_maintenance_work_mem:       128MB     # min 1MB
 postgresql_replacement_sort_tuples:    150000   # (>= 9.6) limits use of replacement selection sort
 postgresql_autovacuum_work_mem:        -1       # min 1MB, or -1 to use maintenance_work_mem
 postgresql_logical_decoding_work_mem:  64MB     # (>= 13)
@@ -288,7 +281,7 @@ postgresql_maintenance_io_concurrency:       10  # (>= 13)
 postgresql_max_worker_processes:             8   # (change requires restart)
 postgresql_max_parallel_workers_per_gather:  2   # (>= 9.6) taken from max_worker_processes
 postgresql_max_parallel_maintenance_workers: 2   # (>= 11) taken from max_parallel_workers
-postgresql_max_parallel_workers:             8   # (>= 10)
+postgresql_max_parallel_workers:             4   # (>= 10)
 postgresql_parallel_leader_participation:    on  # (>= 11)
 postgresql_old_snapshot_threshold:           -1  # (>= 9.6) 1min-60d; -1 disables; 0 is immediate
                                                  # (change requires restart)
@@ -308,23 +301,23 @@ postgresql_synchronous_commit: "on"
 postgresql_wal_sync_method: "fsync"
 postgresql_full_page_writes: on
 postgresql_wal_log_hints: off       # also do full page writes of non-critical updates
-postgresql_wal_compression: off     # (>= 9.5)
+postgresql_wal_compression: on     # (>= 9.5)
 postgresql_wal_init_zero: on                      # zero-fill new WAL files
 postgresql_wal_recycle: on                        # recycle WAL files
-postgresql_wal_buffers:            32MB     # min 32kB, -1 sets based on shared_buffers
-postgresql_wal_writer_delay:       200ms  # 1-10000 milliseconds
-postgresql_wal_writer_flush_after: 1MB    # (>= 9.6) 0 disables
+postgresql_wal_buffers:            8192     # min 32kB, -1 sets based on shared_buffers
+postgresql_wal_writer_delay:       300ms  # 1-10000 milliseconds
+postgresql_wal_writer_flush_after: 512    # (>= 9.6) 0 disables
 postgresql_wal_skip_threshold:     2MB    # (>= 13)
 
 postgresql_commit_delay:           0      # range 0-100000, in microseconds
 postgresql_commit_siblings:        5      # range 1-1000
 
 # - Checkpoints -
-postgresql_max_wal_size:                 1GB   # (>= 9.5)
+postgresql_max_wal_size:                 512MB   # (>= 9.5)
 postgresql_min_wal_size:                 80MB  # (>= 9.5)
 postgresql_checkpoint_flush_after:       0     # (>= 9.6) 0 disables,
                                                # default is 256kB on linux, 0 otherwise
-postgresql_checkpoint_timeout:           5min  # range 30s-1d
+postgresql_checkpoint_timeout:           15min  # range 30s-1d
 postgresql_checkpoint_completion_target: "{{ 0.9 if postgresql_version is version_compare('14', '>=') else 0.5 }}" # checkpoint target duration, 0.0 - 1.0
 postgresql_checkpoint_warning:           30s   # 0 disables
 
@@ -333,13 +326,13 @@ postgresql_recovery_prefetch: try              # (>= 15)
 postgresql_wal_decode_buffer_size: 512kB       # (>= 15)
 
 # - Archiving -
-postgresql_archive_mode: "on"
+postgresql_archive_mode: "off"
 postgresql_archive_library: ""                 # (>= 15)
 # Command to use to archive a logfile segment.
 # Placeholders: %p = path of file to archive
 #               %f = file name only
 # e.g. 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
-postgresql_archive_command: "pgbackrest --stanza=msk-pg11 archive-push %p"
+postgresql_archive_command: ""
 # force a logfile segment switch after this
 postgresql_archive_timeout: 0
 
@@ -356,7 +349,7 @@ postgresql_recovery_target_name: ""                # (>= 12)
 postgresql_recovery_target_time: ""                # (>= 12)
 postgresql_recovery_target_xid: ""                 # (>= 12)
 postgresql_recovery_target_lsn: ""                 # (>= 12)
-postgresql_recovery_target_inclusive: "off"           # (>= 12)
+postgresql_recovery_target_inclusive: ""           # (>= 12)
 postgresql_recovery_target_timeline: "latest"      # (>= 12)
 postgresql_recovery_target_action: "pause"         # (>= 12)
 
@@ -367,7 +360,7 @@ postgresql_recovery_target_action: "pause"         # (>= 12)
 # Set these on the primary and on any standby that will send replication data.
 # max number of walsender processes
 postgresql_max_wal_senders: 10
-postgresql_max_replication_slots: 0 # max number of replication slots
+postgresql_max_replication_slots: 10 # max number of replication slots
 postgresql_wal_sender_delay: 1s     # walsender cycle time, 1-10000 milliseconds (<= 9.1)
 postgresql_wal_keep_segments:        0   # in logfile segments, 16MB each; 0 disables
 postgresql_wal_keep_size:            0   # (>= 13)
@@ -452,7 +445,7 @@ postgresql_parallel_setup_cost:        1000.0  # same scale as above (>= 9.6)
 postgresql_min_parallel_relation_size: 8MB     # (= 9.6) replaced by below two parameters in 10
 postgresql_min_parallel_table_scan_size: 8MB   # (>= 10)
 postgresql_min_parallel_index_scan_size: 512kB # (>= 10)
-postgresql_effective_cache_size:         64GB
+postgresql_effective_cache_size:         8GB
 
 postgresql_jit_above_cost:             100000  # (>= 11) perform JIT compilation if available
                                                # and query more expensive than this;
@@ -477,7 +470,7 @@ postgresql_default_statistics_target:  100          # range 1-10000
 postgresql_constraint_exclusion:       "partition"  # on, off, or partition
 postgresql_cursor_tuple_fraction:      0.1          # range 0.0-1.0
 postgresql_from_collapse_limit:        8
-postgresql_jit:                        on           # (>= 11: off, >= 12: on)
+postgresql_jit:                        off           # (>= 11: off, >= 12: on)
 postgresql_join_collapse_limit:        8            # 1 disables collapsing of explicit
 postgresql_force_parallel_mode:        off          # on, off, regress (>= 9.6 <= 13)
 postgresql_plan_cache_mode:            "auto"       # (>= 12)
@@ -493,23 +486,23 @@ postgresql_log_destination:            "stderr"
 
 # Enable capturing of stderr and csvlog into log files.
 # Required to be on for csvlogs.
-postgresql_logging_collector:          off
+postgresql_logging_collector:          on
 
 # These are only used if logging_collector is on:
 # Directory where log files are written, can be absolute or relative to PGDATA
 postgresql_log_directory:              "log"
 # Log file name pattern, can include strftime() escapes
-postgresql_log_filename:               "postgresql-%Y-%m-%d_%H%M%S.log"
+postgresql_log_filename:               "postgresql-%a.log"
 postgresql_log_file_mode:              "0600" # begin with 0 to use octal notation
 # If on, an existing log file with the same name as the new log file will be
 # truncated rather than appended to. But such truncation only occurs on
 # time-driven rotation, not on restarts or size-driven rotation. Default is
 # off, meaning append to existing files in all cases.
-postgresql_log_truncate_on_rotation:   off
+postgresql_log_truncate_on_rotation:   on
 # Automatic rotation of logfiles will happen after that time.
 postgresql_log_rotation_age:           1d
 # Automatic rotation of logfiles will happen after that much log output.
-postgresql_log_rotation_size:          10MB
+postgresql_log_rotation_size:          0
 
 # These are relevant when logging to syslog:
 postgresql_syslog_facility:            "LOCAL0"
@@ -568,7 +561,7 @@ postgresql_debug_print_plan:      off
 postgresql_debug_pretty_print:    on
 postgresql_log_autovacuum_min_duration: "{{ '10min' if postgresql_version is version_compare('15', '>=') else -1 }}"
 postgresql_log_checkpoints:       "{{ 'on' if postgresql_version is version_compare('15', '>=') else 'off' }}"
-postgresql_log_connections:       off
+postgresql_log_connections:       on
 postgresql_log_disconnections:    off
 postgresql_log_duration:          off
 postgresql_log_error_verbosity:   "default"  # terse, default, or verbose messages
@@ -608,7 +601,7 @@ postgresql_log_statement:  "none"  # none, ddl, mod, all
 postgresql_log_replication_commands: off
 # log temporary files equal or larger
 postgresql_log_temp_files: -1
-postgresql_log_timezone:   "UTC"
+postgresql_log_timezone:   "Europe/Moscow"
 
 #------------------------------------------------------------------------------
 # PROCESS TITLE
@@ -625,9 +618,9 @@ postgresql_update_process_title:      on   # (>= 9.2)
 postgresql_track_activities:          on
 postgresql_track_activity_query_size: 1024
 postgresql_track_counts:              on
-postgresql_track_io_timing:           off   # (>= 9.2)
-postgresql_track_wal_io_timing:       off   # (>= 14)
-postgresql_track_functions:           "none" # none, pl, all
+postgresql_track_io_timing:           on   # (>= 9.2)
+postgresql_track_wal_io_timing:       on   # (>= 14)
+postgresql_track_functions:           "all" # none, pl, all
 postgresql_stats_fetch_consistency:   cache  # (>= 15) cache, none, snapshot
 postgresql_stats_temp_directory:      "pg_stat_tmp" # (<= 14)
 
@@ -690,6 +683,7 @@ postgresql_client_min_messages: "notice"
 postgresql_search_path: # schema names
   - '"$user"'
   - "public"
+  - "extensions"
 postgresql_row_security: on                                        # (>= 9.5)
 postgresql_default_tablespace: "" # a tablespace name, "" uses the default
 postgresql_default_toast_compression: "pglz" # (>= 14) 'pglz' or 'lz4'
@@ -726,7 +720,7 @@ postgresql_datestyle:
   - "iso"
   - "mdy"
 postgresql_intervalstyle:      "postgres"
-postgresql_timezone:           "UTC" # postgres default is GMT
+postgresql_timezone:           "Europe/Moscow" # postgres default is GMT
 
 # Select the set of available time zone abbreviations. Currently, there are:
 #   Default
@@ -759,7 +753,14 @@ postgresql_default_text_search_config: "pg_catalog.english" # default is 'pg_cat
 
 postgresql_local_preload_libraries: []
 postgresql_session_preload_libraries: []
-postgresql_shared_preload_libraries: []
+postgresql_shared_preload_libraries:
+  - pg_cron
+  - timescaledb
+  - pg_stat_statements
+  - pg_stat_kcache
+  - auto_explain
+# default postgres
+cron_database_name : "data_prepare"
 postgresql_jit_provider: "llvmjit" # (>= 11)
 
 # - Other Defaults -
@@ -875,3 +876,21 @@ postgresql_apt_py2_dependencies: ["python-psycopg2", "python-pycurl", "locales"]
 postgresql_apt_dependencies: "{{ postgresql_apt_py3_dependencies if 'python3' in ansible_python_interpreter|default('') else postgresql_apt_py2_dependencies }}"
 
 postgresql_hide_passwords: false
+
+# auto explain
+auto_explain_log_min_duration: '10s'
+auto_explain_log_analyze: false
+auto_explain_log_buffers: true
+auto_explain_log_verbose: true
+auto_explain_log_format: json
+
+# pg_profile
+pg_profile_max_sample_age: '7'
+pg_profile_track_sample_timings: 'off'
+pg_profile_scheduler: "*/30 * * * *"
+pg_profile_database: "perf_report"
+pg_profile_schema: "perf_report"
+
+# pg_stat_statements
+pg_stat_statements_max: 20000
+pg_stat_statements_save: 'on'

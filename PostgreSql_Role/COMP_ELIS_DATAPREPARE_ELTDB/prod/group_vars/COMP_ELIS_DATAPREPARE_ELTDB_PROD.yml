@@ -855,6 +855,22 @@ postgresql_include_if_exists:  false
 postgresql_include:            false
 
 #------------------------------------------------------------------------------
+# LDAP
+#------------------------------------------------------------------------------
+# LDAP users files configuration
+postgresql_ldap_users_files:
+  - path: "/etc/postgresql/{{ postgresql_version }}/{{ postgresql_cluster_name }}/ldap_users.d/ntk_users.txt"
+    content: |
+      insertuserhere@ntk-corp.ru
+      andhere@ntk-corp.ru
+      ...
+    owner: postgres
+    group: postgres
+    mode: "0640"
+
+
+
+#------------------------------------------------------------------------------
 # PGTUNE
 #------------------------------------------------------------------------------
 # Should we run pgtune and accept the changes it proposes?

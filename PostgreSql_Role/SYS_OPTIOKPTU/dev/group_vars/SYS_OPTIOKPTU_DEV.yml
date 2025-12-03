@@ -153,7 +153,7 @@ postgresql_listen_addresses:
   - "*"
 postgresql_port: 5432
 
-postgresql_max_connections: 1000
+postgresql_max_connections: 100
 postgresql_reserved_connections: 0 # (>= 16)
 postgresql_superuser_reserved_connections: 3
 
@@ -215,7 +215,7 @@ postgresql_ssl_crl_dir: ""                                         # (>= 14)
 #------------------------------------------------------------------------------
 
 # - Memory -
-postgresql_shared_buffers:       8GB # min 128kB
+postgresql_shared_buffers:       128MB # min 128kB
 postgresql_huge_pages:           "try"   # on, off, or try
 postgresql_huge_page_size:     0   # (>= 14)
 postgresql_temp_buffers:         8MB   # min 800kB
@@ -355,7 +355,7 @@ postgresql_recovery_target_action: "pause"         # (>= 12)
 # Set these on the primary and on any standby that will send replication data.
 # max number of walsender processes
 postgresql_max_wal_senders: 10
-postgresql_max_replication_slots: 0 # max number of replication slots
+postgresql_max_replication_slots: 10 # max number of replication slots
 postgresql_wal_sender_delay: 1s     # walsender cycle time, 1-10000 milliseconds (<= 9.1)
 postgresql_wal_keep_segments:        0   # in logfile segments, 16MB each; 0 disables
 postgresql_wal_keep_size:            0   # (>= 13)

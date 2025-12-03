@@ -28,7 +28,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "main" # postgres default is ''
+postgresql_cluster_name: "data" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -341,7 +341,7 @@ postgresql_recovery_target_name: ""                # (>= 12)
 postgresql_recovery_target_time: ""                # (>= 12)
 postgresql_recovery_target_xid: ""                 # (>= 12)
 postgresql_recovery_target_lsn: ""                 # (>= 12)
-postgresql_recovery_target_inclusive: ""           # (>= 12)
+postgresql_recovery_target_inclusive: off           # (>= 12)
 postgresql_recovery_target_timeline: "latest"      # (>= 12)
 postgresql_recovery_target_action: "pause"         # (>= 12)
 

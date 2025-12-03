@@ -29,7 +29,7 @@ postgresql_service_user: "{{ postgresql_admin_user }}"
 postgresql_service_user_pgsql_profile: false
 postgresql_service_group: "{{ postgresql_admin_user }}"
 
-postgresql_cluster_name: "main" # postgres default is ''
+postgresql_cluster_name: "data" # postgres default is ''
 postgresql_cluster_reset: false
 
 postgresql_database_owner: "{{ postgresql_admin_user }}"
@@ -131,7 +131,7 @@ postgresql_hba_file: "{{ postgresql_conf_directory }}/pg_hba.conf"
 # Ident configuration file
 postgresql_ident_file: "{{ postgresql_conf_directory }}/pg_ident.conf"
 # Use data in another directory
-postgresql_varlib_directory_name: "postgresql"
+postgresql_varlib_directory_name: "pgsql"
 postgresql_data_directory: "/var/lib/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
 postgresql_wal_directory: ""
 postgresql_pid_directory: "/var/run/postgresql"

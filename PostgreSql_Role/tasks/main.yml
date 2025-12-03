@@ -66,6 +66,9 @@
   when: monit_protection is defined and monit_protection == true
   tags: [postgresql, postgresql-monit]
 
+- import_tasks: configure_ldap_users.yml
+  tags: [postgresql, postgresql-configure, postgresql-ldap]
+
 - import_tasks: check_pg_version_mismatch.yml
   tags: [postgresql, postgresql-version-mismatch]
   

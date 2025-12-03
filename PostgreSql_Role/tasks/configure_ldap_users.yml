@@ -1,0 +1,19 @@
+- name: PostgreSQL | Ensure LDAP users directory exists
+  file:
+    path: "/etc/postgresql/{{ postgresql_version }}/{{ postgresql_cluster_name }}/ldap_users.d"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0750'
+  when: postgresql_ldap_users_files is defined
+
+- name: PostgreSQL | Create LDAP users files
+  copy:
+    content: "{{ item.content }}"
+    dest: "{{ item.path }}"
+    owner: "{{ item.owner | default('postgres') }}"
+    group: "{{ item.group | default('postgres') }}"
+    mode: "{{ item.mode | default('0640') }}"
+  with_items: "{{ postgresql_ldap_users_files }}"
+  when: postgresql_ldap_users_files is defined
+  notify: restart postgresql
