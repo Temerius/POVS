@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFT Audio Recorder - Bluetooth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .port-info {
+            padding: 10px 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #495057;
+            min-width: 200px;
+            display: inline-block;
+        }
+
+        .port-info.selected {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.recording {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status.recording {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        audio {
+            flex: 1;
+            height: 50px;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+        }
+
+        .info li {
+            margin: 5px 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+
+        .stat-item .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .frequency-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .frequency-value {
+            font-size: 4em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .frequency-label {
+            font-size: 1.2em;
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+
+        #frequencyChart {
+            width: 100%;
+            height: 300px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+        }
+
+        .chart-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .chart-stat {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+
+        .chart-stat .label {
+            font-weight: bold;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .chart-stat .value {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    
+
+        <div class="section">
+            <h2>Подключение Bluetooth</h2>
+            <div class="control-group">
+                <label>COM порт (отправка):</label>
+                <button id="selectTxPortBtn">📡 Выбрать порт отправки</button>
+                <span id="txPortInfo" class="port-info">Не выбран</span>
+            </div>
+            <div class="control-group">
+                <label>COM порт (прием):</label>
+                <button id="selectRxPortBtn">📥 Выбрать порт приема</button>
+                <span id="rxPortInfo" class="port-info">Не выбран</span>
+            </div>
+            <div class="control-group">
+                <button id="connectBtn" disabled>🔌 Подключиться</button>
+                <button id="disconnectBtn" disabled>❌ Отключиться</button>
+            </div>
+            <div id="connectionStatus" class="status disconnected">
+                Статус: Не подключено
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Управление мониторингом</h2>
+            <div class="control-group">
+                <button id="startBtn" disabled>▶️ Начать мониторинг</button>
+                <button id="stopBtn" disabled>⏹️ Остановить</button>
+            </div>
+            <div id="recordingStatus" class="status disconnected">
+                Мониторинг не активен
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Текущая частота</h2>
+            <div class="frequency-display">
+                <div class="frequency-value" id="frequencyValue">-- Hz</div>
+                <div class="frequency-label">Основная частота сигнала</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Синусоида сигнала</h2>
+            <canvas id="frequencyChart" width="800" height="300"></canvas>
+            <div class="chart-info">
+                <div class="chart-stat">
+                    <span class="label">Текущая частота:</span>
+                    <span class="value" id="maxFreq">-- Hz</span>
+                </div>
+        
+            </div>
+        </div>
+
+    
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

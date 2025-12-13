@@ -1,0 +1,26 @@
+--cpu Cortex-M3
+"laba5_bluetooth2\startup_stm32f103xb.o"
+"laba5_bluetooth2\main.o"
+"laba5_bluetooth2\stm32f1xx_it.o"
+"laba5_bluetooth2\stm32f1xx_hal_msp.o"
+"laba5_bluetooth2\stm32f1xx_hal_gpio_ex.o"
+"laba5_bluetooth2\stm32f1xx_hal_adc.o"
+"laba5_bluetooth2\stm32f1xx_hal_adc_ex.o"
+"laba5_bluetooth2\stm32f1xx_hal.o"
+"laba5_bluetooth2\stm32f1xx_hal_rcc.o"
+"laba5_bluetooth2\stm32f1xx_hal_rcc_ex.o"
+"laba5_bluetooth2\stm32f1xx_hal_gpio.o"
+"laba5_bluetooth2\stm32f1xx_hal_dma.o"
+"laba5_bluetooth2\stm32f1xx_hal_cortex.o"
+"laba5_bluetooth2\stm32f1xx_hal_pwr.o"
+"laba5_bluetooth2\stm32f1xx_hal_flash.o"
+"laba5_bluetooth2\stm32f1xx_hal_flash_ex.o"
+"laba5_bluetooth2\stm32f1xx_hal_exti.o"
+"laba5_bluetooth2\stm32f1xx_hal_tim.o"
+"laba5_bluetooth2\stm32f1xx_hal_tim_ex.o"
+"laba5_bluetooth2\stm32f1xx_hal_uart.o"
+"laba5_bluetooth2\system_stm32f1xx.o"
+--strict --scatter "LABA5_BLUETOOTH2\LABA5_BLUETOOTH2.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "LABA5_BLUETOOTH2.map" -o LABA5_BLUETOOTH2\LABA5_BLUETOOTH2.axf
