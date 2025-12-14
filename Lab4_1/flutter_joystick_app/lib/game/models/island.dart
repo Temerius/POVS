@@ -51,12 +51,28 @@ class Island {
                                    GameConfig.islandStructuresMin + 1) + 
                        GameConfig.islandStructuresMin;
     
+    // Веса для типов структур (как в Python версии)
+    List<String> structureTypes = ['lighthouse', 'hut', 'palm', 'rock', 'shipwreck', 'chest'];
+    List<double> weights = [0.1, 0.2, 0.3, 0.2, 0.1, 0.1];
+    
     for (int i = 0; i < numStructures; i++) {
       double angle = rng.nextDouble() * 2 * pi;
       double distance = rng.nextDouble() * 0.4 + 0.3;
+      
+      // Выбор типа структуры с учетом весов
+      double randomValue = rng.nextDouble();
+      double cumulativeWeight = 0.0;
+      String selectedType = structureTypes[0];
+      for (int j = 0; j < structureTypes.length; j++) {
+        cumulativeWeight += weights[j];
+        if (randomValue <= cumulativeWeight) {
+          selectedType = structureTypes[j];
+          break;
+        }
+      }
+      
       structs.add({
-        'type': ['lighthouse', 'hut', 'palm', 'rock', 'shipwreck', 'chest']
-            [rng.nextInt(6)],
+        'type': selectedType,
         'x': x + cos(angle) * distance * radius,
         'y': y + sin(angle) * distance * radius,
         'size': rng.nextDouble() * 0.4 + 0.8,
@@ -72,11 +88,28 @@ class Island {
                                     GameConfig.islandDecorationsMin + 1) + 
                         GameConfig.islandDecorationsMin;
     
+    // Веса для типов декораций (как в Python версии)
+    List<String> decorTypes = ['bush', 'flower', 'stone', 'coconut'];
+    List<double> weights = [0.3, 0.3, 0.2, 0.2];
+    
     for (int i = 0; i < numDecorations; i++) {
       double angle = rng.nextDouble() * 2 * pi;
       double distance = rng.nextDouble() * 0.6 + 0.2;
+      
+      // Выбор типа декорации с учетом весов
+      double randomValue = rng.nextDouble();
+      double cumulativeWeight = 0.0;
+      String selectedType = decorTypes[0];
+      for (int j = 0; j < decorTypes.length; j++) {
+        cumulativeWeight += weights[j];
+        if (randomValue <= cumulativeWeight) {
+          selectedType = decorTypes[j];
+          break;
+        }
+      }
+      
       decors.add({
-        'type': ['bush', 'flower', 'stone', 'coconut'][rng.nextInt(4)],
+        'type': selectedType,
         'x': x + cos(angle) * distance * radius,
         'y': y + sin(angle) * distance * radius,
         'size': rng.nextDouble() * 0.5 + 0.5,

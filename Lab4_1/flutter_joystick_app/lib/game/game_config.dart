@@ -117,8 +117,8 @@ class GameConfig {
   // Генерация мира
   static const double worldSegmentHeight = 2000.0;
   static const double worldGenerationAhead = 1500.0;
-  static const double worldIslandSpawnChance = 0.85;
-  static const double worldIslandMinSpacing = 120.0;
+  static const double worldIslandSpawnChance = 0.5;  // Уменьшено с 0.85 для меньшей плотности
+  static const double worldIslandMinSpacing = 200.0;  // Увеличено с 120.0 для большего расстояния
   static const int worldIslandRecentCheck = 30;
   static const double worldIslandStepMin = 60.0;
   static const double worldIslandStepMax = 120.0;

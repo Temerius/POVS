@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'dart:io';
 import '../joystick_data.dart';
 import 'game_config.dart';
 import 'models/player.dart';
@@ -10,6 +11,7 @@ import 'models/enemy.dart';
 import 'models/projectile.dart';
 import 'models/island.dart';
 import 'models/whirlpool.dart';
+import 'menu_screen.dart';
 
 class ShipGameScreen extends StatefulWidget {
   final ValueNotifier<JoystickData> joystickNotifier;
@@ -36,6 +38,8 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
   double waveOffset = 0;
   int teleportEffectTimer = 0;
   bool gameOver = false;
+  bool isPaused = false;
+  bool showMainMenu = true;
   
   // Таймер игры
   Timer? gameTimer;
@@ -60,6 +64,19 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
   }
 
   void _initGame() {
+    // Очищаем все объекты перед новой игрой
+    islands.clear();
+    leftShores.clear();
+    rightShores.clear();
+    projectiles.clear();
+    enemies.clear();
+    whirlpoolManager = WhirlpoolManager();
+    
+    // Сбрасываем игровое состояние
+    waveOffset = 0;
+    teleportEffectTimer = 0;
+    
+    // Инициализируем игрока и камеру
     player = Player(GameConfig.screenWidth / 2, GameConfig.screenHeight - 150);
     cameraY = player.y - GameConfig.screenHeight + GameConfig.cameraOffset;
     worldTop = player.y - GameConfig.screenHeight * 2;
@@ -110,7 +127,7 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
 
   void _startGameLoop() {
     gameTimer = Timer.periodic(Duration(milliseconds: 1000 ~/ GameConfig.fps), (timer) {
-      if (!gameOver && mounted) {
+      if (!gameOver && !isPaused && !showMainMenu && mounted) {
         setState(() {
           _update();
         });
@@ -145,6 +162,14 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
     
     // Обновление врагов
     _updateEnemies();
+    
+    // Пауза на кнопку F (RB)
+    if (joystickData.f) {
+      setState(() {
+        isPaused = true;
+      });
+      return;
+    }
     
     // Обновление игрока с управлением от джойстика
     double joystickX = joystickData.x.toDouble();
@@ -376,12 +401,8 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
   }
 
   void _showGameOver() {
-    gameTimer?.cancel();
-    Future.delayed(Duration(milliseconds: GameConfig.uiGameOverWait), () {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    });
+    // Игра окончена, меню показывается автоматически через build()
+    // Не нужно ничего делать, просто устанавливаем gameOver = true
   }
 
   @override
@@ -399,6 +420,69 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Главное меню
+    if (showMainMenu) {
+      return MenuScreen(
+        menuType: MenuType.main,
+        joystickNotifier: widget.joystickNotifier,
+        onStartGame: () {
+          setState(() {
+            showMainMenu = false;
+            isPaused = false;
+            gameOver = false;
+            _initGame();
+          });
+        },
+        onExitGame: () {
+          exit(0);  // Полное закрытие приложения
+        },
+      );
+    }
+    
+    // Меню паузы
+    if (isPaused && !gameOver) {
+      return MenuScreen(
+        menuType: MenuType.pause,
+        joystickNotifier: widget.joystickNotifier,
+        onResumeGame: () {
+          setState(() {
+            isPaused = false;
+          });
+        },
+        onRestartGame: () {
+          setState(() {
+            isPaused = false;
+            gameOver = false;
+            _initGame();
+          });
+        },
+        onExitGame: () {
+          exit(0);  // Полное закрытие приложения
+        },
+      );
+    }
+    
+    // Меню окончания игры
+    if (gameOver) {
+      int miles = player.y > 0 ? 0 : (player.y.abs() / GameConfig.pixelsPerMile).toInt();
+      return MenuScreen(
+        menuType: MenuType.gameOver,
+        joystickNotifier: widget.joystickNotifier,
+        finalScore: player.score,
+        finalMiles: miles,
+        onRestartGame: () {
+          setState(() {
+            gameOver = false;
+            isPaused = false;
+            _initGame();
+          });
+        },
+        onExitGame: () {
+          exit(0);  // Полное закрытие приложения
+        },
+      );
+    }
+    
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -774,20 +858,14 @@ class GamePainter extends CustomPainter {
         ..style = PaintingStyle.stroke,
     );
     
-    // Структуры и декорации (упрощённо - можно доработать)
+    // Структуры
     for (var structure in island.structures) {
-      double x = structure['x'];
-      double y = structure['y'] - cameraY;
-      double structSize = structure['size'];
-      
-      if (y < -100 || y > GameConfig.screenHeight + 100) continue;
-      
-      // Простая отрисовка структур (можно улучшить)
-      canvas.drawCircle(
-        ui.Offset(x, y),
-        8 * structSize,
-        Paint()..color = Color(GameConfig.brown),
-      );
+      _drawStructure(canvas, structure, cameraY);
+    }
+    
+    // Декорации
+    for (var decor in island.decorations) {
+      _drawDecoration(canvas, decor, cameraY);
     }
   }
 
@@ -904,7 +982,8 @@ class GamePainter extends CustomPainter {
       if (img != null) {
         canvas.save();
         canvas.translate(player.x, yScreen);
-        canvas.rotate(-player.hullAngle * pi / 180);
+        // Зеркально по вертикали (изменяем знак угла)
+        canvas.rotate(player.hullAngle * pi / 180);
         canvas.drawImageRect(
           img,
           Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
@@ -931,6 +1010,225 @@ class GamePainter extends CustomPainter {
       Paint()..color = Colors.blue,
     );
     canvas.restore();
+  }
+
+  void _drawStructure(Canvas canvas, Map<String, dynamic> structure, double cameraY) {
+    double x = structure['x'];
+    double y = structure['y'] - cameraY;
+    double structSize = structure['size'];
+    String structType = structure['type'];
+    double angle = structure['angle'] ?? 0;
+    Random rng = Random();
+    
+    if (y < -100 || y > GameConfig.screenHeight + 100) return;
+    
+    switch (structType) {
+      case 'lighthouse':
+        // Башня маяка
+        canvas.drawRect(
+          Rect.fromLTWH(x - 8 * structSize, y - 35 * structSize, 16 * structSize, 35 * structSize),
+          Paint()..color = Color(GameConfig.brown),
+        );
+        // Крыша маяка
+        Path roofPath = Path();
+        roofPath.moveTo(x, y - 45 * structSize);
+        roofPath.lineTo(x - 12 * structSize, y - 35 * structSize);
+        roofPath.lineTo(x + 12 * structSize, y - 35 * structSize);
+        roofPath.close();
+        canvas.drawPath(roofPath, Paint()..color = Color(GameConfig.red));
+        // Огонь маяка (50% шанс)
+        if (rng.nextDouble() < 0.5) {
+          canvas.drawCircle(
+            ui.Offset(x, y - 45 * structSize),
+            5 * structSize,
+            Paint()..color = Color(GameConfig.gold),
+          );
+        }
+        break;
+        
+      case 'hut':
+        // Хижина
+        Path hutPath = Path();
+        hutPath.moveTo(x - 15 * structSize, y);
+        hutPath.lineTo(x + 15 * structSize, y);
+        hutPath.lineTo(x + 15 * structSize, y - 25 * structSize);
+        hutPath.lineTo(x, y - 35 * structSize);
+        hutPath.lineTo(x - 15 * structSize, y - 25 * structSize);
+        hutPath.close();
+        canvas.drawPath(hutPath, Paint()..color = Color(GameConfig.brown));
+        // Дверь
+        canvas.drawRect(
+          Rect.fromLTWH(x - 5 * structSize, y - 10 * structSize, 10 * structSize, 10 * structSize),
+          Paint()..color = ui.Color.fromRGBO(100, 50, 0, 1.0),
+        );
+        break;
+        
+      case 'palm':
+        // Ствол пальмы
+        canvas.drawRect(
+          Rect.fromLTWH(x - 3 * structSize, y, 6 * structSize, -30 * structSize),
+          Paint()..color = ui.Color.fromRGBO(101, 67, 33, 1.0),
+        );
+        // Листья пальмы (с покачиванием)
+        double sway = sin(DateTime.now().millisecondsSinceEpoch / 300.0 + angle) * 3 * structSize;
+        canvas.drawCircle(
+          ui.Offset(x + sway, y - 30 * structSize),
+          15 * structSize,
+          Paint()..color = ui.Color.fromRGBO(0, 100, 0, 1.0),
+        );
+        canvas.drawCircle(
+          ui.Offset(x + 10 * structSize + sway / 2, y - 25 * structSize),
+          10 * structSize,
+          Paint()..color = ui.Color.fromRGBO(0, 120, 0, 1.0),
+        );
+        canvas.drawCircle(
+          ui.Offset(x - 10 * structSize + sway / 2, y - 25 * structSize),
+          10 * structSize,
+          Paint()..color = ui.Color.fromRGBO(0, 120, 0, 1.0),
+        );
+        break;
+        
+      case 'rock':
+        // Камень
+        Path rockPath = Path();
+        for (int i = 0; i < 6; i++) {
+          double rockAngle = i * pi / 3 + angle / 100;
+          double r = rng.nextDouble() * 4 + 8;
+          if (i == 0) {
+            rockPath.moveTo(
+              x + cos(rockAngle) * r * structSize,
+              y - 20 * structSize + sin(rockAngle) * r * structSize,
+            );
+          } else {
+            rockPath.lineTo(
+              x + cos(rockAngle) * r * structSize,
+              y - 20 * structSize + sin(rockAngle) * r * structSize,
+            );
+          }
+        }
+        rockPath.close();
+        canvas.drawPath(rockPath, Paint()..color = ui.Color.fromRGBO(100, 100, 100, 1.0));
+        canvas.drawPath(
+          rockPath,
+          Paint()
+            ..color = ui.Color.fromRGBO(80, 80, 80, 1.0)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
+        );
+        break;
+        
+      case 'shipwreck':
+        // Обломки корабля
+        canvas.drawOval(
+          Rect.fromLTWH(x - 20 * structSize, y - 5 * structSize, 40 * structSize, 15 * structSize),
+          Paint()..color = ui.Color.fromRGBO(70, 50, 30, 1.0),
+        );
+        // Мачта
+        canvas.drawRect(
+          Rect.fromLTWH(x - 2 * structSize, y - 25 * structSize, 4 * structSize, 20 * structSize),
+          Paint()..color = ui.Color.fromRGBO(80, 60, 40, 1.0),
+        );
+        // Парус
+        Path sailPath = Path();
+        sailPath.moveTo(x, y - 25 * structSize);
+        sailPath.lineTo(x + 15 * structSize, y - 15 * structSize);
+        sailPath.lineTo(x, y - 5 * structSize);
+        sailPath.close();
+        canvas.drawPath(
+          sailPath,
+          Paint()
+            ..color = ui.Color.fromRGBO(200, 200, 200, 0.4)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
+        );
+        break;
+        
+      case 'chest':
+        // Сундук
+        canvas.drawRect(
+          Rect.fromLTWH(x - 10 * structSize, y - 5 * structSize, 20 * structSize, 10 * structSize),
+          Paint()..color = Color(GameConfig.gold),
+        );
+        // Крышка сундука
+        Path lidPath = Path();
+        lidPath.moveTo(x - 12 * structSize, y - 5 * structSize);
+        lidPath.lineTo(x + 12 * structSize, y - 5 * structSize);
+        lidPath.lineTo(x + 10 * structSize, y - 15 * structSize);
+        lidPath.lineTo(x - 10 * structSize, y - 15 * structSize);
+        lidPath.close();
+        canvas.drawPath(lidPath, Paint()..color = ui.Color.fromRGBO(150, 100, 50, 1.0));
+        // Замок
+        canvas.drawCircle(
+          ui.Offset(x, y - 10 * structSize),
+          3 * structSize,
+          Paint()..color = ui.Color.fromRGBO(50, 50, 50, 1.0),
+        );
+        break;
+    }
+  }
+
+  void _drawDecoration(Canvas canvas, Map<String, dynamic> decor, double cameraY) {
+    double x = decor['x'];
+    double y = decor['y'] - cameraY;
+    double decorSize = decor['size'];
+    String decorType = decor['type'];
+    
+    if (y < -50 || y > GameConfig.screenHeight + 50) return;
+    
+    switch (decorType) {
+      case 'bush':
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          8 * decorSize,
+          Paint()..color = ui.Color.fromRGBO(0, 100, 0, 1.0),
+        );
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          6 * decorSize,
+          Paint()
+            ..color = ui.Color.fromRGBO(0, 80, 0, 1.0)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
+        );
+        break;
+        
+      case 'flower':
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          5 * decorSize,
+          Paint()..color = ui.Color.fromRGBO(255, 100, 150, 1.0),
+        );
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          2 * decorSize,
+          Paint()..color = ui.Color.fromRGBO(255, 255, 0, 1.0),
+        );
+        break;
+        
+      case 'stone':
+        Path stonePath = Path();
+        stonePath.moveTo(x - 5 * decorSize, y);
+        stonePath.lineTo(x + 3 * decorSize, y - 3 * decorSize);
+        stonePath.lineTo(x + 5 * decorSize, y + 2 * decorSize);
+        stonePath.lineTo(x, y + 5 * decorSize);
+        stonePath.lineTo(x - 4 * decorSize, y + 2 * decorSize);
+        stonePath.close();
+        canvas.drawPath(stonePath, Paint()..color = ui.Color.fromRGBO(120, 120, 120, 1.0));
+        break;
+        
+      case 'coconut':
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          4 * decorSize,
+          Paint()..color = ui.Color.fromRGBO(101, 67, 33, 1.0),
+        );
+        canvas.drawCircle(
+          ui.Offset(x, y),
+          2 * decorSize,
+          Paint()..color = ui.Color.fromRGBO(50, 30, 15, 1.0),
+        );
+        break;
+    }
   }
 
   @override
