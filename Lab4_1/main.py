@@ -1,146 +1,106 @@
 import time
 import serial
-import serial.tools.list_ports
 import vgamepad as vg
 
-COM_PORT = "COM7"  
-BAUD_RATE = 115200
-DEBUG = True
+COM_PORT = "COM7"
+BAUD_RATE = 9600
 
-DEADZONE = 8
-INVERT_X = False
-INVERT_Y = False
-SWAP_AXES = False
-CALIBRATION_SAMPLES = 20
+gamepad = vg.VX360Gamepad()
 
-offset_x = 0
-offset_y = 0
+# Попытка подключения с обработкой ошибок
+try:
+    ser = serial.Serial(COM_PORT, BAUD_RATE, timeout=1)
+    print(f"[INFO] Подключено к {COM_PORT} @ {BAUD_RATE} bps")
+except serial.SerialException as e:
+    print(f"[ERROR] Не удалось подключиться к {COM_PORT}: {e}")
+    print("[INFO] Проверьте:")
+    print("  1. Правильность COM-порта (может быть COM3, COM4 и т.д.)")
+    print("  2. Что Bluetooth адаптер подключен")
+    print("  3. Что HC-05 сопряжен с компьютером")
+    exit(1)
 
 def clamp(v, a, b):
     return max(a, min(b, v))
-
-def apply_deadzone(value, deadzone):
-    if abs(value) < deadzone:
-        return 0
-    if value > 0:
-        return (value - deadzone) * 100 // (100 - deadzone)
-    else:
-        return (value + deadzone) * 100 // (100 - deadzone)
 
 def map_percent_to_axis(value):
     value = clamp(value, -100, 100)
     return value / 100.0
 
 def parse_line(line):
-    out = {'X': 0, 'Y': 0}
+    out = {'x': 0, 'y': 0, 'UP': 0, 'RIGHT': 0, 'LEFT': 0, 'DOWN': 0, 'E': 0, 'F': 0, 'JOYSTICK': 0}
     parts = line.strip().split(';')
     for p in parts:
         if '=' in p:
+            k, v = p.split('=')
+            k = k.strip().upper()
             try:
-                k, v = p.split('=', 1)
-                k = k.strip().upper()
                 val = int(v.strip())
-                if k in ['X', 'Y']:
-                    out[k] = val
-                else:
-                    out[k] = 1 if val else 0
-            except ValueError:
-                pass
+            except:
+                val = 0
+            if k == 'X':
+                out['x'] = val
+            elif k == 'Y':
+                out['y'] = val
+            else:
+                out[k] = 1 if val else 0
     return out
 
-def is_data_line(line):
-    return line.startswith('X=') and 'Y=' in line
+print(f"[INFO] Ожидание данных от джойстика...")
+print(f"[INFO] Если данные не приходят, проверьте:")
+print(f"  1. Что STM32 включен и работает")
+print(f"  2. Что HC-05 мигает (подключен)")
+print(f"  3. Правильность скорости передачи ({BAUD_RATE} бод)")
 
-def process_joystick(raw_x, raw_y):
-    global offset_x, offset_y
-    x = raw_x - offset_x
-    y = raw_y - offset_y
-    if SWAP_AXES:
-        x, y = y, x
-    if INVERT_X:
-        x = -x
-    if INVERT_Y:
-        y = -y
-    x = apply_deadzone(x, DEADZONE)
-    y = apply_deadzone(y, DEADZONE)
-    return x, y
-
-try:
-    ser = serial.Serial(COM_PORT, BAUD_RATE, timeout=1)
-    print(f"[OK] Serial port {COM_PORT} opened")
-except serial.SerialException as e:
-    print(f"[ERROR] Failed to open {COM_PORT}: {e}")
-    exit(1)
-
-try:
-    gamepad = vg.VX360Gamepad()
-    print("[OK] Virtual Xbox gamepad created")
-except Exception as e:
-    print(f"[ERROR] Failed to create gamepad: {e}")
-    ser.close()
-    exit(1)
-
-print()
-print("[CALIBRATION] Don't touch the joystick!")
-print(f"[CALIBRATION] Reading {CALIBRATION_SAMPLES} samples...")
-
-cal_x = []
-cal_y = []
-cal_count = 0
-
-while cal_count < CALIBRATION_SAMPLES:
-    raw_bytes = ser.readline()
-    if not raw_bytes:
-        continue
-    raw = raw_bytes.decode(errors='ignore').strip()
-    if is_data_line(raw):
-        data = parse_line(raw)
-        cal_x.append(data['X'])
-        cal_y.append(data['Y'])
-        cal_count += 1
-        print(f"  Sample {cal_count}/{CALIBRATION_SAMPLES}: X={data['X']:+4d}, Y={data['Y']:+4d}")
-
-offset_x = sum(cal_x) // len(cal_x)
-offset_y = sum(cal_y) // len(cal_y)
-
-print()
-print(f"[CALIBRATION] Center offset: X={offset_x:+d}, Y={offset_y:+d}")
-print("[CALIBRATION] Done!")
-print()
-print(f"[SETTINGS] Deadzone: {DEADZONE}%")
-print(f"[SETTINGS] Invert X: {INVERT_X}, Invert Y: {INVERT_Y}")
-print("-" * 50)
-
+# Маппинг кнопок на Xbox контроллер
 BUTTON_MAP = {
-    'JOYSTICK':  vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
-    'E':         vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,
-    'F':         vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
-    'UP':        vg.XUSB_BUTTON.XUSB_GAMEPAD_Y,
-    'DOWN':      vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
-    'LEFT':      vg.XUSB_BUTTON.XUSB_GAMEPAD_X,
-    'RIGHT':     vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
+    'E': vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,      # E -> LB (Left Bumper)
+    'F': vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,     # F -> RB (Right Bumper)
+    'JOYSTICK': vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,  # Нажатие джойстика -> Left Stick Click
+    'UP': vg.XUSB_BUTTON.XUSB_GAMEPAD_Y,                 # UP -> Y
+    'DOWN': vg.XUSB_BUTTON.XUSB_GAMEPAD_A,               # DOWN -> A
+    'LEFT': vg.XUSB_BUTTON.XUSB_GAMEPAD_X,               # LEFT -> X
+    'RIGHT': vg.XUSB_BUTTON.XUSB_GAMEPAD_B,              # RIGHT -> B
 }
 
-data_count = 0
+no_data_counter = 0
+first_run = True
 
 try:
+    print(f"[INFO] Начинаем чтение данных...")
+    print(f"[INFO] Проверка: порт открыт = {ser.is_open}")
+    
     while True:
-        raw_bytes = ser.readline()
-        if not raw_bytes:
-            continue
-        raw = raw_bytes.decode(errors='ignore').strip()
-        if not raw:
+        # Читаем данные
+        if ser.in_waiting > 0:
+            raw_bytes = ser.readline()
+            
+            if raw_bytes and len(raw_bytes) > 0:
+                try:
+                    raw = raw_bytes.decode('utf-8', errors='ignore').strip()
+                    print(f"[DATA] {raw}")
+                except:
+                    raw = raw_bytes.decode('latin-1', errors='ignore').strip()
+                    print(f"[DATA] {raw}")
+                
+                if raw and len(raw) >= 5:
+                    data = parse_line(raw)
+        
+        # Проверяем что данные корректны
+        if 'x' not in data or 'y' not in data:
+            print(f"[WARNING] Некорректный формат данных: {raw}")
+            print(f"[WARNING] Parsed data: {data}")
             continue
         
-        if is_data_line(raw):
-            data_count += 1
-            data = parse_line(raw)
-            
-            joy_x, joy_y = process_joystick(data['X'], data['Y'])
-            fx = map_percent_to_axis(joy_x)
-            fy = map_percent_to_axis(joy_y)
+        # Проверяем что данные корректны
+        if 'x' in data and 'y' in data:
+            # Джойстик (Left Stick)
+            x = data['x'] + 4
+            y = data['y'] + 3
+            fx = map_percent_to_axis(x)
+            fy = map_percent_to_axis(y)
             gamepad.left_joystick_float(fx, fy)
             
+            # Все кнопки (E, F, JOYSTICK, UP, DOWN, LEFT, RIGHT)
             for key, btn in BUTTON_MAP.items():
                 if data.get(key, 0):
                     gamepad.press_button(btn)
@@ -148,22 +108,23 @@ try:
                     gamepad.release_button(btn)
             
             gamepad.update()
-            
-            if DEBUG and data_count % 1 == 0:
-                print(f"X: {joy_x:+4d} | Y: {joy_y:+4d} | "
-                      f"UP: {data.get('UP', 0)} | DOWN: {data.get('DOWN', 0)} | "
-                      f"LEFT: {data.get('LEFT', 0)} | RIGHT: {data.get('RIGHT', 0)} | "
-                      f"E: {data.get('E', 0)} | F: {data.get('F', 0)} | "
-                      f"JOY: {data.get('JOYSTICK', 0)}")
+            no_data_counter = 0
         else:
-            print(f"[STM32] {raw}")
+            no_data_counter += 1
+            if no_data_counter % 500 == 0:  # Каждые ~5 секунд
+                print(f"[WARNING] Данные не поступают... (ждем {no_data_counter * 0.01:.1f} сек)")
         
-        time.sleep(0.001)
-
+        time.sleep(0.01)
 except KeyboardInterrupt:
-    print("\n[INFO] Exiting...")
-    
+    print("\n[INFO] Остановка...")
+except serial.SerialException as e:
+    print(f"\n[ERROR] Ошибка связи: {e}")
+except Exception as e:
+    print(f"\n[ERROR] Неожиданная ошибка: {e}")
+    import traceback
+    traceback.print_exc()
 finally:
-    ser.close()
+    if ser.is_open:
+        ser.close()
     gamepad.reset()
-    print("[OK] Done!")
+    print("[INFO] Подключение закрыто, контроллер сброшен")

@@ -2,7 +2,17 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body - Gamepad with calibration
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -26,8 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SEND_INTERVAL_MS  20  // ???????? 20?? (50 Hz)
-#define CALIBRATION_SAMPLES 50
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -39,126 +48,49 @@
 
 /* USER CODE BEGIN PV */
 uint16_t adc_buffer[2];
-char uart_buf[128];
-uint32_t send_counter = 0;
-volatile uint8_t adc_ready = 0;
+char uart_buf[64];
 
-// ????????????? ???????? ??? ?????????
-uint16_t joy_x_min = 0;
-uint16_t joy_x_max = 4095;
-uint16_t joy_x_center = 2048;
+int16_t transform_axe(int v)
+{
+    int32_t centered = v - 2048;     
+    int32_t scaled   = centered * 100 / 2048;
+	
+    return (int16_t)scaled;
+}
+void Send_Data()
+{
+    int len = snprintf(uart_buf, sizeof(uart_buf),
+			"X=%d;Y=%d;UP=%d;RIGHT=%d;LEFT=%d;DOWN=%d;E=%d;F=%d;JOYSTICK=%d\r\n",
+			transform_axe(adc_buffer[0]),
+			transform_axe(adc_buffer[1]),
+			HAL_GPIO_ReadPin(BUTTON_UP_GPIO_Port, BUTTON_UP_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_RIGHT_GPIO_Port, BUTTON_RIGHT_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_LEFT_GPIO_Port, BUTTON_LEFT_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_E_GPIO_Port, BUTTON_E_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_F_GPIO_Port, BUTTON_F_Pin) == GPIO_PIN_RESET ? 1 : 0,
+			HAL_GPIO_ReadPin(BUTTON_JOYSTICK_GPIO_Port, BUTTON_JOYSTICK_Pin) == GPIO_PIN_RESET ? 1 : 0
+	);
 
-uint16_t joy_y_min = 0;
-uint16_t joy_y_max = 4095;
-uint16_t joy_y_center = 2048;
+    // Используем блокирующую передачу с проверкой статуса
+    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, 1000);
+    
+    // Если передача не удалась, пытаемся еще раз после небольшой задержки
+    if (status != HAL_OK) {
+        HAL_Delay(10);
+        HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, 1000);
+    }
+}
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-int16_t transform_axe_calibrated(uint16_t raw, uint16_t min_val, uint16_t max_val, uint16_t center);
-void Send_Data(void);
-void Calibrate_Joystick(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-// ?????????????? ? ?????? ?????????? - ???????????? ????? -100..+100
-int16_t transform_axe_calibrated(uint16_t raw, uint16_t min_val, uint16_t max_val, uint16_t center)
-{
-    int32_t result;
-    
-    if (raw < center)
-    {
-        // ????????????? ?????: min_val..center -> -100..0
-        if (center == min_val) return 0;
-        result = ((int32_t)raw - (int32_t)center) * 100 / ((int32_t)center - (int32_t)min_val);
-    }
-    else
-    {
-        // ????????????? ?????: center..max_val -> 0..+100
-        if (max_val == center) return 0;
-        result = ((int32_t)raw - (int32_t)center) * 100 / ((int32_t)max_val - (int32_t)center);
-    }
-    
-    // ????????????
-    if (result < -100) result = -100;
-    if (result > 100) result = 100;
-    
-    return (int16_t)result;
-}
-
-void Calibrate_Joystick(void)
-{
-    char msg[64];
-    uint32_t sum_x = 0, sum_y = 0;
-    
-    HAL_UART_Transmit(&huart3, (uint8_t*)"[CAL] Reading center...\r\n", 25, 100);
-    
-    // ?????? ????? (???????? ? ?????)
-    for (int i = 0; i < CALIBRATION_SAMPLES; i++)
-    {
-        HAL_Delay(10);
-        sum_x += adc_buffer[0];
-        sum_y += adc_buffer[1];
-    }
-    
-    joy_x_center = sum_x / CALIBRATION_SAMPLES;
-    joy_y_center = sum_y / CALIBRATION_SAMPLES;
-    
-    // ????????????? ???????? min/max ?? ?????? ??????
-    // ???????????? ???????????? ???????? ?? ??????
-    uint16_t range_x = (joy_x_center < 2048) ? joy_x_center : (4095 - joy_x_center);
-    uint16_t range_y = (joy_y_center < 2048) ? joy_y_center : (4095 - joy_y_center);
-    
-    joy_x_min = joy_x_center - range_x;
-    joy_x_max = joy_x_center + range_x;
-    joy_y_min = joy_y_center - range_y;
-    joy_y_max = joy_y_center + range_y;
-    
-    int len = snprintf(msg, sizeof(msg), "[CAL] X: center=%d, range=%d-%d\r\n", 
-                       joy_x_center, joy_x_min, joy_x_max);
-    HAL_UART_Transmit(&huart3, (uint8_t*)msg, len, 100);
-    
-    len = snprintf(msg, sizeof(msg), "[CAL] Y: center=%d, range=%d-%d\r\n", 
-                   joy_y_center, joy_y_min, joy_y_max);
-    HAL_UART_Transmit(&huart3, (uint8_t*)msg, len, 100);
-    
-    HAL_UART_Transmit(&huart3, (uint8_t*)"[CAL] Done!\r\n", 13, 100);
-}
-
-void Send_Data(void)
-{
-    send_counter++;
-
-    int16_t x_val = transform_axe_calibrated(adc_buffer[0], joy_x_min, joy_x_max, joy_x_center);
-    int16_t y_val = transform_axe_calibrated(adc_buffer[1], joy_y_min, joy_y_max, joy_y_center);
-
-    int len = snprintf(uart_buf, sizeof(uart_buf),
-        "X=%d;Y=%d;UP=%d;RIGHT=%d;LEFT=%d;DOWN=%d;E=%d;F=%d;JOYSTICK=%d;CNT=%lu\r\n",
-        x_val,
-        y_val,
-        HAL_GPIO_ReadPin(BUTTON_UP_GPIO_Port, BUTTON_UP_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_RIGHT_GPIO_Port, BUTTON_RIGHT_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_LEFT_GPIO_Port, BUTTON_LEFT_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_E_GPIO_Port, BUTTON_E_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_F_GPIO_Port, BUTTON_F_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        HAL_GPIO_ReadPin(BUTTON_JOYSTICK_GPIO_Port, BUTTON_JOYSTICK_Pin) == GPIO_PIN_RESET ? 1 : 0,
-        send_counter
-    );
-
-    HAL_UART_Transmit(&huart3, (uint8_t*)uart_buf, len, 100);
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    if (hadc->Instance == ADC1)
-    {
-        adc_ready = 1;
-    }
-}
 
 /* USER CODE END 0 */
 
@@ -168,11 +100,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
-  uint32_t last_send_tick = 0;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -191,60 +126,26 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
-  MX_USART3_UART_Init();
-  
   /* USER CODE BEGIN 2 */
-  
-  HAL_ADCEx_Calibration_Start(&hadc1);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
-  
-  char startup_msg[] = "=== STM32 Gamepad Started ===\r\n";
-  HAL_UART_Transmit(&huart3, (uint8_t*)startup_msg, strlen(startup_msg), 100);
-  
-  // ?????? - ?? ?????? ????????
-  for(int i = 0; i < 3; i++)
-  {
-      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-      HAL_Delay(100);
-      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-      HAL_Delay(100);
-  }
-  
-  // ???? ???????????? ADC
-  HAL_Delay(200);
-  
-  // ????????? ????????
-  Calibrate_Joystick();
-  
-  // ????? - ??????? ???????
-  for(int i = 0; i < 5; i++)
-  {
-      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-      HAL_Delay(50);
-      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-      HAL_Delay(50);
-  }
-  
+	HAL_StatusTypeDef status = HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
+	
+	// Небольшая задержка для стабилизации USART
+	HAL_Delay(100);
+	
+	// Тестовая отправка для проверки работы
+	char test_msg[] = "STM32_START\r\n";
+	HAL_UART_Transmit(&huart2, (uint8_t*)test_msg, strlen(test_msg), 100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (HAL_GetTick() - last_send_tick >= SEND_INTERVAL_MS)
-    {
-        last_send_tick = HAL_GetTick();
-        Send_Data();
-        
-        if (send_counter % 50 == 0)
-        {
-            HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-        }
-    }
-    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		Send_Data(); 
+		HAL_Delay(20);  
   }
   /* USER CODE END 3 */
 }
@@ -295,6 +196,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 /* USER CODE END 4 */
 
 /**

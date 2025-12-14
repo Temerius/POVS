@@ -1,0 +1,27 @@
+БЫСТРОЕ ИСПРАВЛЕНИЕ ПРОБЛЕМЫ С NAMESPACE:
+
+1. Найдите файл (обычно здесь):
+   C:\Users\artem\.pub-cache\hosted\pub.dev\flutter_bluetooth_serial-0.4.0\android\build.gradle
+
+2. Откройте его в текстовом редакторе
+
+3. Найдите строку: "android {" (обычно в начале файла)
+
+4. Сразу после "android {" добавьте новую строку:
+   namespace "it.matteocrippa.flutterbluetoothserial"
+
+   Должно получиться примерно так:
+   android {
+       namespace "it.matteocrippa.flutterbluetoothserial"
+       // остальной код...
+
+5. Сохраните файл
+
+6. Запустите: flutter run
+
+Если файл не найден, проверьте путь:
+- Откройте папку: %USERPROFILE%\.pub-cache\hosted\pub.dev\
+- Найдите папку flutter_bluetooth_serial-0.4.0
+- В ней будет папка android
+- Там будет файл build.gradle (или build.gradle.kts)
+

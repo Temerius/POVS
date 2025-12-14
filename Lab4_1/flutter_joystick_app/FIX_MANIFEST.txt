@@ -1,0 +1,29 @@
+ИСПРАВЛЕНИЕ ANDROIDMANIFEST.XML ПЛАГИНА:
+
+Нужно убрать package из AndroidManifest.xml плагина flutter_bluetooth_serial.
+
+1. Откройте файл:
+   C:\Users\artem\.pub-cache\hosted\pub.dev\flutter_bluetooth_serial-0.4.0\android\src\main\AndroidManifest.xml
+
+2. Найдите строку с package, например:
+   <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+             package="io.github.edufolly.flutterbluetoothserial">
+
+3. Удалите package="io.github.edufolly.flutterbluetoothserial"
+
+4. Должно остаться:
+   <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+5. Сохраните файл
+
+6. Также убедитесь, что в build.gradle плагина есть namespace:
+   android {
+       namespace "io.github.edufolly.flutterbluetoothserial"
+       ...
+   }
+
+   (Это должно быть в файле: 
+   C:\Users\artem\.pub-cache\hosted\pub.dev\flutter_bluetooth_serial-0.4.0\android\build.gradle)
+
+После этого запустите: flutter run
+
