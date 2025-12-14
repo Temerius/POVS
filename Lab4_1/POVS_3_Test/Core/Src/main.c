@@ -72,10 +72,9 @@ void Send_Data()
 			HAL_GPIO_ReadPin(BUTTON_JOYSTICK_GPIO_Port, BUTTON_JOYSTICK_Pin) == GPIO_PIN_RESET ? 1 : 0
 	);
 
-    // Используем блокирующую передачу с проверкой статуса
+    
     HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, 1000);
     
-    // Если передача не удалась, пытаемся еще раз после небольшой задержки
     if (status != HAL_OK) {
         HAL_Delay(10);
         HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, 1000);
@@ -129,10 +128,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_StatusTypeDef status = HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 	
-	// Небольшая задержка для стабилизации USART
 	HAL_Delay(100);
 	
-	// Тестовая отправка для проверки работы
 	char test_msg[] = "STM32_START\r\n";
 	HAL_UART_Transmit(&huart2, (uint8_t*)test_msg, strlen(test_msg), 100);
   /* USER CODE END 2 */

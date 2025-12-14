@@ -464,7 +464,7 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
     
     // Меню окончания игры
     if (gameOver) {
-      int miles = player.y > 0 ? 0 : (player.y.abs() / GameConfig.pixelsPerMile).toInt();
+      int miles = (player.totalDistance / GameConfig.pixelsPerMile).toInt();
       return MenuScreen(
         menuType: MenuType.gameOver,
         joystickNotifier: widget.joystickNotifier,
@@ -529,7 +529,7 @@ class _ShipGameScreenState extends State<ShipGameScreen> {
 
   Widget _buildUI(double scale) {
     double healthRatio = (player.health / player.maxHealth).clamp(0.0, 1.0);
-    int miles = player.y > 0 ? 0 : (player.y.abs() / GameConfig.pixelsPerMile).toInt();
+    int miles = (player.totalDistance / GameConfig.pixelsPerMile).toInt();
     
     // Получаем размер экрана для адаптивного UI
     final screenSize = MediaQuery.of(context).size;

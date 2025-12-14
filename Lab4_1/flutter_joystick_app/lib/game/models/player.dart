@@ -14,6 +14,7 @@ class Player {
   late int shootCooldown;
   late int score;
   late double radius;
+  late double totalDistance;  // Общее пройденное расстояние в пикселях
 
   Player(this.x, this.y) {
     hullAngle = 0;
@@ -24,6 +25,7 @@ class Player {
     shootCooldown = 0;
     score = 0;
     radius = GameConfig.collisionRadiusPlayer;
+    totalDistance = 0.0;
   }
 
   void update(double joystickX, double joystickY, List<dynamic> obstacles) {
@@ -75,6 +77,9 @@ class Player {
     
     // Движение вперёд (вверх по экрану в игре) - всегда
     y -= forwardSpeed;
+    
+    // Накапливаем пройденное расстояние с учетом реальной скорости
+    totalDistance += forwardSpeed;
     
     // Боковое смещение от угла поворота И от джойстика X
     // Чем больше отклонение X, тем больше боковое смещение

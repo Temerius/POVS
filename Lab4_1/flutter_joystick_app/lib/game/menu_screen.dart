@@ -229,7 +229,7 @@ class _MenuScreenState extends State<MenuScreen> {
   String _getTitle() {
     switch (widget.menuType) {
       case MenuType.main:
-        return 'МОРСКОЙ БОЙ';
+        return 'МЕЙФЛАУЭР';
       case MenuType.pause:
         return 'ПАУЗА';
       case MenuType.gameOver:

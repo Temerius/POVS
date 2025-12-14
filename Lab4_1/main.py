@@ -3,11 +3,10 @@ import serial
 import vgamepad as vg
 
 COM_PORT = "COM7"
-BAUD_RATE = 9600
+BAUD_RATE = 112500
 
 gamepad = vg.VX360Gamepad()
 
-# Попытка подключения с обработкой ошибок
 try:
     ser = serial.Serial(COM_PORT, BAUD_RATE, timeout=1)
     print(f"[INFO] Подключено к {COM_PORT} @ {BAUD_RATE} bps")
@@ -51,7 +50,6 @@ print(f"  1. Что STM32 включен и работает")
 print(f"  2. Что HC-05 мигает (подключен)")
 print(f"  3. Правильность скорости передачи ({BAUD_RATE} бод)")
 
-# Маппинг кнопок на Xbox контроллер
 BUTTON_MAP = {
     'E': vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,      # E -> LB (Left Bumper)
     'F': vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,     # F -> RB (Right Bumper)
@@ -70,7 +68,6 @@ try:
     print(f"[INFO] Проверка: порт открыт = {ser.is_open}")
     
     while True:
-        # Читаем данные
         if ser.in_waiting > 0:
             raw_bytes = ser.readline()
             
@@ -85,13 +82,11 @@ try:
                 if raw and len(raw) >= 5:
                     data = parse_line(raw)
         
-        # Проверяем что данные корректны
         if 'x' not in data or 'y' not in data:
             print(f"[WARNING] Некорректный формат данных: {raw}")
             print(f"[WARNING] Parsed data: {data}")
             continue
         
-        # Проверяем что данные корректны
         if 'x' in data and 'y' in data:
             # Джойстик (Left Stick)
             x = data['x'] + 4
@@ -111,7 +106,7 @@ try:
             no_data_counter = 0
         else:
             no_data_counter += 1
-            if no_data_counter % 500 == 0:  # Каждые ~5 секунд
+            if no_data_counter % 500 == 0:  
                 print(f"[WARNING] Данные не поступают... (ждем {no_data_counter * 0.01:.1f} сек)")
         
         time.sleep(0.01)
