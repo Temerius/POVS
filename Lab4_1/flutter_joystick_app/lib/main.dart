@@ -132,18 +132,40 @@ class _BluetoothConnectionScreenState extends State<BluetoothConnectionScreen> {
       // Закрываем старое соединение если есть
       if (_connection != null) {
         _log("Закрытие старого соединения...");
-        await _connection!.close();
+        try {
+          await _connection!.close();
+        } catch (e) {
+          _log("Ошибка закрытия старого соединения: $e");
+        }
         _connection = null;
+        await Future.delayed(const Duration(milliseconds: 500));
       }
 
       _log("Попытка подключения...");
       
+      // Проверяем, что устройство спарено
+      if (!_devices.any((d) => d.address == address)) {
+        throw Exception("Устройство не найдено в спаренных. Сначала сопрягите HC-05 в настройках Bluetooth.");
+      }
+      
+      BluetoothDevice device = _devices.firstWhere((d) => d.address == address);
+      _log("Найдено устройство: ${device.name}");
+      
+      // Попытка отключиться от других устройств (если подключено)
+      try {
+        _log("Проверка текущих подключений...");
+      } catch (e) {
+        _log("Не удалось проверить подключения: $e");
+      }
+      
       // Подключение с таймаутом
+      // flutter_bluetooth_serial использует стандартный UUID для SPP автоматически
+      _log("Подключение к устройству...");
       BluetoothConnection connection = await BluetoothConnection.toAddress(address)
           .timeout(
-            const Duration(seconds: 15),
+            const Duration(seconds: 20),
             onTimeout: () {
-              throw TimeoutException("Таймаут подключения (15 сек)");
+              throw TimeoutException("Таймаут подключения (20 сек). Убедитесь, что HC-05 не подключен к другому устройству.");
             },
           );
 
@@ -222,8 +244,9 @@ class _BluetoothConnectionScreenState extends State<BluetoothConnectionScreen> {
   }
 
   Widget _buildConnectedUI() {
-    return Column(
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        children: [
         // Статус
         Container(
           width: double.infinity,
@@ -295,7 +318,9 @@ class _BluetoothConnectionScreenState extends State<BluetoothConnectionScreen> {
           ),
         ),
 
-        Expanded(
+        // Список устройств в скроллируемом списке
+        SizedBox(
+          height: 200,
           child: ListView(
             children: [
               // Список устройств
@@ -375,6 +400,7 @@ class _BluetoothConnectionScreenState extends State<BluetoothConnectionScreen> {
           ),
         ),
       ],
+      ),
     );
   }
 

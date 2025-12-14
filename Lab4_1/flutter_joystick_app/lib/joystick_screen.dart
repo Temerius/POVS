@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'joystick_data.dart';
 import 'game_screen.dart';
+import 'game/ship_game_screen.dart';
 
 class JoystickControlScreen extends StatefulWidget {
   final BluetoothConnection connection;
@@ -92,8 +93,7 @@ class _JoystickControlScreenState extends State<JoystickControlScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => GameScreen(
-                    joystickData: _joystickData,
+                  builder: (context) => ShipGameScreen(
                     joystickNotifier: _joystickNotifier,
                   ),
                 ),
